@@ -87,6 +87,11 @@ export default function NewThread() {
         return;
       }
 
+      if (content.trim().length < 45) {
+        setError("İçerik en az 45 karakter olmalıdır zzz.");
+        return;
+      }
+
       startTransition(async () => {
         try {
           const result = await createTopicAndEntryAction(title, content, base64Image || undefined);

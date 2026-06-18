@@ -152,6 +152,10 @@ export async function createTopicAndEntryAction(title: string, content: string, 
     return { error: "Başlık en fazla 80 karakter olabilir." };
   }
 
+  if (cleanContent.length < 45) {
+    return { error: "İçerik en az 45 karakter olmalıdır zzz." };
+  }
+
   try {
     const slug = await convertToSlug(cleanTitle);
 
@@ -252,6 +256,9 @@ export async function createEntryAction(topicId: string, content: string) {
 
   const cleanContent = content.trim();
   if (!cleanContent) return { error: "İçerik boş olamaz." };
+  if (cleanContent.length < 45) {
+    return { error: "Entry en az 45 karakter olmalıdır zzz." };
+  }
 
   try {
     const topic = await prisma.topic.findUnique({
@@ -1200,6 +1207,9 @@ export async function editEntryAction(entryId: string, newContent: string) {
 
   const cleanContent = newContent.trim();
   if (!cleanContent) return { error: "İçerik boş olamaz." };
+  if (cleanContent.length < 45) {
+    return { error: "İçerik en az 45 karakter olmalıdır zzz." };
+  }
 
   try {
     const entry = await prisma.entry.findUnique({

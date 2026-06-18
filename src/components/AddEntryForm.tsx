@@ -49,6 +49,11 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
       return;
     }
 
+    if (content.trim().length < 45) {
+      setError("Entry en az 45 karakter olmalıdır zzz.");
+      return;
+    }
+
     startTransition(async () => {
       const result = await createEntryAction(topicId, content);
       if (result.error) {

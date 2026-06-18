@@ -67,6 +67,11 @@ export default function EntryBlock({
       return;
     }
 
+    if (editContent.trim().length < 45) {
+      alert("İçerik en az 45 karakter olmalıdır zzz.");
+      return;
+    }
+
     playBuzzSound();
     startTransition(async () => {
       const result = await editEntryAction(entry.id, editContent);
