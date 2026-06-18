@@ -179,7 +179,7 @@ export default function NewThread() {
           <input
             type="text"
             required
-            maxLength={100}
+            maxLength={80}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Konunun başlığı…"
