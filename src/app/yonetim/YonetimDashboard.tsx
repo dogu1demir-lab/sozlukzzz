@@ -140,7 +140,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                   </span>
                 </div>
                 <div className="text-zinc-600 text-[10px] font-mono">
-                  {new Date(report.createdAt).toLocaleString("tr-TR")}
+                  {new Date(report.createdAt).toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" })}
                 </div>
               </div>
 

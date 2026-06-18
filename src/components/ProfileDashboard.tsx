@@ -228,7 +228,7 @@ export default function ProfileDashboard({
               <span>
                 <strong>{entries.length}</strong> gönderi
               </span>
-              <span>• Katılım: {new Date(author.createdAt).toLocaleDateString("tr-TR")}</span>
+               <span>• Katılım: {new Date(author.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
             </div>
           </div>
         </div>
@@ -330,7 +330,7 @@ export default function ProfileDashboard({
                       <Link href={`/baslik/${entry.topic.slug}`} className="text-sm font-bold text-white hover:text-teal-400">
                         {entry.topic.title}
                       </Link>
-                      <span className="text-[10px] text-slate-500">{new Date(entry.createdAt).toLocaleDateString("tr-TR")}</span>
+                       <span className="text-[10px] text-slate-500">{new Date(entry.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
                     </div>
                     <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                       <MentionText content={entry.content} />
@@ -355,7 +355,7 @@ export default function ProfileDashboard({
                         </Link>{" "}
                         başlığındaki gönderiye vızıldadı
                       </div>
-                      <span className="text-[10px] text-slate-500">{new Date(comment.createdAt).toLocaleDateString("tr-TR")}</span>
+                       <span className="text-[10px] text-slate-500">{new Date(comment.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
                     </div>
                     <div className="text-xs text-slate-200">
                       <MentionText content={comment.content} />

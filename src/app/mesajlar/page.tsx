@@ -169,7 +169,8 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                       <span className="text-[10px] text-zinc-500">
                         {new Date(conv.lastMessageDate).toLocaleTimeString("tr-TR", {
                           hour: "2-digit",
-                          minute: "2-digit"
+                          minute: "2-digit",
+                          timeZone: "Europe/Istanbul"
                         })}
                       </span>
                     </div>
@@ -245,7 +246,8 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                     >
                       {new Date(msg.createdAt).toLocaleTimeString("tr-TR", {
                         hour: "2-digit",
-                        minute: "2-digit"
+                        minute: "2-digit",
+                        timeZone: "Europe/Istanbul"
                       })}
                     </span>
                   </div>

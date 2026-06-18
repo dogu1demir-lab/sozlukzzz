@@ -89,7 +89,8 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
         month: "long",
         year: "numeric",
         hour: "2-digit",
-        minute: "2-digit"
+        minute: "2-digit",
+        timeZone: "Europe/Istanbul"
       });
     } catch {
       return "";

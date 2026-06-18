@@ -239,7 +239,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                           >
                             <span className="text-[11px] text-zinc-200">{notif.content}</span>
                             <span className="text-[9px] text-zinc-500">
-                              {new Date(notif.createdAt).toLocaleDateString("tr-TR")}
+                              {new Date(notif.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}
                             </span>
                           </Link>
                         ))
