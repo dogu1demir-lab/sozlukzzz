@@ -1,22 +1,4 @@
-import { PrismaClient } from '../src/generated/prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import path from 'path';
-
-const getDatabaseUrl = () => {
-  let url = process.env.DATABASE_URL || 'file:./prisma/dev.db';
-  if (url.startsWith('file:')) {
-    const filePath = url.replace('file:', '');
-    // Resolve relative path to project root
-    const absolutePath = path.resolve(process.cwd(), filePath);
-    url = `file:${absolutePath}`;
-  }
-  return url;
-};
-
-const adapter = new PrismaBetterSqlite3({
-  url: getDatabaseUrl(),
-});
-const prisma = new PrismaClient({ adapter });
+import { prisma } from '../src/lib/db';
 
 import crypto from 'crypto';
 

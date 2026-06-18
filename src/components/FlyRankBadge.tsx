@@ -59,6 +59,13 @@ function RenderFlyStageSvg({ level }: { level: number }) {
     // Stage 1: Egg (Sinek Yumurtası)
     return (
       <svg viewBox="0 0 64 64" className="w-12 h-12 filter drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)] animate-pulse">
+        <defs>
+          <linearGradient id="eggGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f8fafc" />
+            <stop offset="60%" stopColor="#e2e8f0" />
+            <stop offset="100%" stopColor="#cbd5e1" />
+          </linearGradient>
+        </defs>
         {/* Egg Background glow */}
         <circle cx="32" cy="36" r="14" fill="#fbbf24" opacity="0.15" filter="blur(4px)" />
         {/* Nest/Leaf under egg */}
@@ -80,8 +87,22 @@ function RenderFlyStageSvg({ level }: { level: number }) {
     // Stage 2: Larva
     return (
       <svg viewBox="0 0 64 64" className="w-12 h-12 filter drop-shadow-[0_2px_8px_rgba(16,185,129,0.3)]">
+        <defs>
+          <linearGradient id="larvaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#34d399" />
+            <stop offset="100%" stopColor="#059669" />
+          </linearGradient>
+          <linearGradient id="larvaHeadGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#059669" />
+            <stop offset="100%" stopColor="#047857" />
+          </linearGradient>
+        </defs>
         {/* Ground shadow */}
         <ellipse cx="32" cy="45" rx="16" ry="4" fill="#000" opacity="0.3" />
+        {/* Leaf for level 4 (Obur Larva) */}
+        {level === 4 && (
+          <path d="M12 44 C22 36, 42 42, 46 45 C38 48, 20 48, 12 44" fill="#22c55e" stroke="#15803d" strokeWidth="1.2" opacity="0.85" />
+        )}
         {/* Larva Body (Segmented segments) */}
         <g stroke="#064e3b" strokeWidth="1.5" strokeLinejoin="round">
           {/* Tails segment */}
@@ -106,6 +127,13 @@ function RenderFlyStageSvg({ level }: { level: number }) {
     // Stage 3: Pupa (Chrysalis / Koza)
     return (
       <svg viewBox="0 0 64 64" className="w-12 h-12 filter drop-shadow-[0_2px_8px_rgba(20,184,166,0.3)]">
+        <defs>
+          <linearGradient id="pupaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#b45309" />
+            <stop offset="50%" stopColor="#78350f" />
+            <stop offset="100%" stopColor="#451a03" />
+          </linearGradient>
+        </defs>
         {/* Branch */}
         <path d="M12 14 L52 22" stroke="#451a03" strokeWidth="4" strokeLinecap="round" />
         {/* Hanging silk */}
@@ -125,57 +153,517 @@ function RenderFlyStageSvg({ level }: { level: number }) {
     );
   } else if (level <= 18) {
     // Stage 4: Adult Fly (Karasinek)
+    let bodyFill = "url(#flyBodyGrad)";
+    let wingFill = "url(#wingGrad)";
+    let wingStroke = "#1e3a8a";
+    let eyeFill = "url(#eyeGrad)";
+    let legsColor = "#0f172a";
+    let strokeColor = "#0f172a";
+    let headFill = "#1e293b";
+    let glowFilter = "drop-shadow-[0_4px_10px_rgba(59,130,246,0.3)]";
+    let showBeeStripes = false;
+    let showSoundWaves = false;
+    let showTarget = false;
+    let customWings = false;
+    let showSpeedTrails = false;
+    let showArmor = false;
+
+    if (level === 7) {
+      // Meyve Sineği (Fruit Fly / Watermelon theme)
+      bodyFill = "url(#fruitBodyGrad)";
+      wingFill = "rgba(253, 224, 71, 0.45)";
+      wingStroke = "#b45309";
+      eyeFill = "#22c55e";
+      glowFilter = "drop-shadow-[0_4px_10px_rgba(239,68,68,0.4)]";
+    } else if (level === 8) {
+      // Ev Sineği (House Fly)
+      bodyFill = "url(#houseBodyGrad)";
+      wingFill = "rgba(148, 163, 184, 0.35)";
+      wingStroke = "#64748b";
+      eyeFill = "#991b1b";
+    } else if (level === 9) {
+      // Vız Vız Sinek (Buzzing Fly - Cyan electric)
+      bodyFill = "url(#buzzBodyGrad)";
+      wingFill = "rgba(34, 211, 238, 0.5)";
+      wingStroke = "#0891b2";
+      eyeFill = "#f97316";
+      glowFilter = "drop-shadow-[0_4px_10px_rgba(6,182,212,0.5)]";
+      showSoundWaves = true;
+    } else if (level === 10) {
+      // Karasinek (Black Fly)
+      bodyFill = "url(#blackBodyGrad)";
+      wingFill = "rgba(71, 85, 105, 0.45)";
+      wingStroke = "#1e293b";
+      eyeFill = "#ef4444";
+      glowFilter = "drop-shadow-[0_4px_10px_rgba(15,23,42,0.6)]";
+    } else if (level === 11) {
+      // Yeşil Sinek (Green Bottle Fly - Metallic green)
+      bodyFill = "url(#greenBodyGrad)";
+      wingFill = "rgba(52, 211, 153, 0.4)";
+      wingStroke = "#047857";
+      eyeFill = "#dc2626";
+      glowFilter = "drop-shadow-[0_4px_12px_rgba(16,185,129,0.5)]";
+    } else if (level === 12) {
+      // At Sineği (Horse Fly - Heavy brown)
+      bodyFill = "url(#horseBodyGrad)";
+      wingFill = "rgba(180, 83, 9, 0.4)";
+      wingStroke = "#78350f";
+      eyeFill = "#1d4ed8";
+      glowFilter = "drop-shadow-[0_4px_10px_rgba(120,53,15,0.4)]";
+    } else if (level === 13) {
+      // Arı Sineği (Bee Fly - Yellow striped)
+      bodyFill = "url(#beeBodyGrad)";
+      wingFill = "rgba(251, 191, 36, 0.35)";
+      wingStroke = "#b45309";
+      eyeFill = "#0f172a";
+      glowFilter = "drop-shadow-[0_4px_10px_rgba(234,179,8,0.4)]";
+      showBeeStripes = true;
+    } else if (level === 14) {
+      // Avcı Sinek (Hunter Fly - Rose copper)
+      bodyFill = "url(#hunterBodyGrad)";
+      wingFill = "rgba(245, 158, 11, 0.45)";
+      wingStroke = "#d97706";
+      eyeFill = "#f43f5e";
+      glowFilter = "drop-shadow-[0_4px_10px_rgba(244,63,94,0.4)]";
+      showTarget = true;
+    } else if (level === 15) {
+      // Aerodinamik Sinek (Aerodynamic Fly - Cyan plane)
+      bodyFill = "url(#aeroBodyGrad)";
+      wingFill = "rgba(6, 182, 212, 0.5)";
+      wingStroke = "#0891b2";
+      eyeFill = "#facc15";
+      glowFilter = "drop-shadow-[0_4px_12px_rgba(6,182,212,0.5)]";
+      customWings = true;
+    } else if (level === 16) {
+      // Kanat Ustası (Wing Master - Speed violet)
+      bodyFill = "url(#wingMasterBodyGrad)";
+      wingFill = "rgba(165, 180, 252, 0.55)";
+      wingStroke = "#6366f1";
+      eyeFill = "#f43f5e";
+      glowFilter = "drop-shadow-[0_4px_12px_rgba(99,102,241,0.5)]";
+      showSpeedTrails = true;
+    } else if (level === 17) {
+      // Vızıltı Efendisi (Lord of Buzz - Pink magic)
+      bodyFill = "url(#buzzLordBodyGrad)";
+      wingFill = "rgba(236, 72, 153, 0.55)";
+      wingStroke = "#db2777";
+      eyeFill = "#f59e0b";
+      glowFilter = "drop-shadow-[0_6px_14px_rgba(219,39,119,0.5)]";
+      showSoundWaves = true;
+    } else if (level === 18) {
+      // Çelik Kanat (Steel Wing - Armored plates)
+      bodyFill = "url(#steelBodyGrad)";
+      wingFill = "url(#steelWingGrad)";
+      wingStroke = "#475569";
+      eyeFill = "#cbd5e1";
+      glowFilter = "drop-shadow-[0_4px_12px_rgba(148,163,184,0.4)]";
+      showArmor = true;
+    }
+
     return (
-      <svg viewBox="0 0 64 64" className="w-14 h-14 filter drop-shadow-[0_4px_10px_rgba(59,130,246,0.3)]">
+      <svg viewBox="0 0 64 64" className={`w-14 h-14 filter ${glowFilter}`}>
+        <defs>
+          <linearGradient id="fruitBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f87171" />
+            <stop offset="60%" stopColor="#ef4444" />
+            <stop offset="100%" stopColor="#b91c1c" />
+          </linearGradient>
+          <linearGradient id="houseBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#64748b" />
+            <stop offset="50%" stopColor="#475569" />
+            <stop offset="100%" stopColor="#1e293b" />
+          </linearGradient>
+          <linearGradient id="buzzBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#22d3ee" />
+            <stop offset="65%" stopColor="#06b6d4" />
+            <stop offset="100%" stopColor="#0891b2" />
+          </linearGradient>
+          <linearGradient id="blackBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#334155" />
+            <stop offset="70%" stopColor="#0f172a" />
+            <stop offset="100%" stopColor="#020617" />
+          </linearGradient>
+          <linearGradient id="greenBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#34d399" />
+            <stop offset="40%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#064e3b" />
+          </linearGradient>
+          <linearGradient id="horseBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a16207" />
+            <stop offset="60%" stopColor="#78350f" />
+            <stop offset="100%" stopColor="#451a03" />
+          </linearGradient>
+          <linearGradient id="beeBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fef08a" />
+            <stop offset="50%" stopColor="#eab308" />
+            <stop offset="100%" stopColor="#ca8a04" />
+          </linearGradient>
+          <linearGradient id="hunterBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fb923c" />
+            <stop offset="60%" stopColor="#ea580c" />
+            <stop offset="100%" stopColor="#7c2d12" />
+          </linearGradient>
+          <linearGradient id="aeroBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#06b6d4" />
+            <stop offset="50%" stopColor="#0891b2" />
+            <stop offset="100%" stopColor="#0f172a" />
+          </linearGradient>
+          <linearGradient id="wingMasterBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#818cf8" />
+            <stop offset="60%" stopColor="#4f46e5" />
+            <stop offset="100%" stopColor="#31108f" />
+          </linearGradient>
+          <linearGradient id="buzzLordBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f472b6" />
+            <stop offset="50%" stopColor="#db2777" />
+            <stop offset="100%" stopColor="#831843" />
+          </linearGradient>
+          <linearGradient id="steelBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#94a3b8" />
+            <stop offset="50%" stopColor="#64748b" />
+            <stop offset="100%" stopColor="#334155" />
+          </linearGradient>
+          <linearGradient id="steelWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#cbd5e1" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#94a3b8" stopOpacity="0.6" />
+          </linearGradient>
+          <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.45" />
+          </linearGradient>
+          <linearGradient id="eyeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="100%" stopColor="#b91c1c" />
+          </linearGradient>
+          <linearGradient id="flyBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#475569" />
+            <stop offset="70%" stopColor="#1e293b" />
+            <stop offset="100%" stopColor="#0f172a" />
+          </linearGradient>
+        </defs>
+
         {/* Shadow */}
         <ellipse cx="32" cy="50" rx="14" ry="4" fill="#000" opacity="0.3" />
-        {/* Left Wing */}
-        <path d="M20 22 C10 12, 6 28, 22 34 Z" fill="url(#wingGrad)" stroke="#1e3a8a" strokeWidth="1.5" opacity="0.75" />
-        {/* Right Wing */}
-        <path d="M44 22 C54 12, 58 28, 42 34 Z" fill="url(#wingGrad)" stroke="#1e3a8a" strokeWidth="1.5" opacity="0.75" />
-        {/* Fly Legs */}
-        <path d="M24 38 L16 42 M24 34 L14 36 M40 38 L48 42 M40 34 L50 36" stroke="#0f172a" strokeWidth="2" strokeLinecap="round" />
-        {/* Fly Body */}
-        <ellipse cx="32" cy="34" rx="8" ry="11" fill="url(#flyBodyGrad)" stroke="#0f172a" strokeWidth="2" />
-        <ellipse cx="32" cy="34" rx="6" ry="9" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-        {/* Fly Head */}
-        <circle cx="32" cy="22" r="5.5" fill="#1e293b" stroke="#0f172a" strokeWidth="2" />
-        {/* Fly Eyes (Big metallic compound eyes) */}
-        <circle cx="28.5" cy="20.5" r="3" fill="url(#eyeGrad)" />
-        <circle cx="35.5" cy="20.5" r="3" fill="url(#eyeGrad)" />
+
+        {/* Sound wave rings for buzzing types */}
+        {showSoundWaves && (
+          <g>
+            <circle cx="32" cy="34" r="16" fill="none" stroke={level === 17 ? "#ec4899" : "#22d3ee"} strokeWidth="1" strokeDasharray="3 6" opacity="0.4" className="animate-ping" />
+            <circle cx="32" cy="34" r="22" fill="none" stroke={level === 17 ? "#ec4899" : "#22d3ee"} strokeWidth="0.8" strokeDasharray="2 4" opacity="0.25" />
+          </g>
+        )}
+
+        {/* Speed trails for Kanat Ustası */}
+        {showSpeedTrails && (
+          <g stroke="#818cf8" strokeWidth="1.5" strokeLinecap="round" opacity="0.6">
+            <line x1="6" y1="18" x2="14" y2="18" />
+            <line x1="50" y1="18" x2="58" y2="18" />
+            <line x1="4" y1="26" x2="12" y2="26" />
+            <line x1="52" y1="26" x2="60" y2="26" />
+            <line x1="8" y1="34" x2="15" y2="34" />
+            <line x1="49" y1="34" x2="56" y2="34" />
+          </g>
+        )}
+
+        {/* Wings */}
+        {customWings ? (
+          // Sweptback wings for Aerodinamik Sinek
+          <>
+            <path d="M20 25 L4 12 L16 31 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" />
+            <path d="M44 25 L60 12 L48 31 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" />
+          </>
+        ) : level === 17 ? (
+          // Double wings for Vızıltı Efendisi
+          <>
+            {/* Main Wings */}
+            <path d="M20 22 C10 12, 6 28, 22 34 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" opacity="0.8" />
+            <path d="M44 22 C54 12, 58 28, 42 34 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" opacity="0.8" />
+            {/* Secondary lower wings */}
+            <path d="M22 28 C14 20, 8 36, 24 38 Z" fill="rgba(244, 114, 182, 0.45)" stroke="#db2777" strokeWidth="1" opacity="0.7" />
+            <path d="M42 28 C50 20, 56 36, 40 38 Z" fill="rgba(244, 114, 182, 0.45)" stroke="#db2777" strokeWidth="1" opacity="0.7" />
+          </>
+        ) : (
+          // Standard wings
+          <>
+            <path d="M20 22 C10 12, 6 28, 22 34 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" opacity="0.75" />
+            <path d="M44 22 C54 12, 58 28, 42 34 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" opacity="0.75" />
+          </>
+        )}
+
+        {/* Armored lines on wings for Steel Wing */}
+        {showArmor && (
+          <g stroke="#475569" strokeWidth="1" opacity="0.8">
+            <path d="M12 20 L22 28" />
+            <path d="M52 20 L42 28" />
+            <path d="M16 26 L23 30" />
+            <path d="M48 26 L41 30" />
+          </g>
+        )}
+
+        {/* Legs */}
+        <path d="M24 38 L16 42 M24 34 L14 36 M40 38 L48 42 M40 34 L50 36" stroke={legsColor} strokeWidth="2" strokeLinecap="round" />
+
+        {/* Body */}
+        <ellipse cx="32" cy="34" rx="8" ry="11" fill={bodyFill} stroke={strokeColor} strokeWidth="2" />
+        
+        {/* Armor plating segments / stripes */}
+        {showBeeStripes ? (
+          <g stroke="#1c0d02" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M26 31 L38 31" />
+            <path d="M24 35 L40 35" />
+            <path d="M26 39 L38 39" />
+          </g>
+        ) : showArmor ? (
+          <g stroke="#1e293b" strokeWidth="1.8" strokeLinecap="round">
+            <path d="M26 30 L38 30" />
+            <path d="M24 34 L40 34" />
+            <path d="M26 38 L38 38" />
+          </g>
+        ) : (
+          <ellipse cx="32" cy="34" rx="6" ry="9" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+        )}
+
+        {/* Head */}
+        <circle cx="32" cy="22" r="5.5" fill={headFill} stroke={strokeColor} strokeWidth="2" />
+
+        {/* Target lock visual for Hunter Fly */}
+        {showTarget && (
+          <g stroke="#f43f5e" strokeWidth="0.8" opacity="0.8">
+            <circle cx="28.5" cy="20.5" r="4.5" fill="none" strokeDasharray="1.5 1.5" />
+            <circle cx="35.5" cy="20.5" r="4.5" fill="none" strokeDasharray="1.5 1.5" />
+          </g>
+        )}
+
+        {/* Eyes */}
+        <circle cx="28.5" cy="20.5" r="3" fill={eyeFill} />
+        <circle cx="35.5" cy="20.5" r="3" fill={eyeFill} />
+
         {/* Antenna */}
-        <path d="M30 17 Q28 13, 26 14 M34 17 Q36 13, 38 14" stroke="#0f172a" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M30 17 Q28 13, 26 14 M34 17 Q36 13, 38 14" stroke={strokeColor} strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     );
   } else {
     // Stage 5: Golden / Legendary Fly (Soylu / Kral / Altın / Efsane Sinek / Sonsuz Vızıltı)
-    return (
-      <svg viewBox="0 0 64 64" className="w-14 h-14 filter drop-shadow-[0_4px_12px_rgba(234,179,8,0.5)]">
-        {/* Radiant glow background */}
-        <circle cx="32" cy="32" r="22" fill="url(#goldGlow)" opacity="0.45" />
-        {/* Sparkle stars */}
-        <path d="M32 4 L33 9 L38 10 L33 11 L32 16 L31 11 L26 10 L31 9 Z" fill="#fef08a" />
-        <path d="M12 48 L12.5 50.5 L15 51 L12.5 51.5 L12 54 L11.5 51.5 L9 51 L11.5 50.5 Z" fill="#fef08a" />
-        <path d="M52 48 L52.5 50.5 L55 51 L52.5 51.5 L52 54 L51.5 51.5 L49 51 L51.5 50.5 Z" fill="#fef08a" />
-        
-        {/* Crown on top */}
-        <path d="M26 12 L28 16 L32 13 L36 16 L38 12 L35 18 L29 18 Z" fill="#f59e0b" stroke="#78350f" strokeWidth="1" />
-        <circle cx="32" cy="11.5" r="1" fill="#ef4444" />
-        <circle cx="26" cy="10.5" r="0.8" fill="#ef4444" />
-        <circle cx="38" cy="10.5" r="0.8" fill="#ef4444" />
+    let bodyFill = "url(#goldBodyGrad)";
+    let wingFill = "url(#goldWingGrad)";
+    let wingStroke = "#78350f";
+    let eyeFill = "url(#goldEyeGrad)";
+    let auraFill = "url(#goldGlow)";
+    let sparklesColor = "#fef08a";
+    let glowFilter = "drop-shadow-[0_4px_12px_rgba(234,179,8,0.5)]";
+    let showCrown = false;
+    let headFill = "#f59e0b";
+    
+    // Level-specific styles
+    if (level === 19) {
+      // Soylu Sinek
+      bodyFill = "url(#nobleBodyGrad)";
+      wingFill = "url(#nobleWingGrad)";
+      wingStroke = "#b45309";
+      eyeFill = "#fbbf24";
+      auraFill = "url(#nobleGlow)";
+      sparklesColor = "#d8b4fe";
+      glowFilter = "drop-shadow-[0_4px_12px_rgba(139,92,246,0.55)]";
+      headFill = "#7c3aed";
+    } else if (level === 20) {
+      // Kral Sinek
+      bodyFill = "url(#royalBodyGrad)";
+      wingFill = "url(#royalWingGrad)";
+      wingStroke = "#b45309";
+      eyeFill = "#10b981"; // Emerald eyes
+      auraFill = "url(#royalGlow)";
+      sparklesColor = "#fde047";
+      glowFilter = "drop-shadow-[0_6px_14px_rgba(239,68,68,0.55)]";
+      showCrown = true;
+      headFill = "#dc2626";
+    } else if (level === 21) {
+      // Altın Sinek
+      bodyFill = "url(#goldBodyGrad)";
+      wingFill = "url(#goldWingGrad)";
+      wingStroke = "#92400e";
+      eyeFill = "#ffffff"; // Diamond eyes
+      auraFill = "url(#goldGlow)";
+      sparklesColor = "#fef08a";
+      glowFilter = "drop-shadow-[0_8px_16px_rgba(251,191,36,0.7)]";
+      headFill = "#fbbf24";
+    } else if (level === 22) {
+      // Efsane Vızıltı
+      bodyFill = "url(#legendBodyGrad)";
+      wingFill = "url(#legendWingGrad)";
+      wingStroke = "#701a75";
+      eyeFill = "#22d3ee";
+      auraFill = "url(#legendGlow)";
+      sparklesColor = "#f472b6";
+      glowFilter = "drop-shadow-[0_6px_16px_rgba(236,72,153,0.65)]";
+      headFill = "#ec4899";
+    } else if (level === 23) {
+      // Sözlükzzz Ruhu
+      bodyFill = "url(#spiritBodyGrad)";
+      wingFill = "url(#spiritWingGrad)";
+      wingStroke = "#3730a3";
+      eyeFill = "#fbbf24";
+      auraFill = "url(#spiritGlow)";
+      sparklesColor = "#a5b4fc";
+      glowFilter = "drop-shadow-[0_6px_16px_rgba(99,102,241,0.65)]";
+      headFill = "#6366f1";
+    } else if (level === 24) {
+      // Sonsuz Vızıltı
+      bodyFill = "url(#infiniteBodyGrad)";
+      wingFill = "url(#infiniteWingGrad)";
+      wingStroke = "#db2777";
+      eyeFill = "#10b981"; // Emerald eyes
+      auraFill = "url(#infiniteGlow)";
+      sparklesColor = "#fdf2f8";
+      glowFilter = "drop-shadow-[0_8px_22px_rgba(236,72,153,0.85)]";
+      showCrown = true;
+      headFill = "#c084fc";
+    }
 
-        {/* Golden Wings */}
-        <path d="M20 22 C8 10, 4 28, 22 34 Z" fill="url(#goldWingGrad)" stroke="#78350f" strokeWidth="1.5" />
-        <path d="M44 22 C56 10, 60 28, 42 34 Z" fill="url(#goldWingGrad)" stroke="#78350f" strokeWidth="1.5" />
+    return (
+      <svg viewBox="0 0 64 64" className={`w-14 h-14 filter ${glowFilter}`}>
+        <defs>
+          {/* Gradients for Level 19-24 */}
+          <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#fef08a" stopOpacity="0.75" />
+            <stop offset="100%" stopColor="#eab308" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="goldWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fef08a" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#ca8a04" stopOpacity="0.75" />
+          </linearGradient>
+          <linearGradient id="goldBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fbbf24" />
+            <stop offset="50%" stopColor="#d97706" />
+            <stop offset="100%" stopColor="#92400e" />
+          </linearGradient>
+          <radialGradient id="goldEyeGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#38bdf8" />
+            <stop offset="100%" stopColor="#0284c7" />
+          </radialGradient>
+          
+          <radialGradient id="nobleGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#c084fc" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="nobleBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a78bfa" />
+            <stop offset="60%" stopColor="#7c3aed" />
+            <stop offset="100%" stopColor="#4c1d95" />
+          </linearGradient>
+          <linearGradient id="nobleWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fde047" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.6" />
+          </linearGradient>
+
+          <radialGradient id="royalGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#f87171" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#b91c1c" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="royalBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="50%" stopColor="#b91c1c" />
+            <stop offset="100%" stopColor="#7f1d1d" />
+          </linearGradient>
+          <linearGradient id="royalWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fef08a" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#f97316" stopOpacity="0.6" />
+          </linearGradient>
+
+          <radialGradient id="legendGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#f472b6" stopOpacity="0.7" />
+            <stop offset="100%" stopColor="#db2777" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="legendBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f472b6" />
+            <stop offset="50%" stopColor="#db2777" />
+            <stop offset="100%" stopColor="#701a75" />
+          </linearGradient>
+          <linearGradient id="legendWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#67e8f9" stopOpacity="0.95" />
+            <stop offset="50%" stopColor="#f472b6" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#c084fc" stopOpacity="0.6" />
+          </linearGradient>
+
+          <radialGradient id="spiritGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#a5b4fc" stopOpacity="0.75" />
+            <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="spiritBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#818cf8" />
+            <stop offset="55%" stopColor="#4f46e5" />
+            <stop offset="100%" stopColor="#31108f" />
+          </linearGradient>
+          <linearGradient id="spiritWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a5b4fc" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#818cf8" stopOpacity="0.4" />
+          </linearGradient>
+
+          <radialGradient id="infiniteGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#c084fc" stopOpacity="0.8" />
+            <stop offset="50%" stopColor="#ec4899" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="infiniteBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#1e1b4b" />
+            <stop offset="50%" stopColor="#4c1d95" />
+            <stop offset="100%" stopColor="#ec4899" />
+          </linearGradient>
+          <linearGradient id="infiniteWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#f472b6" stopOpacity="0.9" />
+            <stop offset="30%" stopColor="#a78bfa" stopOpacity="0.8" />
+            <stop offset="70%" stopColor="#38bdf8" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#34d399" stopOpacity="0.6" />
+          </linearGradient>
+        </defs>
+
+        {/* Radiant glow background */}
+        <circle cx="32" cy="32" r="22" fill={auraFill} />
         
+        {/* Sparkle stars / Magic particles */}
+        <g fill={sparklesColor}>
+          <path d="M32 3 L33.2 8 L38 9.2 L33.2 10.4 L32 15 L30.8 10.4 L26 9.2 L30.8 8 Z" />
+          <path d="M12 46 L12.5 48.5 L15 49 L12.5 49.5 L12 52 L11.5 49.5 L9 49 L11.5 48.5 Z" />
+          <path d="M52 46 L52.5 48.5 L55 49 L52.5 49.5 L52 52 L51.5 49.5 L49 49 L51.5 48.5 Z" />
+        </g>
+
+        {/* Rotating ring for Level 24 (Sonsuz Vızıltı) */}
+        {level === 24 && (
+          <circle cx="32" cy="32" r="24" fill="none" stroke="url(#infiniteWingGrad)" strokeWidth="1.2" strokeDasharray="3 6" opacity="0.6" />
+        )}
+
+        {/* Crown on top (Visible for King Fly or Sonsuz Vızıltı) */}
+        {showCrown && (
+          <g>
+            <path d="M25 12 L28 16 L32 12 L36 16 L39 12 L36 19 L28 19 Z" fill="#eab308" stroke="#78350f" strokeWidth="1" />
+            <circle cx="32" cy="11.5" r="1.2" fill={level === 24 ? "#10b981" : "#ef4444"} />
+            <circle cx="25" cy="11.5" r="0.8" fill={level === 24 ? "#ec4899" : "#ef4444"} />
+            <circle cx="39" cy="11.5" r="0.8" fill={level === 24 ? "#ec4899" : "#ef4444"} />
+          </g>
+        )}
+
+        {/* Shadow */}
+        <ellipse cx="32" cy="50" rx="14" ry="4" fill="#000" opacity="0.35" />
+
+        {/* Fly Legs */}
+        <path d="M24 38 L16 42 M24 34 L14 36 M40 38 L48 42 M40 34 L50 36" stroke="#78350f" strokeWidth="2" strokeLinecap="round" />
+
+        {/* Golden/Divine Wings */}
+        <path d="M20 22 C8 10, 4 28, 22 34 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" />
+        <path d="M44 22 C56 10, 60 28, 42 34 Z" fill={wingFill} stroke={wingStroke} strokeWidth="1.5" />
+
         {/* Fly Body */}
-        <ellipse cx="32" cy="34" rx="8" ry="11" fill="url(#goldBodyGrad)" stroke="#78350f" strokeWidth="2" />
-        
+        <ellipse cx="32" cy="34" rx="8" ry="11" fill={bodyFill} stroke={wingStroke} strokeWidth="2" />
+        <ellipse cx="32" cy="34" rx="6" ry="9" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
+
         {/* Fly Head */}
-        <circle cx="32" cy="22" r="5.5" fill="#f59e0b" stroke="#78350f" strokeWidth="2" />
+        <circle cx="32" cy="22" r="5.5" fill={headFill} stroke={wingStroke} strokeWidth="2" />
+        
         {/* Fly Eyes */}
-        <circle cx="28.5" cy="20.5" r="3" fill="url(#goldEyeGrad)" />
-        <circle cx="35.5" cy="20.5" r="3" fill="url(#goldEyeGrad)" />
+        <circle cx="28.5" cy="20.5" r="3.2" fill={eyeFill} />
+        <circle cx="35.5" cy="20.5" r="3.2" fill={eyeFill} />
+
+        {/* Antenna */}
+        <path d="M30 17 Q28 13, 26 14 M34 17 Q36 13, 38 14" stroke={wingStroke} strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     );
   }
