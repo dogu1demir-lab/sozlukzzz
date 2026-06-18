@@ -71,7 +71,7 @@ export default async function Sidebar() {
       {/* Fun Footer info */}
       <div className="mt-6 pt-3 border-t border-zinc-900 text-center">
         <p className="text-[9px] text-zinc-650">
-          sözlükzzz © 2026 • vızzz!
+          sözlükzzz © 2026 • vızzz! • Kurucu Doğu Demir
         </p>
       </div>
     </aside>
