@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
 import { getDynamicSidebarTopicsAction } from "@/app/actions";
@@ -16,13 +16,43 @@ interface TopicItem {
 
 export default function SidebarContent() {
   const searchParams = useSearchParams();
-  const activeTab = searchParams.get("tab") || "bugun";
+  const pathname = usePathname();
+  const urlTab = searchParams.get("tab");
 
+  const [activeTab, setActiveTab] = useState<string>("bugun");
   const [topics, setTopics] = useState<TopicItem[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+
+  // 1. Detect and preserve tab state across page transitions
+  useEffect(() => {
+    let tab = "bugun";
+    
+    if (urlTab) {
+      tab = urlTab;
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("lastActiveTab", urlTab);
+      }
+    } else if (pathname === "/") {
+      // If we go back to the home page root without query params, force reset to "bugun"
+      tab = "bugun";
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("lastActiveTab", "bugun");
+      }
+    } else {
+      // On other pages (/baslik/[slug], /yazar/[username], etc.), look up sessionStorage
+      if (typeof window !== "undefined") {
+        const storedTab = sessionStorage.getItem("lastActiveTab");
+        if (storedTab) {
+          tab = storedTab;
+        }
+      }
+    }
+    
+    setActiveTab(tab);
+  }, [urlTab, pathname]);
 
   // Fetch topics for the active tab
   const fetchTopics = async (tabName: string, isRefresh = false) => {
