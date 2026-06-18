@@ -1,0 +1,103 @@
+import { prisma } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
+import PozKesCard from "@/components/PozKesCard";
+import PozKesLoadMore from "@/components/PozKesLoadMore";
+
+export const revalidate = 0; // Disable cache to fetch real-time items
+
+export default async function PozKesPage() {
+  const user = await getSessionUser();
+
+  const entries = await prisma.entry.findMany({
+    where: {
+      imageUrl: { not: null }
+    },
+    include: {
+      author: {
+        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+      },
+      likes: true,
+      comments: {
+        include: {
+          author: {
+            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+          },
+          likes: true
+        },
+        orderBy: {
+          createdAt: "asc"
+        }
+      }
+    },
+    orderBy: {
+      createdAt: "desc"
+    },
+    take: 10
+  });
+
+  const formattedEntries = entries.map((entry) => {
+    const likesCount = entry.likes.filter((l) => l.isLike).length;
+    const hasLiked = user ? entry.likes.some((l) => l.userId === user.id && l.isLike) : false;
+
+    const formattedComments = entry.comments.map((comment) => {
+      const likesCount = comment.likes.length;
+      const hasLiked = user ? comment.likes.some((l) => l.userId === user.id) : false;
+      return {
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        author: comment.author,
+        likesCount,
+        hasLiked
+      };
+    });
+
+    return {
+      id: entry.id,
+      content: entry.content,
+      imageUrl: entry.imageUrl!,
+      createdAt: entry.createdAt,
+      author: entry.author,
+      likesCount,
+      hasLiked,
+      comments: formattedComments
+    };
+  });
+
+  return (
+    <div className="kd-page">
+      {/* Page Header */}
+      <div className="kd-header">
+        <h1 className="kd-title">PozKes 📸</h1>
+        <p className="kd-subtitle">Kullanıcıların paylaştığı fotoğraflar</p>
+      </div>
+
+      {/* Feed list */}
+      <div className="kd-feed">
+        {formattedEntries.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-zinc-850 p-12 text-center text-zinc-500">
+            <p className="text-sm">PozKes'te henüz paylaşılmış bir fotoğraf bulunamadı zzz.</p>
+          </div>
+        ) : (
+          <>
+            {formattedEntries.map((entry) => (
+              <PozKesCard
+                key={entry.id}
+                entry={entry}
+                isLoggedIn={!!user}
+                currentUserId={user?.id}
+                isAdmin={user?.role === "ADMIN"}
+              />
+            ))}
+            <PozKesLoadMore
+              initialOffset={formattedEntries.length}
+              isLoggedIn={!!user}
+              currentUserId={user?.id}
+              isAdmin={user?.role === "ADMIN"}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

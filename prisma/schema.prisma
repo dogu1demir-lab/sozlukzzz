@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  avatarColor  String   @default("#14b8a6") // Default avatar color (e.g. Teal)
+  avatarUrl    String?  // Optional Cloudinary avatar URL
+  bio          String?  // Optional short bio
+  role         String   @default("USER") // USER, ADMIN
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  entries          Entry[]
+  topics           Topic[]
+  likes            Like[]
+  comments         Comment[]
+  commentLikes     CommentLike[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  notifications    Notification[]
+  pollVotes        PollVote[]
+  
+  // Follow system (Self-relation)
+  followers        Follow[]       @relation("following")
+  following        Follow[]       @relation("followers")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  title       String   @unique // The exact name of the topic
+  slug        String   @unique // URL-friendly slug (e.g., "ekstrasistol-nedir")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  viewCount   Int      @default(0) // Added for "en çok görüntülenen"
+  
+  entries     Entry[]
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+  createdById String?
+  poll        Poll?
+}
+
+model Entry {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?  // Added for "PozKes" (image posts)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId   String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+
+  likes     Like[]
+  comments  Comment[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  isLike    Boolean  // true if like, false if dislike
+  createdAt DateTime @default(now())
+
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entryId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@unique([entryId, userId]) // A user can only like/dislike once per entry
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+
+  sender     User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId   String
+  receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId String
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  type       String   // e.g., "LIKE", "REPLY", "MESSAGE", "SYSTEM"
+  content    String
+  relatedUrl String?  // Optional relative URL (e.g. /baslik/sinek#entry-1)
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entryId   String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  String
+
+  likes     CommentLike[]
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@unique([commentId, userId])
+}
+
+model Poll {
+  id        String       @id @default(cuid())
+  question  String
+  topic     Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId   String       @unique
+  options   PollOption[]
+  votes     PollVote[]
+  createdAt DateTime     @default(now())
+}
+
+model PollOption {
+  id     String     @id @default(cuid())
+  text   String
+  poll   Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollId String
+  votes  PollVote[]
+}
+
+model PollVote {
+  id       String     @id @default(cuid())
+  poll     Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  pollId   String
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+
+  @@unique([pollId, userId])
+}
+

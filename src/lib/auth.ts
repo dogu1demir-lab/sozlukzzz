@@ -1,0 +1,52 @@
+import { cookies } from "next/headers";
+import { prisma } from "./db";
+
+const SESSION_COOKIE_NAME = "sozlukzzz_session";
+
+export interface SessionUser {
+  id: string;
+  username: string;
+  role: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+}
+
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
+  if (!sessionCookie?.value) return null;
+
+  try {
+    // Decode base64 session payload
+    const payload = JSON.parse(Buffer.from(sessionCookie.value, "base64").toString("utf-8"));
+    if (!payload.userId) return null;
+
+    // Fetch user from DB
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, username: true, role: true, avatarColor: true, avatarUrl: true },
+    });
+    return user;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function setSessionCookie(userId: string) {
+  const cookieStore = await cookies();
+  const payload = JSON.stringify({ userId, createdAt: new Date().toISOString() });
+  const base64Session = Buffer.from(payload).toString("base64");
+
+  cookieStore.set(SESSION_COOKIE_NAME, base64Session, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7, // 1 week
+    path: "/",
+  });
+}
+
+export async function clearSessionCookie() {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
+}
