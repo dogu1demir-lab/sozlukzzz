@@ -1196,4 +1196,38 @@ body {
   div:has(.kaydol-page) aside {
     display: none !important;
   }
+
+  .profile-identity-top {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100%;
+  }
+
+  .profile-actions {
+    width: 100%;
+  }
+
+  .profile-actions > div {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .profile-actions > div > button,
+  .profile-actions > div > a {
+    flex: 1 1 50% !important;
+    width: 100% !important;
+    justify-content: center !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    border-radius: 9999px !important;
+  }
+
+  .profile-actions > a {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+    border-radius: 9999px !important;
+  }
 }

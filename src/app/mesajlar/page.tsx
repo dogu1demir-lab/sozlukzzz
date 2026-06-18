@@ -115,7 +115,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-120px)] rounded-2xl border border-zinc-900 overflow-hidden bg-zinc-950/20 shadow-2xl animate-in fade-in duration-300">
+    <div className="flex h-[550px] md:h-[620px] max-h-[calc(100dvh-130px)] rounded-2xl border border-zinc-900 overflow-hidden bg-zinc-950/20 shadow-2xl animate-in fade-in duration-300">
       
       {/* Left Column: Conversations List */}
       <div className={`w-full md:w-80 shrink-0 border-r border-zinc-900 bg-zinc-950/60 flex flex-col ${u ? "hidden md:flex" : "flex"}`}>
