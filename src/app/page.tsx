@@ -79,7 +79,7 @@ export default async function Home({ searchParams }: PageProps) {
         }
       }));
   } else if (activeTab === "gundem") {
-    // General agenda flow (recent entries, grouped by topic)
+    // General agenda flow (recent entries, grouped by topic, sorted by total entry count)
     const topics = await prisma.topic.findMany({
       where: {
         entries: {
@@ -104,7 +104,9 @@ export default async function Home({ searchParams }: PageProps) {
         }
       },
       orderBy: {
-        updatedAt: "desc"
+        entries: {
+          _count: "desc"
+        }
       },
       take: 20
     });

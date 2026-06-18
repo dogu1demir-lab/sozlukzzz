@@ -1037,7 +1037,9 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           }
         },
         orderBy: {
-          updatedAt: "desc"
+          entries: {
+            _count: "desc"
+          }
         },
         skip: offset,
         take: limit
