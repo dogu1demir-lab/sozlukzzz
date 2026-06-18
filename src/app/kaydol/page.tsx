@@ -110,7 +110,6 @@ export default function Register() {
             <Link 
               href="/giris" 
               className="font-bold text-lime-400 hover:underline hover:text-lime-300 transition-colors"
-              onClick={() => playBuzzSound()}
             >
               giriş yap
             </Link>

@@ -110,7 +110,6 @@ export default function Login() {
             <Link 
               href="/kaydol" 
               className="font-bold text-lime-400 hover:underline hover:text-lime-300 transition-colors"
-              onClick={() => playBuzzSound()}
             >
               hemen kaydol
             </Link>

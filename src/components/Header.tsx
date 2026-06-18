@@ -148,7 +148,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
           <Link 
             href="/" 
             className="flex items-center gap-1 group text-sm sm:text-base font-bold tracking-tight text-white hover:text-lime-400 transition-colors"
-            onClick={() => playBuzzSound()}
           >
             <span className="inline-block animate-pulse text-lime-400 text-lg group-hover:animate-bounce">
               🪰
@@ -189,7 +188,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
               <Link
                 href="/yeni"
                 className="hidden sm:flex items-center gap-1 px-3 h-8 rounded-full bg-lime-500 text-black font-bold text-xs sm:text-sm hover:bg-lime-400 transition-colors active:scale-95 shrink-0"
-                onClick={() => playBuzzSound()}
               >
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span>yaz</span>
@@ -199,7 +197,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                 href="/mesajlar"
                 title="Özel Mesajlar"
                 className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-lime-400 transition-all relative shrink-0"
-                onClick={() => playBuzzSound()}
               >
                 <Mail className="h-4.5 w-4.5" />
               </Link>
@@ -273,7 +270,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                       href={`/yazar/${user.username}`}
                       onClick={() => {
                         setShowUserMenu(false);
-                        playBuzzSound();
                       }}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-zinc-900 transition-colors animate-none"
                     >
@@ -284,7 +280,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                       href="/mesajlar"
                       onClick={() => {
                         setShowUserMenu(false);
-                        playBuzzSound();
                       }}
                       className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-zinc-900 transition-colors"
                     >
@@ -307,14 +302,12 @@ export default function Header({ user, unreadNotificationsCount, notifications }
               <Link
                 href="/giris"
                 className="px-2 py-1 text-xs sm:text-sm font-bold text-zinc-400 hover:text-white transition-colors"
-                onClick={() => playBuzzSound()}
               >
                 giriş
               </Link>
               <Link
                 href="/kaydol"
                 className="px-3 py-1 text-xs sm:text-sm font-bold rounded-full bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 border border-zinc-800"
-                onClick={() => playBuzzSound()}
               >
                 kaydol
               </Link>
@@ -380,7 +373,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                 className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-full bg-lime-500 text-black font-bold text-xs animate-none"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  playBuzzSound();
                 }}
               >
                 <PlusCircle className="h-3.5 w-3.5" />
