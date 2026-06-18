@@ -6,9 +6,15 @@ import { Metadata } from "next";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
+  const decodedUsername = decodeURIComponent(username);
 
-  const author = await prisma.user.findUnique({
-    where: { username },
+  const author = await prisma.user.findFirst({
+    where: {
+      username: {
+        equals: decodedUsername,
+        mode: "insensitive"
+      }
+    },
     select: { username: true, bio: true }
   });
 
@@ -40,10 +46,16 @@ interface PageProps {
 
 export default async function AuthorProfilePage({ params }: PageProps) {
   const { username } = await params;
+  const decodedUsername = decodeURIComponent(username);
   const sessionUser = await getSessionUser();
 
-  const author = await prisma.user.findUnique({
-    where: { username: username },
+  const author = await prisma.user.findFirst({
+    where: {
+      username: {
+        equals: decodedUsername,
+        mode: "insensitive"
+      }
+    },
     include: {
       entries: {
         include: {

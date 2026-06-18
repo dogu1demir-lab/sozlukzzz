@@ -51,8 +51,13 @@ export async function registerAction(prevState: any, formData: FormData) {
   }
 
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { username: username.toLowerCase() }
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      }
     });
 
     if (existingUser) {
@@ -106,19 +111,16 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { username: username }
+    const user = await prisma.user.findFirst({
+      where: {
+        username: {
+          equals: username,
+          mode: 'insensitive'
+        }
+      }
     });
 
     if (!user || user.passwordHash !== hashPassword(password)) {
-      // Fallback check case-insensitive just in case
-      const userLower = await prisma.user.findUnique({
-        where: { username: username }
-      });
-      if (userLower && userLower.passwordHash === hashPassword(password)) {
-        await setSessionCookie(userLower.id);
-        return { success: true };
-      }
       return { error: "Kullanıcı adı veya şifre hatalı." };
     }
 
