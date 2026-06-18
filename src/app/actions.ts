@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser, setSessionCookie, clearSessionCookie } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "@/lib/mail";
+import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/mail";
 
 // Helper: Hash password
 function hashPassword(password: string): string {
@@ -79,6 +79,15 @@ export async function registerAction(prevState: any, formData: FormData) {
         avatarColor: randomColor,
       }
     });
+
+    // Send a beautifully styled welcome email
+    try {
+      if (email) {
+        await sendWelcomeEmail(email, username);
+      }
+    } catch (mailError) {
+      console.error("Welcome email sending failed:", mailError);
+    }
 
     await setSessionCookie(user.id);
     return { success: true };
