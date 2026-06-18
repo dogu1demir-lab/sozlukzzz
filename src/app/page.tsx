@@ -249,10 +249,10 @@ export default async function Home({ searchParams }: PageProps) {
                   className="rounded-xl border border-zinc-900 bg-zinc-950/50 p-3.5 hover:border-zinc-800 transition-all hover:bg-zinc-900/5"
                 >
                   {/* Entry Header */}
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-1">
                     <Link
                       href={`/baslik/${entry.topic.slug}`}
-                      className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors truncate flex items-center gap-1.5"
+                      className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap"
                     >
                       <span>{entry.topic.title}</span>
                       {entry.topic.poll && (
@@ -261,7 +261,7 @@ export default async function Home({ searchParams }: PageProps) {
                     </Link>
 
                     {/* Author / Date */}
-                    <div className="flex items-center gap-2 text-xs text-zinc-500 shrink-0">
+                    <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-500 shrink-0">
                       <Link
                         href={`/yazar/${entry.author.username}`}
                         className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
@@ -334,10 +334,10 @@ export default async function Home({ searchParams }: PageProps) {
                     key={topic.id}
                     className="rounded-xl border border-zinc-900 bg-zinc-950/50 p-3.5 hover:border-zinc-800 transition-all hover:bg-zinc-900/5"
                   >
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-1">
                       <Link
                         href={`/baslik/${topic.slug}`}
-                        className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors truncate flex items-center gap-1.5"
+                        className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap"
                       >
                         <span>{topic.title}</span>
                         {topic.poll && (
@@ -346,7 +346,7 @@ export default async function Home({ searchParams }: PageProps) {
                       </Link>
 
                       {/* Views & Author info */}
-                      <div className="flex items-center gap-3 text-xs text-zinc-500 shrink-0">
+                      <div className="flex items-center gap-3 text-[11px] sm:text-xs text-zinc-500 shrink-0">
                         <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
                           <Eye className="h-3.5 w-3.5 text-lime-400" />
                           <span>{topic.viewCount} görüntülenme</span>

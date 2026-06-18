@@ -141,7 +141,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
     <header className="sticky top-0 z-40 w-full border-b border-zinc-850 bg-zinc-950/90 backdrop-blur-md">
       
       {/* Top Navbar */}
-      <div className="mx-auto flex h-11 sm:h-12 max-w-7xl items-center justify-between px-2 sm:px-4">
+      <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-2 sm:px-4">
         
         {/* Logo */}
         <div className="flex items-center gap-1.5">
