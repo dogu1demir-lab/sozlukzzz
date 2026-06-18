@@ -254,12 +254,20 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-1 focus:outline-none"
                 >
-                  <div 
-                    className="w-7.5 h-7.5 rounded-full flex items-center justify-center font-bold text-black border border-white/5 text-xs"
-                    style={{ backgroundColor: user.avatarColor }}
-                  >
-                    {user.username.substring(0, 2).toUpperCase()}
-                  </div>
+                  {user.avatarUrl ? (
+                    <img 
+                      src={user.avatarUrl}
+                      alt={user.username}
+                      className="w-7.5 h-7.5 rounded-full object-cover border border-white/5"
+                    />
+                  ) : (
+                    <div 
+                      className="w-7.5 h-7.5 rounded-full flex items-center justify-center font-bold text-black border border-white/5 text-xs"
+                      style={{ backgroundColor: user.avatarColor }}
+                    >
+                      {user.username.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
                 </button>
 
                 {showUserMenu && (

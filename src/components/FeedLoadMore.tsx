@@ -123,12 +123,20 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
                   href={`/yazar/${entry.author.username}`}
                   className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
                 >
-                  <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-black border border-white/5"
-                    style={{ backgroundColor: entry.author.avatarColor }}
-                  >
-                    {entry.author.username.substring(0, 2).toUpperCase()}
-                  </div>
+                  {entry.author.avatarUrl ? (
+                    <img
+                      src={entry.author.avatarUrl}
+                      alt={entry.author.username}
+                      className="w-5 h-5 rounded-full object-cover border border-white/5"
+                    />
+                  ) : (
+                    <div
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-black border border-white/5"
+                      style={{ backgroundColor: entry.author.avatarColor }}
+                    >
+                      {entry.author.username.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
                   <span className="font-semibold">@{entry.author.username}</span>
                 </Link>
                 <span>•</span>
