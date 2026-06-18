@@ -87,6 +87,16 @@ export default function Login() {
               />
               <Lock className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
             </div>
+
+            {/* Forgot Password Link */}
+            <div className="flex justify-end">
+              <Link
+                href="/sifremi-unuttum"
+                className="text-xs text-zinc-400 hover:text-lime-400 hover:underline transition-colors font-medium"
+              >
+                şifremi unuttum zzz
+              </Link>
+            </div>
           </div>
 
           {/* Submit Button */}

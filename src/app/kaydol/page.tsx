@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { Lock, User, AlertCircle, ArrowRight, UserPlus } from "lucide-react";
+import { Lock, User, AlertCircle, ArrowRight, UserPlus, Mail } from "lucide-react";
 
 interface ActionState {
   error?: string;
@@ -56,6 +56,22 @@ export default function Register() {
           )}
 
           <div className="space-y-4 rounded-md">
+            {/* Email Input */}
+            <div className="relative">
+              <label htmlFor="email" className="sr-only">
+                e-posta adresi
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
+                placeholder="e-posta adresi"
+              />
+              <Mail className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
+            </div>
+
             {/* Username Input */}
             <div className="relative">
               <label htmlFor="username" className="sr-only">

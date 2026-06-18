@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser, setSessionCookie, clearSessionCookie } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
+import { sendPasswordResetEmail } from "@/lib/mail";
 
 // Helper: Hash password
 function hashPassword(password: string): string {
@@ -34,9 +35,14 @@ export async function convertToSlug(text: string): Promise<string> {
 export async function registerAction(prevState: any, formData: FormData) {
   const username = formData.get("username")?.toString().trim();
   const password = formData.get("password")?.toString();
+  const email = formData.get("email")?.toString().trim().toLowerCase();
 
   if (!username || !password || username.length < 3 || password.length < 6) {
     return { error: "Kullanıcı adı en az 3, şifre en az 6 karakter olmalıdır." };
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "Lütfen geçerli bir e-posta adresi girin." };
   }
 
   // Check alphanumeric username
@@ -53,6 +59,14 @@ export async function registerAction(prevState: any, formData: FormData) {
       return { error: "Bu kullanıcı adı zaten alınmış." };
     }
 
+    const existingEmail = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existingEmail) {
+      return { error: "Bu e-posta adresi zaten kullanımda." };
+    }
+
     // Colors for default avatar
     const colors = ["#14b8a6", "#f97316", "#a855f7", "#ec4899", "#3b82f6", "#22c55e", "#ef4444"];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -61,6 +75,7 @@ export async function registerAction(prevState: any, formData: FormData) {
       data: {
         username: username,
         passwordHash: hashPassword(password),
+        email: email,
         avatarColor: randomColor,
       }
     });
@@ -1201,6 +1216,97 @@ export async function editEntryAction(entryId: string, newContent: string) {
     return { error: "Girdi düzenlenirken bir hata oluştu." };
   }
 }
+
+// Action: Forgot Password
+export async function forgotPasswordAction(prevState: any, formData: FormData) {
+  const email = formData.get("email")?.toString().trim().toLowerCase();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "Lütfen geçerli bir e-posta adresi girin." };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      return { error: "Bu e-posta adresine kayıtlı bir yazar bulunamadı zzz." };
+    }
+
+    // Generate reset token and expiry (1 hour)
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken: token,
+        resetTokenExpiry: expiry
+      }
+    });
+
+    // Create reset link
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sozlukzzz.tr";
+    const resetLink = `${appUrl}/sifre-sifirla?token=${token}`;
+
+    // Send reset email
+    await sendPasswordResetEmail(email, user.username, resetLink);
+
+    return { success: true, message: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi! zzz" };
+  } catch (e) {
+    return { error: "E-posta gönderilirken bir hata oluştu zzz." };
+  }
+}
+
+// Action: Reset Password
+export async function resetPasswordAction(prevState: any, formData: FormData) {
+  const token = formData.get("token")?.toString().trim();
+  const password = formData.get("password")?.toString();
+  const confirmPassword = formData.get("confirmPassword")?.toString();
+
+  if (!token) {
+    return { error: "Geçersiz veya süresi dolmuş sıfırlama kodu." };
+  }
+
+  if (!password || password.length < 6) {
+    return { error: "Yeni şifre en az 6 karakter olmalıdır." };
+  }
+
+  if (password !== confirmPassword) {
+    return { error: "Şifreler uyuşmuyor." };
+  }
+
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: {
+          gt: new Date()
+        }
+      }
+    });
+
+    if (!user) {
+      return { error: "Sıfırlama bağlantısı geçersiz veya süresi dolmuş zzz." };
+    }
+
+    // Update user password and clear token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: hashPassword(password),
+        resetToken: null,
+        resetTokenExpiry: null
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    return { error: "Şifre sıfırlanırken bir hata oluştu zzz." };
+  }
+}
+
 
 
 
