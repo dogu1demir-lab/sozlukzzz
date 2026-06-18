@@ -1,17 +1,25 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useTransition, Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createTopicAndEntryAction, createPollTopicAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import confetti from "canvas-confetti";
 import { X, Plus } from "lucide-react";
 
-export default function NewThread() {
+function NewThreadContent() {
   const [type, setType] = useState<"normal" | "poll">("normal");
+  const searchParams = useSearchParams();
+  const titleParam = searchParams.get("title") || "";
   
   // Normal Thread State
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(titleParam);
+
+  useEffect(() => {
+    if (titleParam) {
+      setTitle(titleParam);
+    }
+  }, [titleParam]);
   const [content, setContent] = useState("");
   const [base64Image, setBase64Image] = useState<string | null>(null);
 
@@ -322,5 +330,13 @@ export default function NewThread() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewThread() {
+  return (
+    <Suspense fallback={<div className="text-zinc-500 text-xs p-6 text-center animate-pulse">yükleniyor zzz...</div>}>
+      <NewThreadContent />
+    </Suspense>
   );
 }
