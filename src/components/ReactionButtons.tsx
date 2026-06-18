@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { likeEntryAction, reportAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { ThumbsUp, ThumbsDown, MessageSquare, Edit3, Trash2, Flag } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, Edit3, Trash2, Flag, Share2 } from "lucide-react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 
@@ -41,6 +41,7 @@ export default function ReactionButtons({
   const [dislikes, setDislikes] = useState(initialDislikesCount);
   const [reaction, setReaction] = useState<"LIKE" | "DISLIKE" | null>(userReaction);
   const [isPending, startTransition] = useTransition();
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   const handleReaction = (type: "LIKE" | "DISLIKE") => {
     if (!isLoggedIn) {
@@ -117,6 +118,27 @@ export default function ReactionButtons({
     });
   };
 
+  const handleCopyLink = () => {
+    const entryUrl = `${window.location.origin}/baslik/${topicSlug}#entry-${entryId}`;
+    navigator.clipboard.writeText(entryUrl);
+    alert("Entry linki kopyalandı zzz!");
+    setShowShareMenu(false);
+  };
+
+  const handleShareWhatsApp = () => {
+    const entryUrl = `${window.location.origin}/baslik/${topicSlug}#entry-${entryId}`;
+    const text = encodeURIComponent(`sözlükzzz'deki bu entry'ye göz at: ${entryUrl}`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+    setShowShareMenu(false);
+  };
+
+  const handleShareX = () => {
+    const entryUrl = `${window.location.origin}/baslik/${topicSlug}#entry-${entryId}`;
+    const text = encodeURIComponent(`sözlükzzz'de vızıldayan bu entry'ye göz at zzz: ${entryUrl}`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
+    setShowShareMenu(false);
+  };
+
   return (
     <div className="flex items-center gap-4 mt-4 pt-2 border-t border-zinc-900/50">
       {/* Like Button */}
@@ -158,6 +180,43 @@ export default function ReactionButtons({
           <Flag className="h-3.5 w-3.5" />
         </button>
       )}
+
+      {/* Share Button & Dropdown Menu */}
+      <div className="relative">
+        <button
+          onClick={() => { playBuzzSound(); setShowShareMenu(!showShareMenu); }}
+          title="Paylaş"
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border border-transparent text-zinc-500 hover:text-lime-400 hover:bg-zinc-900 transition-all active:scale-95"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+        </button>
+
+        {showShareMenu && (
+          <>
+            <div className="fixed inset-0 z-20" onClick={() => setShowShareMenu(false)} />
+            <div className="absolute left-0 bottom-full mb-2 z-30 w-36 rounded-xl border border-zinc-850 bg-zinc-950 p-1.5 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-2 duration-100 flex flex-col gap-0.5">
+              <button
+                onClick={handleCopyLink}
+                className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-zinc-300 hover:bg-zinc-900 transition-colors text-left font-bold"
+              >
+                <span>🔗 Linki Kopyala</span>
+              </button>
+              <button
+                onClick={handleShareWhatsApp}
+                className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-zinc-300 hover:bg-zinc-900 transition-colors text-left font-bold"
+              >
+                <span className="text-emerald-500">🟢 WhatsApp</span>
+              </button>
+              <button
+                onClick={handleShareX}
+                className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-zinc-300 hover:bg-zinc-900 transition-colors text-left font-bold"
+              >
+                <span>🐦 X (Twitter)</span>
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Edit/Delete Buttons aligned right next to vızılda */}
       {isLoggedIn && (isOwner || canDelete) && (
