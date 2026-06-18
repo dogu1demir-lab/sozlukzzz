@@ -1,7 +1,17 @@
+"use client";
+
 import { Suspense } from "react";
+import { usePathname } from "next/navigation";
 import SidebarContent from "./SidebarContent";
 
 export default function Sidebar() {
+  const pathname = usePathname();
+
+  // Hide sidebar completely on PozKes page (equivalent to kadraj tab)
+  if (pathname === "/pozkes") {
+    return null;
+  }
+
   return (
     <aside className="w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-950 p-2.5 md:p-3 h-64 md:h-[calc(100vh-88px)] overflow-y-auto md:sticky top-[88px] z-30 order-first md:order-first scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
       <Suspense fallback={
