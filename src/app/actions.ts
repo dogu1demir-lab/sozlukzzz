@@ -1326,6 +1326,30 @@ export async function resetPasswordAction(prevState: any, formData: FormData) {
   }
 }
 
+// Action: Report Content (Entry, Comment, PozKes)
+export async function reportAction(targetType: string, targetId: string, reason: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Şikayet etmek için giriş yapmalısınız zzz." };
+
+  const cleanReason = reason.trim();
+  if (!cleanReason) return { error: "Şikayet nedeni boş olamaz." };
+
+  try {
+    await prisma.report.create({
+      data: {
+        targetType,
+        targetId,
+        reason: cleanReason,
+        reporterId: user.id
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    return { error: "Şikayet iletilirken bir hata oluştu zzz." };
+  }
+}
+
 
 
 

@@ -7,7 +7,8 @@ import {
   likeEntryAction, 
   createCommentAction, 
   likeCommentAction, 
-  deleteCommentAction 
+  deleteCommentAction,
+  reportAction
 } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
@@ -147,6 +148,30 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
     });
   };
 
+  const handleReportContent = (targetType: "ENTRY" | "COMMENT", targetId: string) => {
+    if (!isLoggedIn) {
+      alert("Şikayet etmek için giriş yapmalısınız zzz.");
+      return;
+    }
+
+    const reason = prompt("Lütfen şikayet nedeninizi girin zzz (hakaret, spam, yasa dışı vb.):");
+    if (reason === null) return; // cancelled
+    if (!reason.trim()) {
+      alert("Şikayet nedeni boş olamaz.");
+      return;
+    }
+
+    playBuzzSound();
+    startTransition(async () => {
+      const result = await reportAction(targetType, targetId, reason);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        alert("Şikayetiniz başarıyla iletildi zzz. Moderatörlerimiz inceleyecektir.");
+      }
+    });
+  };
+
   return (
     <article id={`entry-${entry.id}`} className="kd-card">
       {/* Header */}
@@ -201,9 +226,15 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           💬 {comments.length}
         </span>
 
-        <button type="button" className="kd-report-btn">
-          ⚑ Şikayet
-        </button>
+        {currentUserId !== entry.author.id && (
+          <button
+            type="button"
+            className="kd-report-btn"
+            onClick={() => handleReportContent("ENTRY", entry.id)}
+          >
+            ⚑ Şikayet
+          </button>
+        )}
       </div>
 
       {/* Comments view */}
@@ -294,9 +325,16 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                   </button>
                 )}
 
-                <button className="kd-comment-report-btn" title="Yorumu şikayet et" type="button">
-                  ⚑
-                </button>
+                {currentUserId !== comment.author.id && (
+                  <button
+                    onClick={() => handleReportContent("COMMENT", comment.id)}
+                    className="kd-comment-report-btn"
+                    title="Yorumu şikayet et"
+                    type="button"
+                  >
+                    ⚑
+                  </button>
+                )}
               </li>
             ))}
           </ul>

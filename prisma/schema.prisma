@@ -36,6 +36,7 @@ model User {
   receivedMessages Message[]      @relation("ReceivedMessages")
   notifications    Notification[]
   pollVotes        PollVote[]
+  reports          Report[]
   
   // Follow system (Self-relation)
   followers        Follow[]       @relation("following")
@@ -172,5 +173,16 @@ model PollVote {
   userId   String
 
   @@unique([pollId, userId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  targetType String   // e.g. "ENTRY", "COMMENT", "TOPIC"
+  targetId   String
+  reason     String
+  createdAt  DateTime @default(now())
+
+  reporterId String
+  reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 }
 

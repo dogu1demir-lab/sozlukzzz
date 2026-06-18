@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { likeEntryAction } from "@/app/actions";
+import { likeEntryAction, reportAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { ThumbsUp, ThumbsDown, MessageSquare, Edit3, Trash2 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, Edit3, Trash2, Flag } from "lucide-react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 
@@ -93,6 +93,30 @@ export default function ReactionButtons({
     });
   };
 
+  const handleReport = () => {
+    if (!isLoggedIn) {
+      alert("Şikayet etmek için giriş yapmalısınız zzz.");
+      return;
+    }
+
+    const reason = prompt("Lütfen şikayet nedeninizi girin zzz (hakaret, spam, yasa dışı vb.):");
+    if (reason === null) return; // cancelled
+    if (!reason.trim()) {
+      alert("Şikayet nedeni boş olamaz.");
+      return;
+    }
+
+    playBuzzSound();
+    startTransition(async () => {
+      const result = await reportAction("ENTRY", entryId, reason);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        alert("Şikayetiniz başarıyla iletildi zzz. Moderatörlerimiz inceleyecektir.");
+      }
+    });
+  };
+
   return (
     <div className="flex items-center gap-4 mt-4 pt-2 border-t border-zinc-900/50">
       {/* Like Button */}
@@ -122,6 +146,18 @@ export default function ReactionButtons({
         <ThumbsDown className={`h-3.5 w-3.5 ${reaction === "DISLIKE" ? "fill-red-500/20" : ""}`} />
         <span className="font-bold">{dislikes}</span>
       </button>
+
+      {/* Report Button */}
+      {!isOwner && (
+        <button
+          onClick={handleReport}
+          title="Şikayet Et"
+          disabled={isPending}
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border border-transparent text-zinc-500 hover:text-red-400 hover:bg-zinc-900 transition-all active:scale-95"
+        >
+          <Flag className="h-3.5 w-3.5" />
+        </button>
+      )}
 
       {/* Edit/Delete Buttons aligned right next to vızılda */}
       {isLoggedIn && (isOwner || canDelete) && (
