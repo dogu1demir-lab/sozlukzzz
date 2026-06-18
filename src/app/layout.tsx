@@ -17,8 +17,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr"),
   title: "sözlükzzz — vızzz!",
   description: "Türkiye'nin en aktif sinek sever sözlüğü. Sinekler, vızıltılar, aerodinamik harikalar ve hayata dair her şey!",
+  openGraph: {
+    title: "sözlükzzz — vızzz!",
+    description: "Türkiye'nin en aktif sinek sever sözlüğü. Sinekler, vızıltılar, aerodinamik harikalar ve hayata dair her şey!",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "sözlükzzz",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "sözlükzzz — vızzz!",
+    description: "Türkiye'nin en aktif sinek sever sözlüğü. Sinekler, vızıltılar, aerodinamik harikalar ve hayata dair her şey!",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export const revalidate = 0; // Ensure layout fetches fresh user/notif data

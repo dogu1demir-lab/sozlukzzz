@@ -2,6 +2,16 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import PozKesCard from "@/components/PozKesCard";
 import PozKesLoadMore from "@/components/PozKesLoadMore";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "PozKes 📸 — sözlükzzz",
+  description: "Yazarların paylaştığı anlık fotoğraflar, sinek manzaraları ve kadrajlar. vızzz!",
+  openGraph: {
+    title: "PozKes 📸 — sözlükzzz",
+    description: "Yazarların paylaştığı anlık fotoğraflar, sinek manzaraları ve kadrajlar. vızzz!",
+  }
+};
 
 export const revalidate = 0; // Disable cache to fetch real-time items
 

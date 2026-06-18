@@ -15,7 +15,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const topic = await prisma.topic.findUnique({
     where: { slug },
-    select: { title: true, entries: { take: 1, select: { content: true } } }
+    select: { 
+      title: true, 
+      entries: { 
+        orderBy: { createdAt: "asc" },
+        take: 1, 
+        select: { content: true, imageUrl: true } 
+      } 
+    }
   });
 
   if (!topic) {
@@ -28,12 +35,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? topic.entries[0].content.substring(0, 150) + "..."
     : "Bu başlık altındaki vızıltıları oku ve sinekler hakkında tartış!";
 
+  const entryImage = topic.entries[0]?.imageUrl;
+  const ogImage = entryImage ? entryImage : "/og-image.jpg";
+
   return {
     title: `${topic.title} — sözlükzzz`,
     description: snippet,
     openGraph: {
       title: `${topic.title} — sözlükzzz`,
       description: snippet,
+      images: [
+        {
+          url: ogImage,
+          alt: topic.title,
+        }
+      ]
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${topic.title} — sözlükzzz`,
+      description: snippet,
+      images: [ogImage],
     }
   };
 }

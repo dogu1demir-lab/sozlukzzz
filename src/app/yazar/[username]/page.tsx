@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         mode: "insensitive"
       }
     },
-    select: { username: true, bio: true }
+    select: { username: true, bio: true, avatarUrl: true }
   });
 
   if (!author) {
@@ -28,12 +28,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? author.bio 
     : `@${author.username} yazarının profili, girdileri ve vızıltı puanları.`;
 
+  const avatarImage = author.avatarUrl ? author.avatarUrl : "/og-image.jpg";
+
   return {
     title: `@${author.username} (Yazar) — sözlükzzz`,
     description: bioSnippet,
     openGraph: {
       title: `@${author.username} — sözlükzzz`,
       description: bioSnippet,
+      images: [
+        {
+          url: avatarImage,
+          alt: `@${author.username}`,
+        }
+      ]
+    },
+    twitter: {
+      card: "summary",
+      title: `@${author.username} — sözlükzzz`,
+      description: bioSnippet,
+      images: [avatarImage],
     }
   };
 }
