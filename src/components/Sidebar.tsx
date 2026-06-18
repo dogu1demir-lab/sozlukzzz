@@ -27,7 +27,7 @@ export default async function Sidebar() {
   });
 
   return (
-    <aside className="w-full md:w-64 lg:w-72 shrink-0 border-r border-zinc-800 bg-zinc-950 p-2.5 md:p-3 md:h-[calc(100vh-88px)] overflow-y-auto sticky top-[88px] order-last md:order-first scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
+    <aside className="w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-950 p-2.5 md:p-3 h-64 md:h-[calc(100vh-88px)] overflow-y-auto sticky top-[88px] order-first md:order-first scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
       {/* Sidebar header */}
       <div className="flex items-center justify-between pb-3 border-b border-zinc-900 mb-3">
         <h2 className="text-xs font-semibold tracking-wider uppercase text-zinc-450 flex items-center gap-1.5">
