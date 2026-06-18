@@ -967,38 +967,94 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      entries = await prisma.entry.findMany({
+      const topics = await prisma.topic.findMany({
         where: {
-          createdAt: { gte: todayStart }
+          entries: {
+            some: {
+              createdAt: { gte: todayStart }
+            }
+          }
         },
         include: {
-          topic: {
-            include: { poll: { select: { id: true } } }
+          entries: {
+            where: {
+              createdAt: { gte: todayStart }
+            },
+            orderBy: {
+              createdAt: "desc"
+            },
+            take: 1,
+            include: {
+              author: {
+                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+              },
+              likes: true
+            }
           },
-          author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
-          },
-          likes: true
+          poll: {
+            select: { id: true }
+          }
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: {
+          updatedAt: "desc"
+        },
         skip: offset,
         take: limit
       });
+
+      entries = topics
+        .filter(t => t.entries.length > 0)
+        .map(t => ({
+          ...t.entries[0],
+          topic: {
+            id: t.id,
+            title: t.title,
+            slug: t.slug,
+            poll: t.poll
+          }
+        }));
     } else if (tab === "gundem") {
-      entries = await prisma.entry.findMany({
-        include: {
-          topic: {
-            include: { poll: { select: { id: true } } }
-          },
-          author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
-          },
-          likes: true
+      const topics = await prisma.topic.findMany({
+        where: {
+          entries: {
+            some: {}
+          }
         },
-        orderBy: { createdAt: "desc" },
+        include: {
+          entries: {
+            orderBy: {
+              createdAt: "desc"
+            },
+            take: 1,
+            include: {
+              author: {
+                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+              },
+              likes: true
+            }
+          },
+          poll: {
+            select: { id: true }
+          }
+        },
+        orderBy: {
+          updatedAt: "desc"
+        },
         skip: offset,
         take: limit
       });
+
+      entries = topics
+        .filter(t => t.entries.length > 0)
+        .map(t => ({
+          ...t.entries[0],
+          topic: {
+            id: t.id,
+            title: t.title,
+            slug: t.slug,
+            poll: t.poll
+          }
+        }));
     } else if (tab === "pozkes") {
       entries = await prisma.entry.findMany({
         where: { imageUrl: { not: null } },
@@ -1023,21 +1079,52 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         });
         const followingIds = follows.map(f => f.followingId);
 
-        entries = await prisma.entry.findMany({
-          where: { authorId: { in: followingIds } },
-          include: {
-            topic: {
-              include: { poll: { select: { id: true } } }
-            },
-            author: {
-              select: { id: true, username: true, avatarColor: true, avatarUrl: true }
-            },
-            likes: true
+        const topics = await prisma.topic.findMany({
+          where: {
+            entries: {
+              some: {
+                authorId: { in: followingIds }
+              }
+            }
           },
-          orderBy: { createdAt: "desc" },
+          include: {
+            entries: {
+              where: {
+                authorId: { in: followingIds }
+              },
+              orderBy: {
+                createdAt: "desc"
+              },
+              take: 1,
+              include: {
+                author: {
+                  select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                },
+                likes: true
+              }
+            },
+            poll: {
+              select: { id: true }
+            }
+          },
+          orderBy: {
+            updatedAt: "desc"
+          },
           skip: offset,
           take: limit
         });
+
+        entries = topics
+          .filter(t => t.entries.length > 0)
+          .map(t => ({
+            ...t.entries[0],
+            topic: {
+              id: t.id,
+              title: t.title,
+              slug: t.slug,
+              poll: t.poll
+            }
+          }));
       }
     } else if (tab === "begenilen") {
       const rawEntries = await prisma.entry.findMany({
@@ -1051,11 +1138,17 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           likes: true
         },
         orderBy: { createdAt: "desc" },
-        take: 120
+        take: 150
       });
-      const sorted = rawEntries.sort((a, b) => {
-        const aLikes = a.likes.filter(l => l.isLike).length;
-        const bLikes = b.likes.filter(l => l.isLike).length;
+      const uniqueMap = new Map<string, any>();
+      for (const entry of rawEntries) {
+        if (!uniqueMap.has(entry.topicId)) {
+          uniqueMap.set(entry.topicId, entry);
+        }
+      }
+      const sorted = Array.from(uniqueMap.values()).sort((a, b) => {
+        const aLikes = a.likes.filter((l: any) => l.isLike).length;
+        const bLikes = b.likes.filter((l: any) => l.isLike).length;
         return bLikes - aLikes;
       });
       entries = sorted.slice(offset, offset + limit);

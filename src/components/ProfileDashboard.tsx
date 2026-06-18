@@ -7,7 +7,7 @@ import { Sparkles, Calendar, Shield, MessageSquare, BookOpen, ThumbsUp, Users, A
 import { playBuzzSound } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import FollowButton from "@/components/FollowButton";
-import FlyRankBadge from "@/components/FlyRankBadge";
+import FlyRankBadge, { getRankByScore } from "@/components/FlyRankBadge";
 import { createPozKesEntryAction } from "@/app/actions";
 
 interface ProfileDashboardProps {
@@ -88,6 +88,7 @@ export default function ProfileDashboard({
   const [isPending, startTransition] = useTransition();
 
   const isSelf = sessionUser?.id === author.id;
+  const currentRank = getRankByScore(score);
 
   // Filter entries
   const textEntries = entries.filter((e) => !e.imageUrl);
@@ -201,8 +202,19 @@ export default function ProfileDashboard({
             )}
 
             {/* Rank badge Row */}
-            <div className="profile-badge-row">
+            <div className="profile-badge-row flex items-center gap-3">
               <FlyRankBadge score={score} />
+              <div className="flex flex-col select-none">
+                <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-black">
+                  Seviye {currentRank.level}
+                </span>
+                <span className="text-sm font-black text-lime-400 mt-0.5">
+                  {currentRank.name} {currentRank.emoji}
+                </span>
+                <span className="text-[11px] text-zinc-400 mt-0.5 italic">
+                  &ldquo;{currentRank.description}&rdquo;
+                </span>
+              </div>
             </div>
 
             {/* Stats row */}

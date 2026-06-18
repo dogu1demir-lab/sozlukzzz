@@ -36,49 +36,93 @@ export default async function Home({ searchParams }: PageProps) {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    entries = await prisma.entry.findMany({
+    const topics = await prisma.topic.findMany({
       where: {
-        createdAt: { gte: todayStart }
+        entries: {
+          some: {
+            createdAt: { gte: todayStart }
+          }
+        }
       },
       include: {
-        topic: {
+        entries: {
+          where: {
+            createdAt: { gte: todayStart }
+          },
+          orderBy: {
+            createdAt: "desc"
+          },
+          take: 1,
           include: {
-            poll: {
-              select: { id: true }
-            }
+            author: {
+              select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+            },
+            likes: true
           }
         },
-        author: {
-          select: { id: true, username: true, avatarColor: true, avatarUrl: true }
-        },
-        likes: true
+        poll: {
+          select: { id: true }
+        }
       },
       orderBy: {
-        createdAt: "desc"
+        updatedAt: "desc"
       },
       take: 20
     });
+
+    entries = topics
+      .filter(t => t.entries.length > 0)
+      .map(t => ({
+        ...t.entries[0],
+        topic: {
+          id: t.id,
+          title: t.title,
+          slug: t.slug,
+          poll: t.poll
+        }
+      }));
   } else if (activeTab === "gundem") {
-    // General agenda flow (recent entries)
-    entries = await prisma.entry.findMany({
+    // General agenda flow (recent entries, grouped by topic)
+    const topics = await prisma.topic.findMany({
+      where: {
+        entries: {
+          some: {}
+        }
+      },
       include: {
-        topic: {
+        entries: {
+          orderBy: {
+            createdAt: "desc"
+          },
+          take: 1,
           include: {
-            poll: {
-              select: { id: true }
-            }
+            author: {
+              select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+            },
+            likes: true
           }
         },
-        author: {
-          select: { id: true, username: true, avatarColor: true, avatarUrl: true }
-        },
-        likes: true
+        poll: {
+          select: { id: true }
+        }
       },
       orderBy: {
-        createdAt: "desc"
+        updatedAt: "desc"
       },
       take: 20
     });
+
+    entries = topics
+      .filter(t => t.entries.length > 0)
+      .map(t => ({
+        ...t.entries[0],
+        topic: {
+          id: t.id,
+          title: t.title,
+          slug: t.slug,
+          poll: t.poll
+        }
+      }));
   } else if (activeTab === "pozkes") {
     // Only entries with images
     entries = await prisma.entry.findMany({
@@ -112,31 +156,54 @@ export default async function Home({ searchParams }: PageProps) {
       });
       const followingIds = follows.map((f) => f.followingId);
 
-      entries = await prisma.entry.findMany({
+      const topics = await prisma.topic.findMany({
         where: {
-          authorId: { in: followingIds }
+          entries: {
+            some: {
+              authorId: { in: followingIds }
+            }
+          }
         },
         include: {
-          topic: {
+          entries: {
+            where: {
+              authorId: { in: followingIds }
+            },
+            orderBy: {
+              createdAt: "desc"
+            },
+            take: 1,
             include: {
-              poll: {
-                select: { id: true }
-              }
+              author: {
+                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+              },
+              likes: true
             }
           },
-          author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
-          },
-          likes: true
+          poll: {
+            select: { id: true }
+          }
         },
         orderBy: {
-          createdAt: "desc"
+          updatedAt: "desc"
         },
         take: 20
       });
+
+      entries = topics
+        .filter(t => t.entries.length > 0)
+        .map(t => ({
+          ...t.entries[0],
+          topic: {
+            id: t.id,
+            title: t.title,
+            slug: t.slug,
+            poll: t.poll
+          }
+        }));
     }
   } else if (activeTab === "begenilen") {
-    // Fetch recent 60 entries and sort by likes count in JS (SQLite limitation fallback)
+    // Fetch recent 100 entries, group by topic, then sort by likes count
     const rawEntries = await prisma.entry.findMany({
       include: {
         topic: {
@@ -154,14 +221,23 @@ export default async function Home({ searchParams }: PageProps) {
       orderBy: {
         createdAt: "desc"
       },
-      take: 60
+      take: 100
     });
 
-    entries = rawEntries.sort((a, b) => {
-      const aLikes = a.likes.filter((l) => l.isLike).length;
-      const bLikes = b.likes.filter((l) => l.isLike).length;
-      return bLikes - aLikes;
-    }).slice(0, 20);
+    const uniqueMap = new Map<string, any>();
+    for (const entry of rawEntries) {
+      if (!uniqueMap.has(entry.topicId)) {
+        uniqueMap.set(entry.topicId, entry);
+      }
+    }
+
+    entries = Array.from(uniqueMap.values())
+      .sort((a, b) => {
+        const aLikes = a.likes.filter((l: any) => l.isLike).length;
+        const bLikes = b.likes.filter((l: any) => l.isLike).length;
+        return bLikes - aLikes;
+      })
+      .slice(0, 20);
   } else if (activeTab === "goruntulenen") {
     // Fetch topics with most views, along with their first entry
     popularTopics = await prisma.topic.findMany({
