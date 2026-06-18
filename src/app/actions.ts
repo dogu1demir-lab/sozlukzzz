@@ -1497,6 +1497,220 @@ export async function resolveReportAction(reportId: string, actionType: "DISMISS
   }
 }
 
+// Action: Fetch topics dynamically for Sidebar based on active tab
+export async function getDynamicSidebarTopicsAction(tab: string, offset: number = 0, limit: number = 35) {
+  try {
+    const user = await getSessionUser();
+    
+    // Normalize tab name
+    const activeTab = tab || "bugun";
+    
+    if (activeTab === "bugun") {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const topics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" },
+          entries: {
+            some: {
+              createdAt: { gte: todayStart }
+            }
+          }
+        },
+        include: {
+          poll: { select: { id: true } },
+          _count: {
+            select: {
+              entries: {
+                where: { createdAt: { gte: todayStart } }
+              }
+            }
+          }
+        },
+        orderBy: {
+          updatedAt: "desc"
+        },
+        skip: offset,
+        take: limit
+      });
+      
+      const formattedTopics = topics.map(t => ({
+        id: t.id,
+        title: t.title,
+        slug: t.slug,
+        poll: t.poll,
+        entryCount: t._count.entries
+      }));
+      
+      return { success: true, topics: formattedTopics };
+      
+    } else if (activeTab === "gundem") {
+      const topics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" }
+        },
+        include: {
+          poll: { select: { id: true } },
+          _count: { select: { entries: true } }
+        },
+        orderBy: {
+          entries: {
+            _count: "desc"
+          }
+        },
+        skip: offset,
+        take: limit
+      });
+      
+      const formattedTopics = topics.map(t => ({
+        id: t.id,
+        title: t.title,
+        slug: t.slug,
+        poll: t.poll,
+        entryCount: t._count.entries
+      }));
+      
+      return { success: true, topics: formattedTopics };
+      
+    } else if (activeTab === "takip") {
+      if (!user) {
+        return { success: true, topics: [] };
+      }
+      const follows = await prisma.follow.findMany({
+        where: { followerId: user.id },
+        select: { followingId: true }
+      });
+      const followingIds = follows.map(f => f.followingId);
+      
+      const topics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" },
+          entries: {
+            some: {
+              authorId: { in: followingIds }
+            }
+          }
+        },
+        include: {
+          poll: { select: { id: true } },
+          _count: { select: { entries: true } }
+        },
+        orderBy: {
+          updatedAt: "desc"
+        },
+        skip: offset,
+        take: limit
+      });
+      
+      const formattedTopics = topics.map(t => ({
+        id: t.id,
+        title: t.title,
+        slug: t.slug,
+        poll: t.poll,
+        entryCount: t._count.entries
+      }));
+      
+      return { success: true, topics: formattedTopics };
+      
+    } else if (activeTab === "begenilen") {
+      const rawTopics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" }
+        },
+        include: {
+          poll: { select: { id: true } },
+          _count: { select: { entries: true } },
+          entries: {
+            include: {
+              likes: true
+            }
+          }
+        }
+      });
+      
+      const sortedTopics = rawTopics.sort((a, b) => {
+        const aMaxLikes = a.entries.reduce((max, entry) => {
+          const likes = entry.likes.filter(l => l.isLike).length;
+          return likes > max ? likes : max;
+        }, 0);
+        const bMaxLikes = b.entries.reduce((max, entry) => {
+          const likes = entry.likes.filter(l => l.isLike).length;
+          return likes > max ? likes : max;
+        }, 0);
+        return bMaxLikes - aMaxLikes;
+      });
+      
+      const paginatedTopics = sortedTopics.slice(offset, offset + limit);
+      
+      const formattedTopics = paginatedTopics.map(t => ({
+        id: t.id,
+        title: t.title,
+        slug: t.slug,
+        poll: t.poll,
+        entryCount: t._count.entries
+      }));
+      
+      return { success: true, topics: formattedTopics };
+      
+    } else if (activeTab === "goruntulenen") {
+      const topics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" }
+        },
+        include: {
+          poll: { select: { id: true } },
+          _count: { select: { entries: true } }
+        },
+        orderBy: {
+          viewCount: "desc"
+        },
+        skip: offset,
+        take: limit
+      });
+      
+      const formattedTopics = topics.map(t => ({
+        id: t.id,
+        title: t.title,
+        slug: t.slug,
+        poll: t.poll,
+        entryCount: t._count.entries
+      }));
+      
+      return { success: true, topics: formattedTopics };
+      
+    } else {
+      const topics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" }
+        },
+        include: {
+          poll: { select: { id: true } },
+          _count: { select: { entries: true } }
+        },
+        orderBy: {
+          updatedAt: "desc"
+        },
+        skip: offset,
+        take: limit
+      });
+      
+      const formattedTopics = topics.map(t => ({
+        id: t.id,
+        title: t.title,
+        slug: t.slug,
+        poll: t.poll,
+        entryCount: t._count.entries
+      }));
+      
+      return { success: true, topics: formattedTopics };
+    }
+  } catch (e) {
+    console.error("getDynamicSidebarTopicsAction error:", e);
+    return { error: "Başlıklar yüklenirken bir hata oluştu." };
+  }
+}
+
 
 
 
