@@ -23,7 +23,8 @@ import {
   Camera,
   Users,
   Award,
-  Eye
+  Eye,
+  ShieldAlert
 } from "lucide-react";
 
 interface HeaderProps {
@@ -286,6 +287,19 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                       <MessageSquare className="h-3.5 w-3.5" />
                       <span>Mesajlar</span>
                     </Link>
+                    {user.role === "ADMIN" && (
+                      <Link
+                        href="/yonetim"
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          playBuzzSound();
+                        }}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-lime-400 hover:bg-zinc-900 transition-colors font-semibold"
+                      >
+                        <ShieldAlert className="h-3.5 w-3.5" />
+                        <span>Yönetim Paneli</span>
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-red-450 hover:bg-red-500/10 transition-colors text-left"

@@ -1350,6 +1350,61 @@ export async function reportAction(targetType: string, targetId: string, reason:
   }
 }
 
+// Action: Resolve Report (Admin action to dismiss or delete content)
+export async function resolveReportAction(reportId: string, actionType: "DISMISS" | "DELETE_CONTENT") {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Bu işlemi yapmaya yetkiniz yoktur zzz." };
+  }
+
+  try {
+    const report = await prisma.report.findUnique({
+      where: { id: reportId }
+    });
+
+    if (!report) return { error: "Şikayet bulunamadı." };
+
+    if (actionType === "DELETE_CONTENT") {
+      if (report.targetType === "ENTRY") {
+        // Find if it was the only entry in a topic to delete topic as well
+        const entry = await prisma.entry.findUnique({
+          where: { id: report.targetId },
+          include: { topic: { include: { _count: { select: { entries: true } } } } }
+        });
+
+        if (entry) {
+          if (entry.topic._count.entries <= 1) {
+            // Only entry, delete topic
+            await prisma.topic.delete({
+              where: { id: entry.topicId }
+            });
+          } else {
+            // Delete entry only
+            await prisma.entry.delete({
+              where: { id: report.targetId }
+            });
+          }
+        }
+      } else if (report.targetType === "COMMENT") {
+        await prisma.comment.delete({
+          where: { id: report.targetId }
+        });
+      }
+    }
+
+    // Delete the report record
+    await prisma.report.delete({
+      where: { id: reportId }
+    });
+
+    revalidatePath("/yonetim");
+    return { success: true };
+  } catch (e) {
+    console.error("Resolve report error:", e);
+    return { error: "İşlem sırasında bir hata oluştu zzz." };
+  }
+}
+
 
 
 
