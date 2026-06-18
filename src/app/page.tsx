@@ -46,11 +46,8 @@ export default async function Home({ searchParams }: PageProps) {
       },
       include: {
         entries: {
-          where: {
-            createdAt: { gte: todayStart }
-          },
           orderBy: {
-            createdAt: "desc"
+            createdAt: "asc"
           },
           take: 1,
           include: {
@@ -92,7 +89,7 @@ export default async function Home({ searchParams }: PageProps) {
       include: {
         entries: {
           orderBy: {
-            createdAt: "desc"
+            createdAt: "asc"
           },
           take: 1,
           include: {

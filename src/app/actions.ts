@@ -979,11 +979,8 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         },
         include: {
           entries: {
-            where: {
-              createdAt: { gte: todayStart }
-            },
             orderBy: {
-              createdAt: "desc"
+              createdAt: "asc"
             },
             take: 1,
             include: {
@@ -1025,7 +1022,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         include: {
           entries: {
             orderBy: {
-              createdAt: "desc"
+              createdAt: "asc"
             },
             take: 1,
             include: {
