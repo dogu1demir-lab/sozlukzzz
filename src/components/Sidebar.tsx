@@ -7,8 +7,8 @@ import SidebarContent from "./SidebarContent";
 export default function Sidebar() {
   const pathname = usePathname();
 
-  // Hide sidebar completely on PozKes page (equivalent to kadraj tab)
-  if (pathname === "/pozkes") {
+  // Hide sidebar completely on PozKes page (equivalent to kadraj tab) and messages page
+  if (pathname === "/pozkes" || pathname.startsWith("/mesajlar")) {
     return null;
   }
 

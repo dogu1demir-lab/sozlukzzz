@@ -82,14 +82,14 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       },
       followers: {
         include: {
-          follower: {
+          following: {
             select: { id: true, username: true, avatarColor: true, role: true, avatarUrl: true }
           }
         }
       },
       following: {
         include: {
-          following: {
+          follower: {
             select: { id: true, username: true, avatarColor: true, role: true, avatarUrl: true }
           }
         }
@@ -129,7 +129,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
   // Score Formula: (Entry * 10) + (Comment * 5) + (LikesReceived * 3)
   const score = (totalEntries * 10) + (totalComments * 5) + (totalLikesReceived * 3);
 
-  const isFollowing = sessionUser ? author.followers.some(f => f.followerId === sessionUser.id) : false;
+  const isFollowing = sessionUser ? author.following.some(f => f.followerId === sessionUser.id) : false;
 
   const formattedEntries = author.entries.map((entry) => {
     const likesCount = entry.likes.filter((l) => l.isLike).length;
@@ -166,8 +166,8 @@ export default async function AuthorProfilePage({ params }: PageProps) {
     likesCount: c.likes.length
   }));
 
-  const followersList = author.followers.map(f => f.follower);
-  const followingList = author.following.map(f => f.following);
+  const followersList = author.following.map(f => f.follower);
+  const followingList = author.followers.map(f => f.following);
 
   return (
     <ProfileDashboard
@@ -185,8 +185,8 @@ export default async function AuthorProfilePage({ params }: PageProps) {
         username: sessionUser.username,
         role: sessionUser.role
       } : null}
-      followersCount={author.followers.length}
-      followingCount={author.following.length}
+      followersCount={author.following.length}
+      followingCount={author.followers.length}
       isFollowing={isFollowing}
       score={score}
       entries={formattedEntries}
