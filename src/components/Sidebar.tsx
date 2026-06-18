@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { Sparkles, Calendar, TrendingUp } from "lucide-react";
 import SidebarLoadMore from "./SidebarLoadMore";
+import SidebarPoller from "./SidebarPoller";
 
 export const revalidate = 0; // Disable cache so sidebar stays fresh
 
@@ -74,6 +75,9 @@ export default async function Sidebar() {
           sözlükzzz © 2026 • vızzz! • Kurucu Doğu Demir
         </p>
       </div>
+
+      {/* Background poller to refresh active topics/feed automatically */}
+      <SidebarPoller />
     </aside>
   );
 }
