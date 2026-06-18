@@ -96,7 +96,6 @@ export default function ProfileDashboard({
 
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
-    playBuzzSound();
   };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

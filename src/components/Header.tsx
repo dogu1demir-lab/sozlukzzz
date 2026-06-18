@@ -103,7 +103,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
     e.preventDefault();
     if (!searchQuery.trim()) return;
     
-    playBuzzSound();
     const cleanSearch = searchQuery.trim().toLowerCase()
       .replaceAll('ı', 'i').replaceAll('ş', 's').replaceAll('ç', 'c')
       .replaceAll('ğ', 'g').replaceAll('ü', 'u').replaceAll('ö', 'o')
@@ -233,7 +232,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                             href={notif.relatedUrl || "/"}
                             onClick={() => {
                               setShowNotifications(false);
-                              playBuzzSound();
                             }}
                             className={`flex flex-col gap-0.5 px-2.5 py-2 hover:bg-zinc-900 transition-colors ${!notif.isRead ? 'bg-zinc-900/30 font-medium' : ''}`}
                           >
@@ -300,7 +298,6 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                         href="/yonetim"
                         onClick={() => {
                           setShowUserMenu(false);
-                          playBuzzSound();
                         }}
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-lime-400 hover:bg-zinc-900 transition-colors font-semibold"
                       >

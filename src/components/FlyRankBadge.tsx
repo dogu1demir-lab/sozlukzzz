@@ -680,12 +680,10 @@ export default function FlyRankBadge({ score, interactive = true }: FlyRankBadge
 
   const handleOpen = () => {
     if (!interactive) return;
-    playBuzzSound();
     setIsOpen(true);
   };
 
   const handleClose = () => {
-    playBuzzSound();
     setIsOpen(false);
   };
 

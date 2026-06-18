@@ -55,7 +55,6 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
   const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
-    playBuzzSound();
 
     try {
       const result = await getMoreEntriesAction(tab, offset, 20);

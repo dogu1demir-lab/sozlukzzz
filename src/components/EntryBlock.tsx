@@ -56,7 +56,6 @@ export default function EntryBlock({
   const canDelete = isOwner || isAdmin;
 
   const handleEditToggle = () => {
-    playBuzzSound();
     setEditContent(currentContent);
     setIsEditing(!isEditing);
   };
