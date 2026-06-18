@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import SendMessageForm from "@/components/SendMessageForm";
+import MessagesPoller from "@/components/MessagesPoller";
 import { formatDate } from "@/lib/utils";
 import { Mail, Send, User, MessageSquare, PlusCircle, AlertCircle, ArrowLeft } from "lucide-react";
 
@@ -31,10 +32,10 @@ export default async function MessagesPage({ searchParams }: PageProps) {
     },
     include: {
       sender: {
-        select: { id: true, username: true, avatarColor: true }
+        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
       },
       receiver: {
-        select: { id: true, username: true, avatarColor: true }
+        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
       }
     },
     orderBy: {
@@ -46,6 +47,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
   const conversationsMap = new Map<string, {
     username: string;
     avatarColor: string;
+    avatarUrl: string | null;
     lastMessage: string;
     lastMessageDate: Date;
     unreadCount: number;
@@ -59,6 +61,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
       conversationsMap.set(partner.id, {
         username: partner.username,
         avatarColor: partner.avatarColor,
+        avatarUrl: partner.avatarUrl,
         lastMessage: msg.content,
         lastMessageDate: msg.createdAt,
         unreadCount: 0
@@ -83,7 +86,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
   if (u) {
     activePartner = await prisma.user.findUnique({
       where: { username: u },
-      select: { id: true, username: true, avatarColor: true }
+      select: { id: true, username: true, avatarColor: true, avatarUrl: true }
     });
 
     if (activePartner && activePartner.id !== user.id) {
@@ -144,12 +147,20 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                     isActive ? "bg-zinc-900/80" : ""
                   }`}
                 >
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-black border border-white/5 shrink-0"
-                    style={{ backgroundColor: conv.avatarColor }}
-                  >
-                    {conv.username.substring(0, 2).toUpperCase()}
-                  </div>
+                  {conv.avatarUrl ? (
+                    <img
+                      src={conv.avatarUrl}
+                      alt={conv.username}
+                      className="w-9 h-9 rounded-full object-cover border border-white/5 shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-black border border-white/5 shrink-0"
+                      style={{ backgroundColor: conv.avatarColor }}
+                    >
+                      {conv.username.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-0.5">
                       <span className={`text-xs ${isActive ? "text-white font-bold" : "text-zinc-200 font-semibold"}`}>
@@ -191,12 +202,20 @@ export default async function MessagesPage({ searchParams }: PageProps) {
               >
                 <ArrowLeft className="h-4.5 w-4.5" />
               </Link>
-              <div
-                className="w-8.5 h-8.5 rounded-full flex items-center justify-center font-bold text-black border border-white/5 shrink-0"
-                style={{ backgroundColor: activePartner.avatarColor }}
-              >
-                {activePartner.username.substring(0, 2).toUpperCase()}
-              </div>
+              {activePartner.avatarUrl ? (
+                <img
+                  src={activePartner.avatarUrl}
+                  alt={activePartner.username}
+                  className="w-8.5 h-8.5 rounded-full object-cover border border-white/5 shrink-0"
+                />
+              ) : (
+                <div
+                  className="w-8.5 h-8.5 rounded-full flex items-center justify-center font-bold text-black border border-white/5 shrink-0"
+                  style={{ backgroundColor: activePartner.avatarColor }}
+                >
+                  {activePartner.username.substring(0, 2).toUpperCase()}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <h3 className="text-xs font-bold text-white truncate">
                   @{activePartner.username} ile sohbet
@@ -248,6 +267,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
         )}
       </div>
 
+      <MessagesPoller />
     </div>
   );
 }
