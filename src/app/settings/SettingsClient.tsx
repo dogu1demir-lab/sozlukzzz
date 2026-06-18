@@ -128,6 +128,9 @@ export default function SettingsClient({ user }: SettingsClientProps) {
               {isPending ? "Yükleniyor..." : "Fotoğraf Seç"}
             </label>
             <p className="avatar-hint">JPG, PNG veya GIF · Maks 2 MB</p>
+            <p className="text-[10px] text-teal-400 font-semibold mt-1">
+              ✓ Seçildiği anda otomatik olarak kaydedilir.
+            </p>
           </div>
         </div>
       </section>
