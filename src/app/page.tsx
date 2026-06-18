@@ -33,8 +33,18 @@ export default async function Home({ searchParams }: PageProps) {
 
   // Query database based on selected tab
   if (activeTab === "bugun") {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // Calculate today's start in Turkey (UTC+3) to ensure correctness on UTC servers
+    const now = new Date();
+    const turkeyTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const todayStartTurkey = new Date(
+      Date.UTC(
+        turkeyTime.getUTCFullYear(),
+        turkeyTime.getUTCMonth(),
+        turkeyTime.getUTCDate(),
+        0, 0, 0, 0
+      )
+    );
+    const todayStart = new Date(todayStartTurkey.getTime() - 3 * 60 * 60 * 1000);
 
     const topics = await prisma.topic.findMany({
       where: {
