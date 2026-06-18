@@ -48,6 +48,7 @@ export default async function Home({ searchParams }: PageProps) {
 
     const topics = await prisma.topic.findMany({
       where: {
+        slug: { not: "pozkes-galeri" },
         entries: {
           some: {
             createdAt: { gte: todayStart }
@@ -92,6 +93,7 @@ export default async function Home({ searchParams }: PageProps) {
     // General agenda flow (recent entries, grouped by topic, sorted by total entry count)
     const topics = await prisma.topic.findMany({
       where: {
+        slug: { not: "pozkes-galeri" },
         entries: {
           some: {}
         }
@@ -167,6 +169,7 @@ export default async function Home({ searchParams }: PageProps) {
 
       const topics = await prisma.topic.findMany({
         where: {
+          slug: { not: "pozkes-galeri" },
           entries: {
             some: {
               authorId: { in: followingIds }
@@ -214,6 +217,11 @@ export default async function Home({ searchParams }: PageProps) {
   } else if (activeTab === "begenilen") {
     // Fetch recent 100 entries, group by topic, then sort by likes count
     const rawEntries = await prisma.entry.findMany({
+      where: {
+        topic: {
+          slug: { not: "pozkes-galeri" }
+        }
+      },
       include: {
         topic: {
           include: {
@@ -250,6 +258,9 @@ export default async function Home({ searchParams }: PageProps) {
   } else if (activeTab === "goruntulenen") {
     // Fetch topics with most views, along with their first entry
     popularTopics = await prisma.topic.findMany({
+      where: {
+        slug: { not: "pozkes-galeri" }
+      },
       include: {
         poll: {
           select: { id: true }

@@ -981,6 +981,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
 
       const topics = await prisma.topic.findMany({
         where: {
+          slug: { not: "pozkes-galeri" },
           entries: {
             some: {
               createdAt: { gte: todayStart }
@@ -1025,6 +1026,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
     } else if (tab === "gundem") {
       const topics = await prisma.topic.findMany({
         where: {
+          slug: { not: "pozkes-galeri" },
           entries: {
             some: {}
           }
@@ -1092,6 +1094,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
 
         const topics = await prisma.topic.findMany({
           where: {
+            slug: { not: "pozkes-galeri" },
             entries: {
               some: {
                 authorId: { in: followingIds }
@@ -1139,6 +1142,11 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
       }
     } else if (tab === "begenilen") {
       const rawEntries = await prisma.entry.findMany({
+        where: {
+          topic: {
+            slug: { not: "pozkes-galeri" }
+          }
+        },
         include: {
           topic: {
             include: { poll: { select: { id: true } } }
