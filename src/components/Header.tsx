@@ -139,10 +139,10 @@ export default function Header({ user, unreadNotificationsCount, notifications }
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-850 bg-zinc-950/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-zinc-850 bg-zinc-950/90 backdrop-blur-md">
       
       {/* Top Navbar */}
-      <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-2 sm:px-4">
+      <div className="relative z-20 mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-2 sm:px-4">
         
         {/* Logo */}
         <div className="flex items-center gap-1.5">
@@ -202,7 +202,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                 <Mail className="h-4.5 w-4.5" />
               </Link>
 
-              <div className="relative shrink-0" ref={notifRef}>
+              <div className="relative shrink-0 z-30" ref={notifRef}>
                 <button
                   onClick={handleNotificationsClick}
                   className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-lime-400 transition-all relative"
@@ -216,7 +216,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                 </button>
 
                 {showNotifications && (
-                  <div className="absolute right-0 mt-2 w-72 rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-100">
+                  <div className="absolute right-0 mt-2 w-72 rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-100 z-50">
                     <div className="px-2.5 py-1.5 border-b border-zinc-900 font-bold text-xs text-zinc-300 flex justify-between items-center">
                       <span>Bildirimler</span>
                       {localUnreadCount > 0 && <span className="text-[10px] text-lime-400">{localUnreadCount} yeni</span>}
@@ -249,7 +249,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                 )}
               </div>
 
-              <div className="relative shrink-0" ref={userMenuRef}>
+              <div className="relative shrink-0 z-30" ref={userMenuRef}>
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-1 focus:outline-none"
@@ -263,7 +263,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-40 rounded-xl border border-zinc-800 bg-zinc-950 p-1 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-100">
+                  <div className="absolute right-0 mt-2 w-40 rounded-xl border border-zinc-800 bg-zinc-950 p-1 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-100 z-50">
                     <div className="px-2.5 py-1.5 border-b border-zinc-900 text-[10px] text-zinc-500">
                       Yazar: <span className="font-semibold text-zinc-300">@{user.username}</span>
                     </div>
@@ -337,7 +337,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
         </div>
       </div>
 
-      <div className="border-t border-zinc-900 bg-zinc-950/40">
+      <div className="relative z-10 border-t border-zinc-900 bg-zinc-950/40">
         <div className="mx-auto max-w-7xl flex gap-2.5 sm:gap-3.5 overflow-x-auto px-3 py-2 scrollbar-none">
           {tabs.map((t) => {
             if (t.authRequired && !user) return null;
