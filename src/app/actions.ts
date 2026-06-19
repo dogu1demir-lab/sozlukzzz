@@ -157,6 +157,9 @@ export async function createTopicAndEntryAction(title: string, content: string, 
   if (cleanContent.length < 45) {
     return { error: "İçerik en az 45 karakter olmalıdır zzz." };
   }
+  if (cleanContent.length > 5000) {
+    return { error: "İçerik en fazla 5000 karakter olabilir zzz." };
+  }
 
   try {
     const slug = await convertToSlug(cleanTitle);
@@ -260,6 +263,9 @@ export async function createEntryAction(topicId: string, content: string) {
   if (!cleanContent) return { error: "İçerik boş olamaz." };
   if (cleanContent.length < 45) {
     return { error: "Entry en az 45 karakter olmalıdır zzz." };
+  }
+  if (cleanContent.length > 5000) {
+    return { error: "Entry en fazla 5000 karakter olabilir zzz." };
   }
 
   try {
@@ -402,6 +408,9 @@ export async function sendMessageAction(receiverUsername: string, content: strin
 
   const cleanContent = content.trim();
   if (!cleanContent) return { error: "Mesaj boş olamaz." };
+  if (cleanContent.length > 2000) {
+    return { error: "Mesaj en fazla 2000 karakter olabilir zzz." };
+  }
 
   try {
     const receiver = await prisma.user.findUnique({
@@ -518,6 +527,9 @@ export async function createPozKesEntryAction(title: string, content: string, ba
   if (!cleanContent) {
     return { error: "Açıklama boş olamaz." };
   }
+  if (cleanContent.length > 5000) {
+    return { error: "Açıklama en fazla 5000 karakter olabilir zzz." };
+  }
 
   if (!base64Image) {
     return { error: "Lütfen bir görsel yükleyin." };
@@ -588,6 +600,9 @@ export async function createCommentAction(entryId: string, content: string) {
 
   const cleanContent = content.trim();
   if (!cleanContent) return { error: "Yorum boş olamaz." };
+  if (cleanContent.length > 500) {
+    return { error: "Yorum en fazla 500 karakter olabilir zzz." };
+  }
 
   try {
     const entry = await prisma.entry.findUnique({
@@ -751,6 +766,10 @@ export async function updateProfileAvatarAction(base64Image: string) {
 export async function updateProfileInfoAction(bio: string, avatarColor: string) {
   const user = await getSessionUser();
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  if (bio.trim().length > 160) {
+    return { error: "Biyografi en fazla 160 karakter olabilir zzz." };
+  }
 
   try {
     await prisma.user.update({
