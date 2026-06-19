@@ -54,15 +54,34 @@ export default function SidebarContent() {
     setActiveTab(tab);
   }, [urlTab, pathname]);
 
+  const getMaxTopicsLimit = (tab: string): number => {
+    if (tab === "gundem" || tab === "goruntulenen" || tab === "begenilen") {
+      return 100;
+    }
+    if (tab === "pozkes") {
+      return 50;
+    }
+    return Infinity; // Today and Follow are unlimited
+  };
+
   // Fetch topics for the active tab
   const fetchTopics = async (tabName: string, isRefresh = false) => {
     try {
       const result = await getDynamicSidebarTopicsAction(tabName, 0, 12);
       if (result.success && result.topics) {
-        const formatted = result.topics as TopicItem[];
-        setTopics(formatted);
-        setOffset(formatted.length);
-        setHasMore(formatted.length >= 12);
+        let formatted = result.topics as TopicItem[];
+        const maxLimit = getMaxTopicsLimit(tabName);
+        
+        if (formatted.length >= maxLimit) {
+          formatted = formatted.slice(0, maxLimit);
+          setTopics(formatted);
+          setOffset(formatted.length);
+          setHasMore(false);
+        } else {
+          setTopics(formatted);
+          setOffset(formatted.length);
+          setHasMore(formatted.length >= 12);
+        }
       }
     } catch (err) {
       console.error("Sidebar fetch error:", err);
@@ -119,17 +138,36 @@ export default function SidebarContent() {
   const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
     
+    const maxLimit = getMaxTopicsLimit(activeTab);
+    const remainingAllowed = maxLimit - offset;
+    
+    if (remainingAllowed <= 0) {
+      setHasMore(false);
+      return;
+    }
+    
+    const fetchLimit = Math.min(12, remainingAllowed);
+    
     try {
-      const result = await getDynamicSidebarTopicsAction(activeTab, offset, 12);
+      const result = await getDynamicSidebarTopicsAction(activeTab, offset, fetchLimit);
       if (result.success && result.topics) {
         const newTopics = result.topics as TopicItem[];
         if (newTopics.length === 0) {
           setHasMore(false);
         } else {
-          setTopics((prev) => [...prev, ...newTopics]);
-          setOffset((prev) => prev + newTopics.length);
-          if (newTopics.length < 12) {
+          const combinedTopics = [...topics, ...newTopics];
+          
+          if (combinedTopics.length >= maxLimit) {
+            const truncated = combinedTopics.slice(0, maxLimit);
+            setTopics(truncated);
+            setOffset(truncated.length);
             setHasMore(false);
+          } else {
+            setTopics(combinedTopics);
+            setOffset(combinedTopics.length);
+            if (newTopics.length < fetchLimit) {
+              setHasMore(false);
+            }
           }
         }
       }
