@@ -56,7 +56,7 @@ export default function PozKesLoadMore({
     playBuzzSound();
 
     try {
-      const result = await getMorePozKesAction(offset, 10);
+      const result = await getMorePozKesAction(offset, 7);
       if (result.success && result.entries) {
         const newEntries = result.entries as unknown as PozKesEntry[];
         if (newEntries.length === 0) {
@@ -64,7 +64,7 @@ export default function PozKesLoadMore({
         } else {
           setEntries((prev) => [...prev, ...newEntries]);
           setOffset((prev) => prev + newEntries.length);
-          if (newEntries.length < 10) {
+          if (newEntries.length < 7) {
             setHasMore(false);
           }
         }

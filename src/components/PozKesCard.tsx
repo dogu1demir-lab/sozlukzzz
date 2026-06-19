@@ -12,6 +12,7 @@ import {
 } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
+import ExpandableMentionText from "@/components/ExpandableMentionText";
 
 interface PozKesCardProps {
   entry: {
@@ -263,8 +264,8 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
               >
                 {entry.author.username}
               </Link>
-              <span className="text-zinc-200">
-                <MentionText content={entry.content} />
+              <span className="text-zinc-200 block mt-1">
+                <ExpandableMentionText content={entry.content} />
               </span>
             </div>
           </div>

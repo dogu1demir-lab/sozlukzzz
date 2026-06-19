@@ -42,7 +42,7 @@ export default async function PozKesPage() {
     orderBy: {
       createdAt: "desc"
     },
-    take: 10
+    take: 7
   });
 
   const formattedEntries = entries.map((entry) => {

@@ -249,6 +249,7 @@ body {
 .kd-comment-text {
   color: var(--clr-text);
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .kd-comment-del {

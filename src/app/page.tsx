@@ -3,7 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import Link from "next/link";
 import ReactionButtons from "@/components/ReactionButtons";
 import IntroBanner from "@/components/IntroBanner";
-import MentionText from "@/components/MentionText";
+import ExpandableMentionText from "@/components/ExpandableMentionText";
 import FeedLoadMore from "@/components/FeedLoadMore";
 import { formatDate } from "@/lib/utils";
 import { 
@@ -75,7 +75,7 @@ export default async function Home({ searchParams }: PageProps) {
       orderBy: {
         updatedAt: "desc"
       },
-      take: 20
+      take: 7
     });
 
     entries = topics
@@ -120,7 +120,7 @@ export default async function Home({ searchParams }: PageProps) {
           _count: "desc"
         }
       },
-      take: 20
+      take: 7
     });
 
     entries = topics
@@ -156,7 +156,7 @@ export default async function Home({ searchParams }: PageProps) {
       orderBy: {
         createdAt: "desc"
       },
-      take: 20
+      take: 7
     });
   } else if (activeTab === "takip") {
     if (user) {
@@ -199,7 +199,7 @@ export default async function Home({ searchParams }: PageProps) {
         orderBy: {
           updatedAt: "desc"
         },
-        take: 20
+        take: 7
       });
 
       entries = topics
@@ -254,7 +254,7 @@ export default async function Home({ searchParams }: PageProps) {
         const bLikes = b.likes.filter((l: any) => l.isLike).length;
         return bLikes - aLikes;
       })
-      .slice(0, 20);
+      .slice(0, 7);
   } else if (activeTab === "goruntulenen") {
     // Fetch topics with most views, along with their first entry
     popularTopics = await prisma.topic.findMany({
@@ -281,7 +281,7 @@ export default async function Home({ searchParams }: PageProps) {
       orderBy: {
         viewCount: "desc"
       },
-      take: 15
+      take: 7
     });
   }
 
@@ -396,8 +396,8 @@ export default async function Home({ searchParams }: PageProps) {
                   )}
 
                   {/* Entry Content */}
-                  <div className="mt-3 text-sm sm:text-base text-zinc-200 leading-relaxed whitespace-pre-wrap">
-                    <MentionText content={entry.content} />
+                  <div className="mt-3 text-sm sm:text-base text-zinc-200 leading-relaxed">
+                    <ExpandableMentionText content={entry.content} />
                   </div>
 
                   {/* Reactions */}
@@ -465,8 +465,8 @@ export default async function Home({ searchParams }: PageProps) {
                       </div>
                     </div>
 
-                    <div className="mt-3 text-sm sm:text-base text-zinc-300 leading-relaxed whitespace-pre-wrap">
-                      <MentionText content={firstEntry.content} />
+                    <div className="mt-3 text-sm sm:text-base text-zinc-300 leading-relaxed">
+                      <ExpandableMentionText content={firstEntry.content} />
                     </div>
 
                     <ReactionButtons

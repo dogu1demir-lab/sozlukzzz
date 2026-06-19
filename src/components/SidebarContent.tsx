@@ -57,12 +57,12 @@ export default function SidebarContent() {
   // Fetch topics for the active tab
   const fetchTopics = async (tabName: string, isRefresh = false) => {
     try {
-      const result = await getDynamicSidebarTopicsAction(tabName, 0, 35);
+      const result = await getDynamicSidebarTopicsAction(tabName, 0, 12);
       if (result.success && result.topics) {
         const formatted = result.topics as TopicItem[];
         setTopics(formatted);
         setOffset(formatted.length);
-        setHasMore(formatted.length >= 35);
+        setHasMore(formatted.length >= 12);
       }
     } catch (err) {
       console.error("Sidebar fetch error:", err);
@@ -120,7 +120,7 @@ export default function SidebarContent() {
     if (isLoading || !hasMore) return;
     
     try {
-      const result = await getDynamicSidebarTopicsAction(activeTab, offset, 35);
+      const result = await getDynamicSidebarTopicsAction(activeTab, offset, 12);
       if (result.success && result.topics) {
         const newTopics = result.topics as TopicItem[];
         if (newTopics.length === 0) {
@@ -128,7 +128,7 @@ export default function SidebarContent() {
         } else {
           setTopics((prev) => [...prev, ...newTopics]);
           setOffset((prev) => prev + newTopics.length);
-          if (newTopics.length < 35) {
+          if (newTopics.length < 12) {
             setHasMore(false);
           }
         }

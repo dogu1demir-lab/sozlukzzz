@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getMoreEntriesAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import ReactionButtons from "./ReactionButtons";
-import MentionText from "./MentionText";
+import ExpandableMentionText from "./ExpandableMentionText";
 
 interface Author {
   id: string;
@@ -57,7 +57,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
     setIsLoading(true);
 
     try {
-      const result = await getMoreEntriesAction(tab, offset, 20);
+      const result = await getMoreEntriesAction(tab, offset, 7);
       if (result.success && result.entries) {
         const newEntries = result.entries as unknown as EntryItem[];
         if (newEntries.length === 0) {
@@ -65,7 +65,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
         } else {
           setEntries((prev) => [...prev, ...newEntries]);
           setOffset((prev) => prev + newEntries.length);
-          if (newEntries.length < 20) {
+          if (newEntries.length < 7) {
             setHasMore(false);
           }
         }
@@ -157,8 +157,8 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
             )}
 
             {/* Entry Content */}
-            <div className="mt-3 text-sm sm:text-base text-zinc-200 leading-relaxed whitespace-pre-wrap">
-              <MentionText content={entry.content} />
+            <div className="mt-3 text-sm sm:text-base text-zinc-200 leading-relaxed">
+              <ExpandableMentionText content={entry.content} />
             </div>
 
             {/* Reactions */}
