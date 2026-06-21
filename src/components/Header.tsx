@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { SessionUser } from "@/lib/auth";
-import { logoutAction, markNotificationsAsReadAction } from "@/app/actions";
+import { logoutAction, markNotificationsAsReadAction, searchTopicsAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import { 
   Bell, 
@@ -24,7 +24,8 @@ import {
   Users,
   Award,
   Eye,
-  ShieldAlert
+  ShieldAlert,
+  Loader2
 } from "lucide-react";
 
 interface HeaderProps {
@@ -40,6 +41,14 @@ export default function Header({ user, unreadNotificationsCount, notifications }
   const [localUnreadCount, setLocalUnreadCount] = useState(unreadNotificationsCount);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+
+  // Autocomplete search states
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const searchContainerRef = useRef<HTMLFormElement>(null);
+  const mobileSearchContainerRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -86,13 +95,86 @@ export default function Header({ user, unreadNotificationsCount, notifications }
     setLocalUnreadCount(unreadNotificationsCount);
   }, [unreadNotificationsCount]);
 
+  // Clear search and close mobile menu on page navigation
+  useEffect(() => {
+    setSearchQuery("");
+    setShowDropdown(false);
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Debounced search trigger
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      setIsSearchLoading(false);
+      return;
+    }
+
+    setIsSearchLoading(true);
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const res = await searchTopicsAction(searchQuery);
+        if (res.success && res.topics) {
+          setSearchResults(res.topics);
+          setShowDropdown(true);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (err) {
+        console.error("Autocomplete error:", err);
+      } finally {
+        setIsSearchLoading(false);
+        setActiveIndex(-1);
+      }
+    }, 250);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const hasNewTopicOption = searchQuery.trim().length > 0;
+    const totalOptions = searchResults.length + (hasNewTopicOption ? 1 : 0);
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1 >= totalOptions ? 0 : prev + 1));
+      setShowDropdown(true);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev - 1 < 0 ? totalOptions - 1 : prev - 1));
+      setShowDropdown(true);
+    } else if (e.key === "Escape") {
+      setShowDropdown(false);
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0 && activeIndex < totalOptions) {
+        e.preventDefault();
+        if (activeIndex < searchResults.length) {
+          const selected = searchResults[activeIndex];
+          router.push(`/baslik/${selected.slug}`);
+        } else {
+          router.push(`/yeni?title=${encodeURIComponent(searchQuery.trim())}`);
+        }
+        setSearchQuery("");
+        setShowDropdown(false);
+      }
+    }
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (userMenuRef.current && !userMenuRef.current.contains(target)) {
         setShowUserMenu(false);
       }
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+      if (notifRef.current && !notifRef.current.contains(target)) {
         setShowNotifications(false);
+      }
+      
+      const clickedDesktopSearch = searchContainerRef.current?.contains(target);
+      const clickedMobileSearch = mobileSearchContainerRef.current?.contains(target);
+      if (!clickedDesktopSearch && !clickedMobileSearch) {
+        setShowDropdown(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -138,7 +220,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-850 bg-zinc-950/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-zinc-850 bg-zinc-950">
       
       {/* Top Navbar */}
       <div className="relative z-20 mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-2 sm:px-4">
@@ -146,7 +228,8 @@ export default function Header({ user, unreadNotificationsCount, notifications }
         {/* Logo */}
         <div className="flex items-center gap-1.5">
           <Link 
-            href="/" 
+            href="/bugun" 
+            prefetch={true}
             className="flex items-center gap-1 group text-sm sm:text-base font-bold tracking-tight text-white hover:text-lime-400 transition-colors"
           >
             <span className="inline-block animate-pulse text-lime-400 text-lg group-hover:animate-bounce">
@@ -157,15 +240,99 @@ export default function Header({ user, unreadNotificationsCount, notifications }
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-xs mx-4 relative">
+        <form onSubmit={handleSearchSubmit} className="hidden md:flex flex-1 max-w-xs mx-4 relative" ref={searchContainerRef}>
           <input
             type="text"
             placeholder="ara..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
             className="w-full h-8 rounded-full bg-zinc-900 border border-zinc-800 px-3 pl-8 text-xs sm:text-sm text-zinc-200 placeholder-zinc-550 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
           />
-          <Search className="absolute left-2.5 top-2.5 h-3 w-3 text-zinc-500" />
+          {isSearchLoading ? (
+            <Loader2 className="absolute left-2.5 top-2.5 h-3 w-3 text-lime-500 animate-spin" />
+          ) : (
+            <Search className="absolute left-2.5 top-2.5 h-3 w-3 text-zinc-500" />
+          )}
+
+          {showDropdown && (
+            <div className="absolute left-0 right-0 top-full mt-1.5 w-80 max-h-80 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/95 backdrop-blur-md p-1 shadow-2xl z-50 divide-y divide-zinc-900 animate-in fade-in slide-in-from-top-1 duration-100">
+              {searchResults.length === 0 && searchQuery.trim() !== "" && !isSearchLoading ? (
+                <div className="px-3.5 py-3 text-xs text-zinc-555 italic text-center">
+                  Uyumlu başlık bulunamadı zzz.
+                </div>
+              ) : (
+                searchResults.map((topic, idx) => {
+                  const isActive = idx === activeIndex;
+                  return (
+                    <Link
+                      key={topic.id}
+                      href={topic.url || `/baslik/${topic.slug}`}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-all border-l-2 ${
+                        isActive
+                          ? "bg-lime-500/10 border-lime-500 text-white font-medium"
+                          : "border-transparent text-zinc-350 hover:bg-zinc-900/50 hover:text-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 pr-1.5 flex-1">
+                        {topic.isUser ? (
+                          <>
+                            {topic.avatarUrl ? (
+                              <img
+                                src={`/api/yazar-image/${encodeURIComponent(topic.username)}`}
+                                alt={topic.username}
+                                width={18}
+                                height={18}
+                                className="w-4.5 h-4.5 rounded-full object-cover shrink-0 border border-white/5"
+                              />
+                            ) : (
+                              <div
+                                className="w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-black shrink-0 border border-white/5"
+                                style={{ backgroundColor: topic.avatarColor }}
+                              >
+                                {topic.username.substring(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold truncate text-left text-lime-400">@{topic.username}</span>
+                              <span className="text-[9px] text-zinc-550 truncate font-normal text-left">Yazar Profili</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-bold truncate text-left">{topic.title}</span>
+                            {topic.snippet && (
+                              <span className="text-[10px] text-zinc-500 truncate mt-0.5 font-normal text-left">
+                                {topic.snippet}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <span className="shrink-0 text-[10px] bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-850 text-zinc-500">
+                        {topic.isUser ? `${topic.entryCount} entry` : topic.entryCount}
+                      </span>
+                    </Link>
+                  );
+                })
+              )}
+              
+              {searchQuery.trim().length > 0 && (
+                <Link
+                  href={`/yeni?title=${encodeURIComponent(searchQuery.trim())}`}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-xs transition-all border-l-2 font-semibold ${
+                    activeIndex === searchResults.length
+                      ? "bg-lime-500/15 border-lime-500 text-lime-400"
+                      : "border-transparent text-lime-400 hover:bg-lime-500/5"
+                  }`}
+                >
+                  <span className="text-[10px]">➕</span>
+                  <span className="truncate">yeni başlık aç: &quot;{searchQuery.trim()}&quot;</span>
+                </Link>
+              )}
+            </div>
+          )}
           <button type="submit" className="hidden">Ara</button>
         </form>
 
@@ -174,6 +341,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
           <button
             onClick={toggleMute}
             title={isMuted ? "Sesi Aç" : "Sesi Kapat"}
+            aria-label={isMuted ? "Sesi Aç" : "Sesi Kapat"}
             className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-lime-400 transition-all active:scale-95 shrink-0"
           >
             {isMuted ? (
@@ -187,6 +355,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
             <>
               <Link
                 href="/yeni"
+                prefetch={false}
                 className="hidden sm:flex items-center gap-1 px-3 h-8 rounded-full bg-lime-500 text-black font-bold text-xs sm:text-sm hover:bg-lime-400 transition-colors active:scale-95 shrink-0"
               >
                 <PlusCircle className="h-3.5 w-3.5" />
@@ -195,6 +364,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
 
               <Link
                 href="/mesajlar"
+                prefetch={false}
                 title="Özel Mesajlar"
                 className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-lime-400 transition-all relative shrink-0"
               >
@@ -204,7 +374,8 @@ export default function Header({ user, unreadNotificationsCount, notifications }
               <div className="relative shrink-0 z-30" ref={notifRef}>
                 <button
                   onClick={handleNotificationsClick}
-                  className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-lime-400 transition-all relative"
+                  aria-label="Bildirimler"
+                  className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-450 hover:text-lime-400 transition-all relative"
                 >
                   <Bell className="h-4.5 w-4.5" />
                   {localUnreadCount > 0 && (
@@ -229,7 +400,8 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                         notifications.map((notif) => (
                           <Link
                             key={notif.id}
-                            href={notif.relatedUrl || "/"}
+                            href={notif.relatedUrl || "/bugun"}
+                            prefetch={false}
                             onClick={() => {
                               setShowNotifications(false);
                             }}
@@ -250,12 +422,15 @@ export default function Header({ user, unreadNotificationsCount, notifications }
               <div className="relative shrink-0 z-30" ref={userMenuRef}>
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
+                  aria-label="Kullanıcı Menüsü"
                   className="flex items-center gap-1 focus:outline-none"
                 >
                   {user.avatarUrl ? (
                     <img 
-                      src={user.avatarUrl}
+                      src={`/api/yazar-image/${encodeURIComponent(user.username)}`}
                       alt={user.username}
+                      width={30}
+                      height={30}
                       className="w-7.5 h-7.5 rounded-full object-cover border border-white/5"
                     />
                   ) : (
@@ -275,6 +450,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                     </div>
                     <Link
                       href={`/yazar/${user.username}`}
+                      prefetch={false}
                       onClick={() => {
                         setShowUserMenu(false);
                       }}
@@ -285,6 +461,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                     </Link>
                     <Link
                       href="/mesajlar"
+                      prefetch={false}
                       onClick={() => {
                         setShowUserMenu(false);
                       }}
@@ -296,6 +473,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
                     {user.role === "ADMIN" && (
                       <Link
                         href="/yonetim"
+                        prefetch={false}
                         onClick={() => {
                           setShowUserMenu(false);
                         }}
@@ -320,12 +498,14 @@ export default function Header({ user, unreadNotificationsCount, notifications }
             <div className="flex items-center gap-1">
               <Link
                 href="/giris"
+                prefetch={false}
                 className="px-2 py-1 text-xs sm:text-sm font-bold text-zinc-400 hover:text-white transition-colors"
               >
                 giriş
               </Link>
               <Link
                 href="/kaydol"
+                prefetch={false}
                 className="px-3 py-1 text-xs sm:text-sm font-bold rounded-full bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 border border-zinc-800"
               >
                 kaydol
@@ -336,6 +516,7 @@ export default function Header({ user, unreadNotificationsCount, notifications }
           <button 
             className="p-1.5 md:hidden hover:bg-zinc-900 text-zinc-400 rounded-full shrink-0"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Menüyü Kapat" : "Menüyü Aç"}
           >
             {isMobileMenuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
           </button>
@@ -349,15 +530,16 @@ export default function Header({ user, unreadNotificationsCount, notifications }
             
             const isActive = t.id === "pozkes" 
               ? pathname === "/pozkes" 
-              : (pathname === "/" && activeTab === t.id);
+              : (pathname === `/${t.id}`);
               
             const Icon = t.icon;
-            const href = t.id === "pozkes" ? "/pozkes" : `/?tab=${t.id}`;
+            const href = t.id === "pozkes" ? "/pozkes" : `/${t.id}`;
 
             return (
               <Link
                 key={t.id}
                 href={href}
+                prefetch={true}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all border active:scale-95 ${
                   isActive
                     ? "bg-lime-500 text-black border-lime-500 shadow-md shadow-lime-500/5"
@@ -375,20 +557,105 @@ export default function Header({ user, unreadNotificationsCount, notifications }
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-zinc-850 bg-zinc-950 p-3 space-y-3 animate-in slide-in-from-top duration-200">
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
+          <form onSubmit={handleSearchSubmit} className="relative w-full" ref={mobileSearchContainerRef}>
             <input
               type="text"
               placeholder="başlık ara veya yeni başlık yaz..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-8.5 rounded-full bg-zinc-900 border border-zinc-800 px-3.5 pl-9 text-xs text-zinc-200 placeholder-zinc-550"
+              onKeyDown={handleKeyDown}
+              onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
+              className="w-full h-8.5 rounded-full bg-zinc-900 border border-zinc-800 px-3.5 pl-9 text-xs text-zinc-200 placeholder-zinc-550 focus:outline-none focus:border-lime-500"
             />
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-550" />
+            {isSearchLoading ? (
+              <Loader2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-lime-500 animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-550" />
+            )}
+
+            {showDropdown && (
+              <div className="absolute left-0 right-0 top-full mt-1.5 w-full max-h-80 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950 p-1 shadow-2xl z-50 divide-y divide-zinc-900 animate-in fade-in slide-in-from-top-1 duration-100">
+                {searchResults.length === 0 && searchQuery.trim() !== "" && !isSearchLoading ? (
+                  <div className="px-3.5 py-3 text-xs text-zinc-555 italic text-center">
+                    Uyumlu başlık bulunamadı zzz.
+                  </div>
+                ) : (
+                  searchResults.map((topic, idx) => {
+                    const isActive = idx === activeIndex;
+                    return (
+                      <Link
+                        key={topic.id}
+                        href={topic.url || `/baslik/${topic.slug}`}
+                        className={`flex items-center justify-between px-3 py-2 text-xs transition-all border-l-2 ${
+                          isActive
+                            ? "bg-lime-500/10 border-lime-500 text-white font-medium"
+                            : "border-transparent text-zinc-350 hover:bg-zinc-900/50 hover:text-white"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 pr-1.5 flex-1">
+                          {topic.isUser ? (
+                            <>
+                              {topic.avatarUrl ? (
+                                <img
+                                  src={`/api/yazar-image/${encodeURIComponent(topic.username)}`}
+                                  alt={topic.username}
+                                  width={18}
+                                  height={18}
+                                  className="w-4.5 h-4.5 rounded-full object-cover shrink-0 border border-white/5"
+                                />
+                              ) : (
+                                <div
+                                  className="w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-black shrink-0 border border-white/5"
+                                  style={{ backgroundColor: topic.avatarColor }}
+                                >
+                                  {topic.username.substring(0, 2).toUpperCase()}
+                                </div>
+                              )}
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-bold truncate text-left text-lime-400">@{topic.username}</span>
+                                <span className="text-[9px] text-zinc-550 truncate font-normal text-left">Yazar Profili</span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-bold truncate text-left">{topic.title}</span>
+                              {topic.snippet && (
+                                <span className="text-[10px] text-zinc-500 truncate mt-0.5 font-normal text-left">
+                                  {topic.snippet}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <span className="shrink-0 text-[10px] bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-850 text-zinc-500">
+                          {topic.isUser ? `${topic.entryCount} entry` : topic.entryCount}
+                        </span>
+                      </Link>
+                    );
+                  })
+                )}
+                
+                {searchQuery.trim().length > 0 && (
+                  <Link
+                    href={`/yeni?title=${encodeURIComponent(searchQuery.trim())}`}
+                    className={`flex items-center gap-1.5 px-3 py-2 text-xs transition-all border-l-2 font-semibold ${
+                      activeIndex === searchResults.length
+                        ? "bg-lime-500/15 border-lime-500 text-lime-400"
+                        : "border-transparent text-lime-400 hover:bg-lime-500/5"
+                    }`}
+                  >
+                    <span className="text-[10px]">➕</span>
+                    <span className="truncate">yeni başlık aç: &quot;{searchQuery.trim()}&quot;</span>
+                  </Link>
+                )}
+              </div>
+            )}
           </form>
           {user && (
             <div className="flex gap-2">
               <Link
                 href="/yeni"
+                prefetch={false}
                 className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-full bg-lime-500 text-black font-bold text-xs animate-none"
                 onClick={() => {
                   setIsMobileMenuOpen(false);
