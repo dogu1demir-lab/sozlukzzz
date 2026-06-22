@@ -545,6 +545,23 @@ export default function Header({ user, unreadNotificationsCount, notifications, 
         </div>
       </div>
 
+      {/* Latest Member Typewriter Banner */}
+      {latestUsername && (
+        <div className="border-t border-zinc-900/60 bg-zinc-950/10 py-1.5 px-3 sm:px-4">
+          <div className="mx-auto max-w-7xl flex items-center justify-start gap-1.5 font-mono text-[9px] sm:text-[10px] text-zinc-550 select-none">
+            <span>aramıza katılan son yazar:</span>
+            <Link 
+              href={`/yazar/${latestUsername}`}
+              prefetch={false}
+              className="text-lime-400 font-bold hover:underline"
+            >
+              {displayText}
+            </Link>
+            <span className="text-lime-400 font-bold animate-pulse">|</span>
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 border-t border-zinc-900 bg-zinc-950/40">
         <div className="mx-auto max-w-7xl flex gap-2.5 sm:gap-3.5 overflow-x-auto px-3 py-2 scrollbar-none">
           {tabs.map((t) => {
@@ -575,23 +592,6 @@ export default function Header({ user, unreadNotificationsCount, notifications, 
           })}
         </div>
       </div>
-
-      {/* Latest Member Typewriter Banner */}
-      {latestUsername && (
-        <div className="border-t border-zinc-900 bg-zinc-950/20 py-1 px-3">
-          <div className="mx-auto max-w-7xl flex items-center justify-center gap-1 font-mono text-[9px] sm:text-[10px] text-zinc-550 select-none">
-            <span>aramıza katılan son yazar:</span>
-            <Link 
-              href={`/yazar/${latestUsername}`}
-              prefetch={false}
-              className="text-lime-400 font-bold hover:underline"
-            >
-              {displayText}
-            </Link>
-            <span className="text-lime-400 font-bold animate-pulse">|</span>
-          </div>
-        </div>
-      )}
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
