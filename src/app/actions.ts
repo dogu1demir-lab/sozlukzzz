@@ -1,6 +1,8 @@
 "use server";
 
 import { prisma } from "@/lib/db";
+import { saveBase64Image } from "@/lib/upload";
+import { redis } from "@/lib/redis";
 import { getSessionUser, setSessionCookie, clearSessionCookie } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
@@ -9,6 +11,54 @@ import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/mail";
 // Helper: Hash password
 function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
+}
+
+// Helper: Invalidate cached entries/sidebars on database modifications
+export async function clearAllFeedAndSidebarCaches(userId?: string, extraUserIds?: string[]) {
+  try {
+    const keysToDel = [
+      "stream:bugun",
+      "stream:gundem",
+      "stream:pozkes",
+      "stream:begenilen",
+      "stream:goruntulenen"
+    ];
+    
+    const sidebarTabs = ["bugun", "gundem", "takip", "begenilen", "goruntulenen", "pozkes"];
+    for (const tab of sidebarTabs) {
+      const pattern = `sidebar:${tab}:*`;
+      const keys = await redis.keys(pattern);
+      if (keys && keys.length > 0) {
+        keysToDel.push(...keys);
+      }
+    }
+
+    if (userId) {
+      keysToDel.push(`stream:takip:${userId}`);
+      keysToDel.push(`session:user:${userId}`);
+      keysToDel.push(`user:notifications:${userId}`);
+      keysToDel.push(`user:notifications:count:${userId}`);
+    }
+
+    if (extraUserIds && extraUserIds.length > 0) {
+      for (const uid of extraUserIds) {
+        keysToDel.push(`user:notifications:${uid}`);
+        keysToDel.push(`user:notifications:count:${uid}`);
+      }
+    }
+
+    const takipKeys = await redis.keys("stream:takip:*");
+    if (takipKeys && takipKeys.length > 0) {
+      keysToDel.push(...takipKeys);
+    }
+
+    const uniqueKeys = Array.from(new Set(keysToDel));
+    if (uniqueKeys.length > 0) {
+      await redis.del(uniqueKeys);
+    }
+  } catch (err) {
+    console.error("Cache invalidation error:", err);
+  }
 }
 
 // Helper: Convert Turkish text to SEO Slug
@@ -85,13 +135,11 @@ export async function registerAction(prevState: any, formData: FormData) {
       }
     });
 
-    // Send a beautifully styled welcome email
-    try {
-      if (email) {
-        await sendWelcomeEmail(email, username);
-      }
-    } catch (mailError) {
-      console.error("Welcome email sending failed:", mailError);
+    // Send a beautifully styled welcome email in the background without blocking registration
+    if (email) {
+      sendWelcomeEmail(email, username).catch((mailError) => {
+        console.error("Welcome email sending failed in background:", mailError);
+      });
     }
 
     await setSessionCookie(user.id);
@@ -164,6 +212,11 @@ export async function createTopicAndEntryAction(title: string, content: string, 
   try {
     const slug = await convertToSlug(cleanTitle);
 
+    let savedImageUrl: string | null = null;
+    if (imageUrl) {
+      savedImageUrl = await saveBase64Image(imageUrl, "entries");
+    }
+
     // Check if topic exists
     let topic = await prisma.topic.findUnique({
       where: { slug }
@@ -176,7 +229,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
           content: cleanContent,
           topicId: topic.id,
           authorId: user.id,
-          imageUrl: imageUrl || null
+          imageUrl: savedImageUrl
         }
       });
 
@@ -201,6 +254,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
         }
       }
       
+      await clearAllFeedAndSidebarCaches(user.id);
       revalidatePath(`/baslik/${slug}`);
       return { success: true, slug, entryId: entry.id };
     }
@@ -215,7 +269,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
           create: {
             content: cleanContent,
             authorId: user.id,
-            imageUrl: imageUrl || null
+            imageUrl: savedImageUrl
           }
         }
       },
@@ -246,6 +300,14 @@ export async function createTopicAndEntryAction(title: string, content: string, 
       }
     }
 
+    // Publish global update to Redis for real-time sidebar & page updates
+    try {
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY" }));
+    } catch (redisErr) {
+      console.error("Redis global publish error:", redisErr);
+    }
+
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, slug, entryId };
@@ -331,6 +393,14 @@ export async function createEntryAction(topicId: string, content: string) {
       });
     }
 
+    // Publish global update to Redis for real-time sidebar & page updates
+    try {
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY" }));
+    } catch (redisErr) {
+      console.error("Redis global publish error:", redisErr);
+    }
+
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/baslik/${topic.slug}`);
     return { success: true, entryId: entry.id };
   } catch (e) {
@@ -394,6 +464,7 @@ export async function likeEntryAction(entryId: string, isLike: boolean) {
       }
     }
 
+    await clearAllFeedAndSidebarCaches(user.id, entry.authorId !== user.id ? [entry.authorId] : undefined);
     revalidatePath(`/baslik/${entry.topic.slug}`);
     return { success: true };
   } catch (e) {
@@ -438,6 +509,14 @@ export async function sendMessageAction(receiverUsername: string, content: strin
       }
     });
 
+    // Publish event to Redis for instant real-time UI refresh
+    try {
+      await redis.publish(`user:${receiver.id}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+      await redis.publish(`user:${user.id}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+    } catch (redisErr) {
+      console.error("Redis publish error:", redisErr);
+    }
+
     revalidatePath(`/mesajlar`);
     return { success: true };
   } catch (e) {
@@ -455,6 +534,7 @@ export async function markNotificationsAsReadAction() {
       where: { userId: user.id, isRead: false },
       data: { isRead: true }
     });
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     return { success: true };
   } catch (e) {
@@ -487,6 +567,7 @@ export async function followUserAction(followingId: string) {
       await prisma.follow.delete({
         where: { id: existingFollow.id }
       });
+      await clearAllFeedAndSidebarCaches(user.id, [followingId]);
       revalidatePath(`/yazar/${targetUser.username}`);
       return { success: true, followed: false };
     } else {
@@ -508,6 +589,7 @@ export async function followUserAction(followingId: string) {
         }
       });
 
+      await clearAllFeedAndSidebarCaches(user.id, [followingId]);
       revalidatePath(`/yazar/${targetUser.username}`);
       return { success: true, followed: true };
     }
@@ -538,6 +620,11 @@ export async function createPozKesEntryAction(title: string, content: string, ba
   try {
     const slug = await convertToSlug(cleanTitle);
 
+    const savedImageUrl = await saveBase64Image(base64Image, "entries");
+    if (!savedImageUrl) {
+      return { error: "Görsel kaydedilemedi, geçersiz veri." };
+    }
+
     // Check if topic exists
     let topic = await prisma.topic.findUnique({
       where: { slug }
@@ -556,7 +643,7 @@ export async function createPozKesEntryAction(title: string, content: string, ba
     const entry = await prisma.entry.create({
       data: {
         content: cleanContent,
-        imageUrl: base64Image,
+        imageUrl: savedImageUrl,
         topicId: topic.id,
         authorId: user.id
       }
@@ -583,6 +670,14 @@ export async function createPozKesEntryAction(title: string, content: string, ba
       }
     }
 
+    // Publish global update to Redis for real-time sidebar & page updates
+    try {
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY" }));
+    } catch (redisErr) {
+      console.error("Redis global publish error:", redisErr);
+    }
+
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     revalidatePath(`/yazar/${user.username}`);
@@ -617,6 +712,11 @@ export async function createCommentAction(entryId: string, content: string) {
         content: cleanContent,
         entryId,
         authorId: user.id
+      },
+      include: {
+        author: {
+          select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+        }
       }
     });
 
@@ -655,8 +755,19 @@ export async function createCommentAction(entryId: string, content: string) {
       }
     }
 
+    await clearAllFeedAndSidebarCaches(user.id, entry.authorId !== user.id ? [entry.authorId] : undefined);
     revalidatePath("/pozkes");
-    return { success: true };
+    return { 
+      success: true,
+      comment: {
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        author: comment.author,
+        likesCount: 0,
+        hasLiked: false
+      }
+    };
   } catch (e) {
     return { error: "Yorum gönderilirken bir hata oluştu." };
   }
@@ -708,6 +819,7 @@ export async function likeCommentAction(commentId: string) {
       }
     }
 
+    await clearAllFeedAndSidebarCaches(user.id, comment.authorId !== user.id ? [comment.authorId] : undefined);
     revalidatePath("/pozkes");
     return { success: true };
   } catch (e) {
@@ -736,6 +848,7 @@ export async function deleteCommentAction(commentId: string) {
       where: { id: commentId }
     });
 
+    await clearAllFeedAndSidebarCaches(user.id, comment.authorId !== user.id ? [comment.authorId] : undefined);
     revalidatePath("/pozkes");
     return { success: true };
   } catch (e) {
@@ -749,11 +862,17 @@ export async function updateProfileAvatarAction(base64Image: string) {
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
 
   try {
+    const savedAvatarUrl = await saveBase64Image(base64Image, "avatars");
+    if (!savedAvatarUrl) {
+      return { error: "Profil fotoğrafı kaydedilemedi, geçersiz veri." };
+    }
+
     await prisma.user.update({
       where: { id: user.id },
-      data: { avatarUrl: base64Image }
+      data: { avatarUrl: savedAvatarUrl }
     });
 
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/settings");
     return { success: true };
@@ -780,6 +899,7 @@ export async function updateProfileInfoAction(bio: string, avatarColor: string) 
       }
     });
 
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/settings");
     return { success: true };
@@ -802,6 +922,7 @@ export async function deleteAccountAction() {
     // Clear cookie
     await clearSessionCookie();
 
+    await clearAllFeedAndSidebarCaches(user.id);
     return { success: true };
   } catch (e) {
     return { error: "Hesap silinirken bir hata oluştu." };
@@ -850,6 +971,7 @@ export async function createPollTopicAction(title: string, question: string, opt
       }
     });
 
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, slug };
@@ -910,6 +1032,7 @@ export async function voteInPollAction(pollId: string, optionId: string) {
     }
 
     // Revalidate the topic path
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/baslik/${poll.topic.slug}`);
     return { success: true };
   } catch (e) {
@@ -1201,10 +1324,15 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
       return {
         id: entry.id,
         content: entry.content,
-        imageUrl: entry.imageUrl,
+        imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : null,
         createdAt: entry.createdAt,
         topic: entry.topic,
-        author: entry.author,
+        author: {
+          id: entry.author.id,
+          username: entry.author.username,
+          avatarColor: entry.author.avatarColor,
+          avatarUrl: entry.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(entry.author.username)}` : null,
+        },
         likesCount,
         dislikesCount,
         userReaction,
@@ -1260,7 +1388,12 @@ export async function getMorePozKesAction(offset: number, limit: number = 10) {
           id: comment.id,
           content: comment.content,
           createdAt: comment.createdAt,
-          author: comment.author,
+          author: {
+            id: comment.author.id,
+            username: comment.author.username,
+            avatarColor: comment.author.avatarColor,
+            avatarUrl: comment.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(comment.author.username)}` : null,
+          },
           likesCount,
           hasLiked
         };
@@ -1269,9 +1402,14 @@ export async function getMorePozKesAction(offset: number, limit: number = 10) {
       return {
         id: entry.id,
         content: entry.content,
-        imageUrl: entry.imageUrl!,
+        imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : null,
         createdAt: entry.createdAt,
-        author: entry.author,
+        author: {
+          id: entry.author.id,
+          username: entry.author.username,
+          avatarColor: entry.author.avatarColor,
+          avatarUrl: entry.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(entry.author.username)}` : null,
+        },
         likesCount,
         hasLiked,
         comments: formattedComments
@@ -1323,6 +1461,7 @@ export async function deleteEntryAction(entryId: string) {
       topicDeleted = true;
     }
 
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, topicDeleted, slug };
@@ -1360,6 +1499,7 @@ export async function editEntryAction(entryId: string, newContent: string) {
       data: { content: cleanContent }
     });
 
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/baslik/${entry.topic.slug}`);
     return { success: true };
   } catch (e) {
@@ -1540,12 +1680,25 @@ export async function resolveReportAction(reportId: string, actionType: "DISMISS
 export async function getDynamicSidebarTopicsAction(tab: string, offset: number = 0, limit: number = 35) {
   try {
     const user = await getSessionUser();
-    
-    // Normalize tab name
     const activeTab = tab || "bugun";
+
+    // 1. Check Redis cache first (except for following tab, or cache with user id)
+    const cacheKey = activeTab === "takip"
+      ? (user ? `sidebar:takip:${user.id}:${offset}:${limit}` : "sidebar:takip:guest")
+      : `sidebar:${activeTab}:${offset}:${limit}`;
+
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return { success: true, topics: JSON.parse(cached) };
+      }
+    } catch (redisErr) {
+      console.error("Redis get sidebar error:", redisErr);
+    }
+
+    let formattedTopics: any[] = [];
     
     if (activeTab === "bugun") {
-      // Calculate today's start in Turkey (UTC+3) to ensure correctness on UTC servers
       const now = new Date();
       const turkeyTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
       const todayStartTurkey = new Date(
@@ -1584,15 +1737,13 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         take: limit
       });
       
-      const formattedTopics = topics.map(t => ({
+      formattedTopics = topics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries
       }));
-      
-      return { success: true, topics: formattedTopics };
       
     } else if (activeTab === "gundem") {
       const topics = await prisma.topic.findMany({
@@ -1612,15 +1763,13 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         take: limit
       });
       
-      const formattedTopics = topics.map(t => ({
+      formattedTopics = topics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries
       }));
-      
-      return { success: true, topics: formattedTopics };
       
     } else if (activeTab === "takip") {
       if (!user) {
@@ -1652,15 +1801,13 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         take: limit
       });
       
-      const formattedTopics = topics.map(t => ({
+      formattedTopics = topics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries
       }));
-      
-      return { success: true, topics: formattedTopics };
       
     } else if (activeTab === "begenilen") {
       const rawTopics = await prisma.topic.findMany({
@@ -1692,15 +1839,13 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
       
       const paginatedTopics = sortedTopics.slice(offset, offset + limit);
       
-      const formattedTopics = paginatedTopics.map(t => ({
+      formattedTopics = paginatedTopics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries
       }));
-      
-      return { success: true, topics: formattedTopics };
       
     } else if (activeTab === "goruntulenen") {
       const topics = await prisma.topic.findMany({
@@ -1718,15 +1863,13 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         take: limit
       });
       
-      const formattedTopics = topics.map(t => ({
+      formattedTopics = topics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries
       }));
-      
-      return { success: true, topics: formattedTopics };
       
     } else {
       const topics = await prisma.topic.findMany({
@@ -1744,25 +1887,123 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         take: limit
       });
       
-      const formattedTopics = topics.map(t => ({
+      formattedTopics = topics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries
       }));
-      
-      return { success: true, topics: formattedTopics };
     }
+
+    // Cache the result in Redis
+    const cacheExpiry = activeTab === "takip" ? 15 : 45; // seconds
+    try {
+      await redis.set(cacheKey, JSON.stringify(formattedTopics), "EX", cacheExpiry);
+    } catch (redisErr) {
+      console.error("Redis set sidebar error:", redisErr);
+    }
+
+    return { success: true, topics: formattedTopics };
   } catch (e) {
     console.error("getDynamicSidebarTopicsAction error:", e);
     return { error: "Başlıklar yüklenirken bir hata oluştu." };
   }
 }
+// Action: Search topics or users for Autocomplete / Instant Search
+export async function searchTopicsAction(query: string) {
+  if (!query || query.trim().length < 1) {
+    return { success: true, topics: [] };
+  }
+  const cleanQuery = query.trim();
+  try {
+    const isPostgres = process.env.DATABASE_URL?.startsWith("postgres");
 
+    // Check if the query starts with @ to search for users
+    if (cleanQuery.startsWith("@")) {
+      const searchUsername = cleanQuery.substring(1).trim();
+      if (searchUsername.length === 0) {
+        return { success: true, topics: [] };
+      }
 
+      const users = await prisma.user.findMany({
+        where: {
+          username: {
+            contains: searchUsername,
+            mode: isPostgres ? "insensitive" : undefined,
+          }
+        },
+        select: {
+          id: true,
+          username: true,
+          avatarColor: true,
+          avatarUrl: true,
+          _count: {
+            select: { entries: true }
+          }
+        },
+        take: 8
+      });
 
+      const formattedUsers = users.map(u => ({
+        id: u.id,
+        title: `@${u.username}`,
+        username: u.username,
+        slug: `yazar/${u.username}`,
+        url: `/yazar/${u.username}`,
+        isUser: true,
+        avatarColor: u.avatarColor,
+        avatarUrl: u.avatarUrl,
+        entryCount: u._count.entries,
+        snippet: "Yazar Profili"
+      }));
 
+      return { success: true, topics: formattedUsers };
+    }
 
+    // Default Topic search
+    const topics = await prisma.topic.findMany({
+      where: {
+        title: {
+          contains: cleanQuery,
+          mode: isPostgres ? "insensitive" : undefined,
+        }
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        entries: {
+          take: 1,
+          select: {
+            content: true
+          }
+        },
+        _count: {
+          select: { entries: true }
+        }
+      },
+      take: 8,
+      orderBy: {
+        entries: {
+          _count: "desc"
+        }
+      }
+    });
 
+    const formatted = topics.map(t => ({
+      id: t.id,
+      title: t.title,
+      slug: t.slug,
+      url: `/baslik/${t.slug}`,
+      isUser: false,
+      entryCount: t._count.entries,
+      snippet: t.entries[0]?.content ? t.entries[0].content.substring(0, 60) + "..." : ""
+    }));
 
+    return { success: true, topics: formatted };
+  } catch (error) {
+    console.error("searchTopicsAction error:", error);
+    return { error: "Arama sırasında bir hata oluştu." };
+  }
+}

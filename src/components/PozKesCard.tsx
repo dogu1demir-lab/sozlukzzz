@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -54,6 +54,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState(entry.comments);
   const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLikePost = () => {
     if (!isLoggedIn) {
@@ -132,19 +133,25 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || isSubmitting || isPending) return;
 
     playBuzzSound();
+    setIsSubmitting(true);
 
     startTransition(async () => {
-      const result = await createCommentAction(entry.id, newComment);
-      if (result.error) {
-        alert(result.error);
-      } else {
-        setNewComment("");
-        // We will reload or refresh
-        router.refresh();
-        window.location.reload(); // Fallback for instant update of page content
+      try {
+        const result = await createCommentAction(entry.id, newComment);
+        if (result.error) {
+          alert(result.error);
+        } else if (result.success && result.comment) {
+          setComments(prev => [...prev, result.comment]);
+          setNewComment("");
+          router.refresh();
+        }
+      } catch (err) {
+        alert("Yorum gönderilirken teknik bir hata oluştu.");
+      } finally {
+        setIsSubmitting(false);
       }
     });
   };
@@ -179,13 +186,16 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       <div className="kd-card-header">
         <Link
           href={`/yazar/${entry.author.username}`}
+          prefetch={false}
           className="kd-card-author"
           onClick={() => playBuzzSound()}
         >
           {entry.author.avatarUrl ? (
             <img
-              src={entry.author.avatarUrl}
+              src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
               alt={entry.author.username}
+              width={32}
+              height={32}
               className="avatar avatar-sm avatar-img"
             />
           ) : (
@@ -206,6 +216,8 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
         <img
           src={entry.imageUrl}
           alt={`${entry.author.username} tarafından paylaşıldı`}
+          width={600}
+          height={400}
           className="kd-card-img"
           loading="lazy"
         />
@@ -245,8 +257,10 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           <div className="mb-2 pb-2 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed flex items-start gap-2">
             {entry.author.avatarUrl ? (
               <img
-                src={entry.author.avatarUrl}
+                src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
                 alt={entry.author.username}
+                width={24}
+                height={24}
                 className="avatar avatar-xs avatar-img mt-0.5"
               />
             ) : (
@@ -260,6 +274,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
             <div className="flex-1 min-w-0">
               <Link
                 href={`/yazar/${entry.author.username}`}
+                prefetch={false}
                 className="font-bold text-white hover:text-teal-400 mr-1.5"
               >
                 {entry.author.username}
@@ -275,11 +290,17 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           <ul className="kd-comment-list">
             {comments.map((comment) => (
               <li key={comment.id} className="kd-comment-item">
-                <Link className="kd-comment-avatar" href={`/yazar/${comment.author.username}`}>
+                <Link 
+                  className="kd-comment-avatar" 
+                  href={`/yazar/${comment.author.username}`}
+                  prefetch={false}
+                >
                   {comment.author.avatarUrl ? (
                     <img
-                      src={comment.author.avatarUrl}
+                      src={`/api/yazar-image/${encodeURIComponent(comment.author.username)}`}
                       alt={comment.author.username}
+                      width={24}
+                      height={24}
                       className="avatar avatar-xs avatar-img"
                     />
                   ) : (
@@ -294,6 +315,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                 <div className="kd-comment-body">
                   <Link
                     href={`/yazar/${comment.author.username}`}
+                    prefetch={false}
                     className="kd-comment-author"
                   >
                     {comment.author.username}
@@ -349,7 +371,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Yorum ekle…"
-                disabled={isPending}
+                disabled={isPending || isSubmitting}
                 maxLength={500}
                 rows={1}
                 className="kd-comment-input"
@@ -357,7 +379,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
             </div>
             <button
               type="submit"
-              disabled={isPending || !newComment.trim()}
+              disabled={isPending || isSubmitting || !newComment.trim()}
               className="kd-comment-submit"
             >
               Gönder
