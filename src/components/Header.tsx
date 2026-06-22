@@ -32,9 +32,10 @@ interface HeaderProps {
   user: SessionUser | null;
   unreadNotificationsCount: number;
   notifications: any[];
+  latestUsername?: string;
 }
 
-export default function Header({ user, unreadNotificationsCount, notifications }: HeaderProps) {
+export default function Header({ user, unreadNotificationsCount, notifications, latestUsername }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -49,6 +50,9 @@ export default function Header({ user, unreadNotificationsCount, notifications }
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchContainerRef = useRef<HTMLFormElement>(null);
   const mobileSearchContainerRef = useRef<HTMLFormElement>(null);
+  
+  // Typewriter banner states
+  const [displayText, setDisplayText] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -82,6 +86,24 @@ export default function Header({ user, unreadNotificationsCount, notifications }
     playBackgroundBuzz();
     return () => clearTimeout(timerId);
   }, []);
+
+  // Typewriter effect for latest yazar
+  useEffect(() => {
+    if (!latestUsername) return;
+    let index = 0;
+    const fullText = `@${latestUsername}`;
+    setDisplayText("");
+    
+    const interval = setInterval(() => {
+      setDisplayText(fullText.substring(0, index + 1));
+      index++;
+      if (index >= fullText.length) {
+        clearInterval(interval);
+      }
+    }, 120); // 120ms per character
+    
+    return () => clearInterval(interval);
+  }, [latestUsername]);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -553,6 +575,23 @@ export default function Header({ user, unreadNotificationsCount, notifications }
           })}
         </div>
       </div>
+
+      {/* Latest Member Typewriter Banner */}
+      {latestUsername && (
+        <div className="border-t border-zinc-900 bg-zinc-950/20 py-1 px-3">
+          <div className="mx-auto max-w-7xl flex items-center justify-center gap-1 font-mono text-[9px] sm:text-[10px] text-zinc-550 select-none">
+            <span>aramıza katılan son yazar:</span>
+            <Link 
+              href={`/yazar/${latestUsername}`}
+              prefetch={false}
+              className="text-lime-400 font-bold hover:underline"
+            >
+              {displayText}
+            </Link>
+            <span className="text-lime-400 font-bold animate-pulse">|</span>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (

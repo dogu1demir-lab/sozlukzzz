@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import RealtimeGlobalListener from "@/components/RealtimeGlobalListener";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { redis } from "@/lib/redis";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,9 +22,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr"),
   title: "sözlükzzz — vızzz!",
   description: "Türkiye'nin en aktif sinek sever sözlüğü. Sinekler, vızıltılar, aerodinamik harikalar ve hayata dair her şey!",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "sözlükzzz — vızzz!",
     description: "Türkiye'nin en aktif sinek sever sözlüğü. Sinekler, vızıltılar, aerodinamik harikalar ve hayata dair her şey!",
@@ -56,16 +55,57 @@ export default async function RootLayout({
   let unreadNotificationsCount = 0;
 
   if (user) {
-    notifications = await prisma.notification.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      take: 10
-    });
-    
-    unreadNotificationsCount = await prisma.notification.count({
-      where: { userId: user.id, isRead: false }
-    });
+    const notifsCacheKey = `user:notifications:${user.id}`;
+    const countCacheKey = `user:notifications:count:${user.id}`;
+
+    try {
+      const cachedNotifs = await redis.get(notifsCacheKey);
+      if (cachedNotifs) {
+        notifications = JSON.parse(cachedNotifs);
+      }
+    } catch (redisErr) {
+      console.error("Redis get notifications error:", redisErr);
+    }
+
+    if (notifications.length === 0) {
+      notifications = await prisma.notification.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: 10
+      });
+      try {
+        await redis.set(notifsCacheKey, JSON.stringify(notifications), "EX", 15);
+      } catch (redisErr) {
+        console.error("Redis set notifications error:", redisErr);
+      }
+    }
+
+    let shouldCount = true;
+    try {
+      const cachedCount = await redis.get(countCacheKey);
+      if (cachedCount !== null) {
+        unreadNotificationsCount = parseInt(cachedCount, 10);
+        shouldCount = false;
+      }
+    } catch (err) {}
+
+    if (shouldCount) {
+      unreadNotificationsCount = await prisma.notification.count({
+        where: { userId: user.id, isRead: false }
+      });
+      try {
+        await redis.set(countCacheKey, unreadNotificationsCount.toString(), "EX", 15);
+      } catch (redisErr) {
+        console.error("Redis set notifications count error:", redisErr);
+      }
+    }
   }
+
+  const latestUser = await prisma.user.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: { username: true }
+  });
+  const latestUsername = latestUser?.username || "";
 
   return (
     <html lang="tr" className="h-full dark">
@@ -76,6 +116,7 @@ export default async function RootLayout({
           user={user} 
           unreadNotificationsCount={unreadNotificationsCount} 
           notifications={notifications} 
+          latestUsername={latestUsername}
         />
         <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row">
           {/* Left Sidebar */}
@@ -86,6 +127,7 @@ export default async function RootLayout({
             {children}
           </main>
         </div>
+        <RealtimeGlobalListener />
       </body>
     </html>
   );

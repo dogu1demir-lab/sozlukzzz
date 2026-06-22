@@ -231,18 +231,12 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
     <div className="space-y-8 animate-in fade-in duration-300">
       
       {/* Topic Title Header */}
-      <div className="border-b border-zinc-900 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-lg sm:text-xl font-bold text-white hover:text-lime-400 transition-colors inline-block select-all">
-            {topic.title}
-          </h1>
-          <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
-            <Eye className="h-3.5 w-3.5 text-zinc-600" />
-            <span>{topic.viewCount} görüntülenme</span>
-          </div>
-        </div>
+      <div className="border-b border-zinc-900 pb-3 flex items-center justify-between">
+        <h1 className="text-lg sm:text-xl font-bold text-white hover:text-lime-400 transition-colors inline-block select-all">
+          {topic.title}
+        </h1>
         {topic.poll && (
-          <span className="bg-lime-500/10 text-lime-400 border border-lime-500/20 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 self-start sm:self-auto">
+          <span className="bg-lime-500/10 text-lime-400 border border-lime-500/20 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
             📊 Anket
           </span>
         )}
