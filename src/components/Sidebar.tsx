@@ -14,8 +14,8 @@ export default function Sidebar() {
     setIsSearchMode(pathname.startsWith("/baslik/") && hasQ);
   }, [pathname]);
 
-  // Hide sidebar completely on PozKes page and messages page
-  if (pathname === "/pozkes" || pathname.startsWith("/mesajlar")) {
+  // Hide sidebar completely on PozKes page, messages page and admin page
+  if (pathname === "/pozkes" || pathname.startsWith("/mesajlar") || pathname.startsWith("/yonetim")) {
     return null;
   }
 

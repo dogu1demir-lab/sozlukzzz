@@ -83,6 +83,15 @@ export async function convertToSlug(text: string): Promise<string> {
 
 // Action: Register
 export async function registerAction(prevState: any, formData: FormData) {
+  try {
+    const disableSignups = await redis.get("settings:disable_signups");
+    if (disableSignups === "true") {
+      return { error: "Yeni üye alımı geçici olarak kapatılmıştır." };
+    }
+  } catch (err) {
+    console.error("Redis signup check error:", err);
+  }
+
   const username = formData.get("username")?.toString().trim();
   const password = formData.get("password")?.toString();
   const email = formData.get("email")?.toString().trim().toLowerCase();
@@ -602,6 +611,15 @@ export async function followUserAction(followingId: string) {
 export async function createPozKesEntryAction(title: string, content: string, base64Image: string) {
   const user = await getSessionUser();
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  try {
+    const disablePozkes = await redis.get("settings:disable_pozkes");
+    if (disablePozkes === "true") {
+      return { error: "PozKes özelliği geçici olarak devre dışı bırakılmıştır." };
+    }
+  } catch (err) {
+    console.error("Redis pozkes check error:", err);
+  }
 
   const cleanTitle = title.trim() || "pozkes galeri";
   const cleanContent = content.trim();
@@ -2005,5 +2023,320 @@ export async function searchTopicsAction(query: string) {
   } catch (error) {
     console.error("searchTopicsAction error:", error);
     return { error: "Arama sırasında bir hata oluştu." };
+  }
+}
+
+// --- ADMIN PANEL ACTIONS ---
+
+export async function adminSearchUsersAction(query: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  const cleanQuery = query.trim();
+  if (!cleanQuery) return { success: true, users: [] };
+
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { username: { contains: cleanQuery, mode: "insensitive" } },
+          { email: { contains: cleanQuery, mode: "insensitive" } }
+        ]
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        _count: {
+          select: {
+            entries: true,
+            comments: true
+          }
+        }
+      },
+      take: 20
+    });
+
+    return { success: true, users };
+  } catch (error) {
+    console.error("adminSearchUsersAction error:", error);
+    return { error: "Kullanıcılar aranırken bir hata oluştu." };
+  }
+}
+
+export async function adminUpdateUserRoleAction(targetUserId: string, newRole: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  if (!["USER", "ADMIN", "BANNED"].includes(newRole)) {
+    return { error: "Geçersiz rol." };
+  }
+
+  if (targetUserId === user.id) {
+    return { error: "Kendi rolünüzü değiştiremezsiniz." };
+  }
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: targetUserId },
+      data: { role: newRole }
+    });
+
+    // Clear session cache in Redis to log them out or update their role immediately
+    const sessionCacheKey = `user:session:${targetUserId}`;
+    try {
+      await redis.del(sessionCacheKey);
+    } catch (e) {
+      console.error("Redis session cache clear error:", e);
+    }
+
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    console.error("adminUpdateUserRoleAction error:", error);
+    return { error: "Kullanıcı rolü güncellenirken bir hata oluştu." };
+  }
+}
+
+export async function adminSearchTopicsAction(query: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  const cleanQuery = query.trim();
+  if (!cleanQuery) return { success: true, topics: [] };
+
+  try {
+    const topics = await prisma.topic.findMany({
+      where: {
+        title: { contains: cleanQuery, mode: "insensitive" }
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        createdAt: true,
+        _count: {
+          select: { entries: true }
+        }
+      },
+      take: 20,
+      orderBy: {
+        entries: { _count: "desc" }
+      }
+    });
+
+    const formatted = topics.map(t => ({
+      id: t.id,
+      title: t.title,
+      slug: t.slug,
+      createdAt: t.createdAt,
+      entryCount: t._count.entries
+    }));
+
+    return { success: true, topics: formatted };
+  } catch (error) {
+    console.error("adminSearchTopicsAction error:", error);
+    return { error: "Başlıklar aranırken bir hata oluştu." };
+  }
+}
+
+export async function adminRenameTopicAction(topicId: string, newTitle: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  const cleanTitle = newTitle.trim();
+  if (!cleanTitle) {
+    return { error: "Başlık adı boş olamaz." };
+  }
+
+  try {
+    const existing = await prisma.topic.findFirst({
+      where: {
+        title: { equals: cleanTitle, mode: "insensitive" },
+        id: { not: topicId }
+      }
+    });
+
+    if (existing) {
+      return { error: "Bu isimde başka bir başlık zaten mevcut." };
+    }
+
+    const newSlug = await convertToSlug(cleanTitle);
+
+    const updated = await prisma.topic.update({
+      where: { id: topicId },
+      data: {
+        title: cleanTitle,
+        slug: newSlug
+      }
+    });
+
+    await clearAllFeedAndSidebarCaches();
+    return { success: true, topic: updated };
+  } catch (error) {
+    console.error("adminRenameTopicAction error:", error);
+    return { error: "Başlık düzenlenirken bir hata oluştu." };
+  }
+}
+
+export async function adminMergeTopicsAction(sourceTopicId: string, targetTopicId: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  if (sourceTopicId === targetTopicId) {
+    return { error: "Aynı başlığı kendisiyle birleştiremezsiniz." };
+  }
+
+  try {
+    const sourceTopic = await prisma.topic.findUnique({ where: { id: sourceTopicId } });
+    const targetTopic = await prisma.topic.findUnique({ where: { id: targetTopicId } });
+
+    if (!sourceTopic || !targetTopic) {
+      return { error: "Başlıklardan biri veya ikisi bulunamadı." };
+    }
+
+    // Move all entries from source to target topic
+    await prisma.entry.updateMany({
+      where: { topicId: sourceTopicId },
+      data: { topicId: targetTopicId }
+    });
+
+    // Delete the source topic
+    await prisma.topic.delete({
+      where: { id: sourceTopicId }
+    });
+
+    await clearAllFeedAndSidebarCaches();
+    return { success: true };
+  } catch (error) {
+    console.error("adminMergeTopicsAction error:", error);
+    return { error: "Başlıklar birleştirilirken bir hata oluştu." };
+  }
+}
+
+export async function adminDeleteTopicAction(topicId: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  try {
+    const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+    if (!topic) {
+      return { error: "Başlık bulunamadı." };
+    }
+
+    // Delete the topic (entries will cascade delete)
+    await prisma.topic.delete({
+      where: { id: topicId }
+    });
+
+    await clearAllFeedAndSidebarCaches();
+    return { success: true };
+  } catch (error) {
+    console.error("adminDeleteTopicAction error:", error);
+    return { error: "Başlık silinirken bir hata oluştu." };
+  }
+}
+
+export async function adminGetSettingsAction() {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  try {
+    const disableSignups = await redis.get("settings:disable_signups");
+    const disablePozkes = await redis.get("settings:disable_pozkes");
+
+    return {
+      success: true,
+      disableSignups: disableSignups === "true",
+      disablePozkes: disablePozkes === "true"
+    };
+  } catch (error) {
+    console.error("adminGetSettingsAction error:", error);
+    return { error: "Ayarlar yüklenirken bir hata oluştu." };
+  }
+}
+
+export async function adminUpdateSettingsAction(disableSignups: boolean, disablePozkes: boolean) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  try {
+    await redis.set("settings:disable_signups", disableSignups ? "true" : "false");
+    await redis.set("settings:disable_pozkes", disablePozkes ? "true" : "false");
+
+    return { success: true };
+  } catch (error) {
+    console.error("adminUpdateSettingsAction error:", error);
+    return { error: "Ayarlar güncellenirken bir hata oluştu." };
+  }
+}
+
+export async function adminGetStatsAction() {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  let dbHealth = "OK";
+  let redisHealth = "OK";
+
+  // 1. Health checks
+  try {
+    await prisma.user.count();
+  } catch (e) {
+    dbHealth = "ERROR";
+  }
+
+  try {
+    await redis.ping();
+  } catch (e) {
+    redisHealth = "ERROR";
+  }
+
+  // 2. Counts
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [totalUsers, totalTopics, todayEntries, todayComments] = await Promise.all([
+      prisma.user.count(),
+      prisma.topic.count(),
+      prisma.entry.count({ where: { createdAt: { gte: today } } }),
+      prisma.comment.count({ where: { createdAt: { gte: today } } })
+    ]);
+
+    return {
+      success: true,
+      health: {
+        db: dbHealth,
+        redis: redisHealth
+      },
+      stats: {
+        totalUsers,
+        totalTopics,
+        todayEntries,
+        todayComments
+      }
+    };
+  } catch (error) {
+    console.error("adminGetStatsAction error:", error);
+    return { error: "İstatistikler yüklenirken bir hata oluştu." };
   }
 }

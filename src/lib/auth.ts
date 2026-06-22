@@ -40,6 +40,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     });
 
     if (user) {
+      if (user.role === "BANNED") {
+        return null;
+      }
       // Cache for 30 seconds
       try {
         await redis.set(cacheKey, JSON.stringify(user), "EX", 30);
