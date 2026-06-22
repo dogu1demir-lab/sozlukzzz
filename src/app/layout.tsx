@@ -108,7 +108,7 @@ export default async function RootLayout({
   const latestUsername = latestUser?.username || "";
 
   return (
-    <html lang="tr" className="h-full dark">
+    <html lang="tr" className="h-full dark notranslate">
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-lime-500 selection:text-black antialiased`}
       >
