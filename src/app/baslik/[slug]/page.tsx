@@ -6,10 +6,12 @@ import EntryBlock from "@/components/EntryBlock";
 import AddEntryForm from "@/components/AddEntryForm";
 import MentionText from "@/components/MentionText";
 import { formatDate } from "@/lib/utils";
-import { HelpCircle, Sparkles, MessageSquare, ArrowRight } from "lucide-react";
+import { HelpCircle, Sparkles, MessageSquare, ArrowRight, Eye } from "lucide-react";
 import { Suspense } from "react";
 import PollBlock from "@/components/PollBlock";
 import { Metadata } from "next";
+import { redis } from "@/lib/redis";
+import { headers } from "next/headers";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -20,7 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       entries: { 
         orderBy: { createdAt: "asc" },
         take: 1, 
-        select: { content: true, imageUrl: true } 
+        select: { id: true, content: true, imageUrl: true } 
       } 
     }
   });
@@ -35,12 +37,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? topic.entries[0].content.substring(0, 150) + "..."
     : "Bu başlık altındaki vızıltıları oku ve sinekler hakkında tartış!";
 
-  const entryImage = topic.entries[0]?.imageUrl;
-  const ogImage = entryImage ? entryImage : "/og-image.jpg";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
+  const firstEntry = topic.entries[0];
+  const ogImage = firstEntry && firstEntry.imageUrl
+    ? `${appUrl}/api/image/${firstEntry.id}`
+    : `${appUrl}/og-image.jpg`;
 
   return {
     title: `${topic.title} — sözlükzzz`,
     description: snippet,
+    alternates: {
+      canonical: `${appUrl}/baslik/${slug}`,
+    },
     openGraph: {
       title: `${topic.title} — sözlükzzz`,
       description: snippet,
@@ -104,12 +112,32 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
     }
   });
 
-  // If topic exists, increment its view count
+  // If topic exists, increment its view count (with 1-hour IP cooldown to prevent refresh spam)
   if (topic) {
-    await prisma.topic.update({
-      where: { id: topic.id },
-      data: { viewCount: { increment: 1 } }
-    });
+    let shouldIncrement = true;
+    try {
+      const headerList = await headers();
+      const ip = headerList.get("x-forwarded-for")?.split(",")[0].trim() || headerList.get("x-real-ip") || "127.0.0.1";
+      const viewKey = `view:${topic.id}:${ip}`;
+      
+      const alreadyViewed = await redis.get(viewKey);
+      if (alreadyViewed) {
+        shouldIncrement = false;
+      } else {
+        await redis.set(viewKey, "1", "EX", 3600); // 1-hour expiration
+      }
+    } catch (err) {
+      console.error("Failed to check/set view limit in Redis:", err);
+      shouldIncrement = true; // Fallback to still track view if Redis is down
+    }
+
+    if (shouldIncrement) {
+      await prisma.topic.update({
+        where: { id: topic.id },
+        data: { viewCount: { increment: 1 } }
+      });
+      topic.viewCount += 1;
+    }
   }
 
   // If topic is not found
@@ -135,6 +163,7 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
             {/* Direct creation link to prefill title */}
             <Link
               href={`/yeni?title=${encodeURIComponent(searchTitle)}`}
+              prefetch={false}
               className="group flex items-center justify-between w-full h-11 px-4 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-300 hover:text-white hover:border-lime-500 transition-all"
             >
               <span className="font-medium truncate">Başlığı oluşturmaya başla: &quot;{searchTitle}&quot;</span>
@@ -144,11 +173,11 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
         ) : (
           <div className="mt-6 rounded-xl border border-zinc-900 bg-zinc-900/10 p-5 text-sm text-zinc-400">
             Fikirlerini paylaşıp bu başlığı oluşturmak için lütfen önce{" "}
-            <Link href="/giris" className="text-lime-400 font-bold hover:underline">
+            <Link href="/giris" prefetch={false} className="text-lime-400 font-bold hover:underline">
               giriş yapın
             </Link>{" "}
             veya{" "}
-            <Link href="/kaydol" className="text-lime-400 font-bold hover:underline">
+            <Link href="/kaydol" prefetch={false} className="text-lime-400 font-bold hover:underline">
               kaydolun
             </Link>
             .
@@ -202,12 +231,18 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
     <div className="space-y-8 animate-in fade-in duration-300">
       
       {/* Topic Title Header */}
-      <div className="border-b border-zinc-900 pb-3 flex items-center justify-between">
-        <h1 className="text-lg sm:text-xl font-bold text-white hover:text-lime-400 transition-colors inline-block select-all">
-          {topic.title}
-        </h1>
+      <div className="border-b border-zinc-900 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-lg sm:text-xl font-bold text-white hover:text-lime-400 transition-colors inline-block select-all">
+            {topic.title}
+          </h1>
+          <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
+            <Eye className="h-3.5 w-3.5 text-zinc-600" />
+            <span>{topic.viewCount} görüntülenme</span>
+          </div>
+        </div>
         {topic.poll && (
-          <span className="bg-lime-500/10 text-lime-400 border border-lime-500/20 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+          <span className="bg-lime-500/10 text-lime-400 border border-lime-500/20 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 self-start sm:self-auto">
             📊 Anket
           </span>
         )}
