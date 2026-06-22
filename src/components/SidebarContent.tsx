@@ -29,14 +29,15 @@ export default function SidebarContent() {
   // 1. Detect and preserve tab state across page transitions
   useEffect(() => {
     let tab = "bugun";
-    
-    if (urlTab) {
-      tab = urlTab;
+    const cleanPath = pathname.replace(/^\//, "");
+    const VALID_TABS = ["bugun", "gundem", "takip", "begenilen", "goruntulenen"];
+
+    if (VALID_TABS.includes(cleanPath)) {
+      tab = cleanPath;
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("lastActiveTab", urlTab);
+        sessionStorage.setItem("lastActiveTab", cleanPath);
       }
-    } else if (pathname === "/") {
-      // If we go back to the home page root without query params, force reset to "bugun"
+    } else if (pathname === "/" || cleanPath === "") {
       tab = "bugun";
       if (typeof window !== "undefined") {
         sessionStorage.setItem("lastActiveTab", "bugun");
@@ -45,14 +46,14 @@ export default function SidebarContent() {
       // On other pages (/baslik/[slug], /yazar/[username], etc.), look up sessionStorage
       if (typeof window !== "undefined") {
         const storedTab = sessionStorage.getItem("lastActiveTab");
-        if (storedTab) {
+        if (storedTab && VALID_TABS.includes(storedTab)) {
           tab = storedTab;
         }
       }
     }
     
     setActiveTab(tab);
-  }, [urlTab, pathname]);
+  }, [pathname]);
 
   const getMaxTopicsLimit = (tab: string): number => {
     if (tab === "gundem" || tab === "goruntulenen" || tab === "begenilen") {
@@ -67,7 +68,8 @@ export default function SidebarContent() {
   // Fetch topics for the active tab
   const fetchTopics = async (tabName: string, isRefresh = false) => {
     try {
-      const result = await getDynamicSidebarTopicsAction(tabName, 0, 12);
+      const initialLimit = tabName === "bugun" ? 30 : 12;
+      const result = await getDynamicSidebarTopicsAction(tabName, 0, initialLimit);
       if (result.success && result.topics) {
         let formatted = result.topics as TopicItem[];
         const maxLimit = getMaxTopicsLimit(tabName);
@@ -80,7 +82,7 @@ export default function SidebarContent() {
         } else {
           setTopics(formatted);
           setOffset(formatted.length);
-          setHasMore(formatted.length >= 12);
+          setHasMore(formatted.length >= initialLimit);
         }
       }
     } catch (err) {
@@ -184,7 +186,7 @@ export default function SidebarContent() {
           <TrendingUp className="h-3.5 w-3.5 text-lime-400" />
           <span>vızıldayanlar</span>
         </h2>
-        <span className="text-[9px] bg-lime-500/10 text-lime-400 border border-lime-500/20 px-1.5 py-0.5 rounded-full font-bold animate-pulse">
+        <span className="text-[9px] bg-lime-500/10 text-lime-300 border border-lime-500/20 px-1.5 py-0.5 rounded-none font-bold animate-pulse">
           canlı
         </span>
       </div>
@@ -206,35 +208,38 @@ export default function SidebarContent() {
           </div>
         ) : (
           <>
-            {topics.map((topic) => (
-              <Link
-                key={topic.id}
-                href={`/baslik/${topic.slug}`}
-                className="flex items-center justify-between px-2 py-1 rounded-lg text-xs sm:text-sm text-zinc-300 hover:text-white hover:bg-zinc-900 transition-all group active:scale-[0.99]"
-              >
-                <span className="truncate pr-1.5 group-hover:translate-x-0.5 transition-transform duration-100 flex items-center gap-1">
-                  <span className="truncate">{topic.title}</span>
-                  {topic.poll && (
-                    <span className="text-[10px] shrink-0" title="Anket">📊</span>
-                  )}
-                </span>
-                <span className="shrink-0 text-[10px] font-semibold bg-zinc-900 group-hover:bg-lime-950 border border-zinc-850 group-hover:border-lime-500/30 text-zinc-500 group-hover:text-lime-400 px-1.5 py-0.5 rounded-md min-w-[18px] text-center transition-all">
-                  {topic.entryCount}
-                </span>
-              </Link>
-            ))}
+            {topics.map((topic) => {
+              return (
+                <Link
+                  key={topic.id}
+                  href={`/baslik/${topic.slug}`}
+                  prefetch={false}
+                  className="flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 border-zinc-900/30 hover:bg-zinc-900/30 hover:border-zinc-800/80"
+                >
+                  <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-start gap-1.5">
+                    <span className="break-words whitespace-normal">{topic.title}</span>
+                    {topic.poll && (
+                      <span className="text-[10px] shrink-0 pt-0.5" title="Anket">📊</span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-none min-w-[18px] text-center transition-all border font-semibold bg-zinc-900/60 group-hover:bg-lime-950 border-zinc-850 group-hover:border-lime-500/30 text-zinc-400 group-hover:text-lime-400">
+                    {topic.entryCount}
+                  </span>
+                </Link>
+              );
+            })}
 
             {/* Load more button */}
-            <div className="mt-3 px-1">
+            <div className="mt-3">
               {hasMore ? (
                 <button
                   onClick={handleLoadMore}
-                  className="w-full text-center py-2 px-3 rounded-lg border border-dashed border-zinc-800 hover:border-lime-500/30 bg-zinc-900/10 hover:bg-lime-500/5 text-[11px] font-bold text-zinc-400 hover:text-lime-400 transition-all active:scale-[0.98] cursor-pointer"
+                  className="w-full text-center py-2 px-3 rounded-none border border-dashed border-zinc-800 hover:border-lime-500/30 bg-zinc-900/10 hover:bg-lime-500/5 text-[11px] font-bold text-zinc-400 hover:text-lime-400 transition-all active:scale-[0.98] cursor-pointer"
                 >
                   daha fazla vızzz
                 </button>
               ) : (
-                <div className="text-center py-2 text-[10px] text-zinc-600 italic">
+                <div className="text-center py-2 text-[10px] text-zinc-400 italic">
                   Tüm vızıltılar yüklendi zzz.
                 </div>
               )}
@@ -243,12 +248,6 @@ export default function SidebarContent() {
         )}
       </div>
 
-      {/* Fun Footer info */}
-      <div className="mt-6 pt-3 border-t border-zinc-900 text-center">
-        <p className="text-[9px] text-zinc-650">
-          sözlükzzz © 2026 • vızzz! • Kurucu Doğu Demir
-        </p>
-      </div>
     </>
   );
 }
