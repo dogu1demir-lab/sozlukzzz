@@ -11,6 +11,15 @@ import FlyRankBadge, { getRankByScore } from "@/components/FlyRankBadge";
 import { createPozKesEntryAction } from "@/app/actions";
 
 interface ProfileDashboardProps {
+  gifts?: Array<{
+    id: string;
+    giftType: string;
+    note: string | null;
+    createdAt: Date;
+    givenBy: {
+      username: string;
+    };
+  }>;
   author: {
     id: string;
     username: string;
@@ -71,6 +80,24 @@ interface ProfileDashboardProps {
   }>;
 }
 
+const ALL_GIFTS_MAP: Record<string, { name: string; emoji: string; description: string }> = {
+  SWEET: { name: "Tatlı Sinek", emoji: "🍬", description: "Pozitif, sevecen ve tatlı dilli yazarlara verilir." },
+  KING: { name: "Kral Sinek", emoji: "👑", description: "Derin, yüksek kaliteli yazılar yazan bilge yazarlara verilir." },
+  SWATTER: { name: "Sinek Raketi", emoji: "🎾", description: "Trolleri raporlayarak asayişi koruyan yazarlara verilir." },
+  LIGHTNING: { name: "Yıldırım Vızıltı", emoji: "⚡", description: "Gündemdeki sıcak haberleri çok hızlı giren yazarlara verilir." },
+  STEEL: { name: "Çelik Kanat", emoji: "🛡️", description: "Sözlüğün ilk gününden beri destek veren en sadık emektarlara verilir." },
+  MIDNIGHT: { name: "Gece Sinekleri", emoji: "☕", description: "Gece geç saatlerde aktif olan, gece kuşu yazarlara verilir." },
+  WATERMELON: { name: "Karpuz Dilimi", emoji: "🍉", description: "Sözlükde herkesi güldüren mizah yetenekli yazarlara verilir." },
+  TECH: { name: "Detektör Sinek", emoji: "🔍", description: "Teknik hataları bildiren ve gelişime destek veren yazarlara verilir." },
+  SOCIAL: { name: "Röportajcı", emoji: "🎤", description: "Sık anket açan ve yazarlarla etkileşimi yüksek olan sosyal yazarlara verilir." },
+  TREND: { name: "Alev Kanat", emoji: "🔥", description: "Açtığı başlıklar veya entryler trend olan popüler yazarlara verilir." },
+  AMBER: { name: "Kehribar Sinek", emoji: "💎", description: "Sözlük tarihinde ölümsüzleşen, en elit efsane yazarlara verilir." },
+  ACHIEVEMENT: { name: "Üstün Başarı Belgesi", emoji: "📜", description: "Sözlüğün kalkınmasında olağanüstü emek veren yazarlara verilir." },
+  HONOR: { name: "Sözlük Onur Belgesi", emoji: "🎖️", description: "Hiç ceza almamış, örnek ahlaka sahip saygın yazarlara verilir." },
+  AGENT: { name: "Gizli Teşkilat Belgesi", emoji: "🕵️‍♂️", description: "Trolleri ve spam grupları deşifre eden istihbarat yazarlarına verilir." },
+  ACADEMY: { name: "Vızıltı Akademisi Diploması", emoji: "🎓", description: "Felsefi, bilimsel veya akademik derinliği olan yazılar yazanlara verilir." }
+};
+
 export default function ProfileDashboard({
   author,
   sessionUser,
@@ -82,6 +109,7 @@ export default function ProfileDashboard({
   comments,
   followers,
   following,
+  gifts = [],
 }: ProfileDashboardProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"girdiler" | "yanitlar" | "fotograflar" | "takipci" | "takip">("girdiler");
@@ -97,6 +125,22 @@ export default function ProfileDashboard({
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
   };
+
+  // Stack gifts by type for display
+  const stackedGiftsMap: Record<string, { giftType: string; count: number; note: string | null; givenBy: string }> = {};
+  for (const g of gifts) {
+    if (!stackedGiftsMap[g.giftType]) {
+      stackedGiftsMap[g.giftType] = {
+        giftType: g.giftType,
+        count: 1,
+        note: g.note,
+        givenBy: g.givenBy.username
+      };
+    } else {
+      stackedGiftsMap[g.giftType].count += 1;
+    }
+  }
+  const stackedGifts = Object.values(stackedGiftsMap).slice(0, 3);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -205,6 +249,41 @@ export default function ProfileDashboard({
               <p className="text-xs sm:text-sm text-slate-300 mt-1 mb-2 max-w-lg leading-relaxed italic border-l-2 border-slate-700 pl-2.5">
                 &ldquo;{author.bio}&rdquo;
               </p>
+            )}
+
+            {/* Hediyeler & Belgeler Vitrini */}
+            {stackedGifts.length > 0 && (
+              <div className="flex items-center gap-2 mt-2 mb-3 bg-zinc-950/40 p-2.5 rounded-xl border border-zinc-900/60 max-w-sm select-none animate-in fade-in duration-200">
+                <span className="text-[10px] text-zinc-500 font-black uppercase tracking-wider shrink-0 mr-1.5">
+                  Vitrin:
+                </span>
+                <div className="flex items-center gap-2">
+                  {stackedGifts.map((sg) => {
+                    const giftInfo = ALL_GIFTS_MAP[sg.giftType] || { name: sg.giftType, emoji: "🎁", description: "" };
+                    const tooltipText = `${giftInfo.name}${sg.count > 1 ? ` (x${sg.count})` : ""} - @${sg.givenBy} tarafından verildi.${sg.note ? ` "${sg.note}"` : ""}`;
+                    
+                    return (
+                      <div
+                        key={sg.giftType}
+                        className="group relative cursor-help flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 hover:bg-zinc-850 transition-all active:scale-95 duration-150"
+                        title={tooltipText}
+                      >
+                        <span className="text-lg">{giftInfo.emoji}</span>
+                        {sg.count > 1 && (
+                          <span className="absolute -top-1.5 -right-1.5 px-1 rounded-full bg-amber-500 text-[8px] font-black text-black leading-none py-0.5 min-w-3.5 text-center">
+                            {sg.count}
+                          </span>
+                        )}
+                        
+                        {/* Custom visual glow for EFSANEVİ Amber Gift */}
+                        {sg.giftType === "AMBER" && (
+                          <span className="absolute inset-0 rounded-lg border border-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
             {/* Rank badge Row */}

@@ -77,6 +77,16 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       }
     },
     include: {
+      gifts: {
+        include: {
+          givenBy: {
+            select: { username: true }
+          }
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
+      },
       entries: {
         include: {
           topic: true,
@@ -199,6 +209,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       comments={formattedComments}
       followers={followersList}
       following={followingList}
+      gifts={author.gifts}
     />
   );
 }

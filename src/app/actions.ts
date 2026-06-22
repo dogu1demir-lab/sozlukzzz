@@ -2340,3 +2340,124 @@ export async function adminGetStatsAction() {
     return { error: "İstatistikler yüklenirken bir hata oluştu." };
   }
 }
+
+// --- USER GIFT ACTIONS ---
+
+export async function adminSendGiftAction(targetUserId: string, giftType: string, note?: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  const validGifts = [
+    "SWEET", "KING", "SWATTER", "LIGHTNING", "STEEL",
+    "MIDNIGHT", "WATERMELON", "TECH", "SOCIAL", "TREND",
+    "AMBER", "ACHIEVEMENT", "HONOR", "AGENT", "ACADEMY"
+  ];
+
+  if (!validGifts.includes(giftType)) {
+    return { error: "Geçersiz hediye türü." };
+  }
+
+  try {
+    const newGift = await prisma.userGift.create({
+      data: {
+        giftType,
+        note: note?.trim() || null,
+        userId: targetUserId,
+        givenById: user.id
+      }
+    });
+
+    const giftNames: Record<string, string> = {
+      SWEET: "Tatlı Sinek 🍬",
+      KING: "Kral Sinek 👑",
+      SWATTER: "Sinek Raketi 🎾",
+      LIGHTNING: "Yıldırım Vızıltı ⚡",
+      STEEL: "Çelik Kanat 🛡️",
+      MIDNIGHT: "Gece Sinekleri ☕",
+      WATERMELON: "Karpuz Dilimi 🍉",
+      TECH: "Detektör Sinek 🔍",
+      SOCIAL: "Röportajcı 🎤",
+      TREND: "Alev Kanat 🔥",
+      AMBER: "Kehribar Sinek 💎",
+      ACHIEVEMENT: "Üstün Başarı Belgesi 📜",
+      HONOR: "Sözlük Onur Belgesi 🎖️",
+      AGENT: "Gizli Teşkilat Belgesi 🕵️‍♂️",
+      ACADEMY: "Vızıltı Akademisi Diploması 🎓"
+    };
+
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { username: true }
+    });
+
+    const giftName = giftNames[giftType] || "bir hediye";
+    await prisma.notification.create({
+      data: {
+        userId: targetUserId,
+        type: "SYSTEM",
+        content: `Tebrikler zzz! Yönetim size "${giftName}" takdim etti!`,
+        relatedUrl: targetUser ? `/yazar/${targetUser.username}` : undefined
+      }
+    });
+
+    // Delete Redis notification cache for target user
+    try {
+      await redis.del(`user:notifications:${targetUserId}`);
+      await redis.del(`user:notifications:count:${targetUserId}`);
+    } catch (e) {
+      console.error("Redis notification cache clear error:", e);
+    }
+
+    return { success: true, gift: newGift };
+  } catch (error) {
+    console.error("adminSendGiftAction error:", error);
+    return { error: "Hediye gönderilirken bir hata oluştu." };
+  }
+}
+
+export async function adminRemoveGiftAction(userGiftId: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  try {
+    await prisma.userGift.delete({
+      where: { id: userGiftId }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("adminRemoveGiftAction error:", error);
+    return { error: "Hediye geri alınırken bir hata oluştu." };
+  }
+}
+
+export async function getUserGiftsAction(username: string) {
+  try {
+    const targetUser = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        gifts: {
+          include: {
+            givenBy: {
+              select: { username: true }
+            }
+          },
+          orderBy: { createdAt: "desc" }
+        }
+      }
+    });
+
+    if (!targetUser) {
+      return { error: "Kullanıcı bulunamadı." };
+    }
+
+    return { success: true, gifts: targetUser.gifts };
+  } catch (error) {
+    console.error("getUserGiftsAction error:", error);
+    return { error: "Hediyeler yüklenirken bir hata oluştu." };
+  }
+}

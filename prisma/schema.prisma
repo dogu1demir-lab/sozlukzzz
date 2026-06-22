@@ -37,6 +37,8 @@ model User {
   notifications    Notification[]
   pollVotes        PollVote[]
   reports          Report[]
+  gifts            UserGift[]     @relation("UserGifts")
+  givenGifts       UserGift[]     @relation("GivenGifts")
   
   // Follow system (Self-relation)
   followers        Follow[]       @relation("following")
@@ -199,5 +201,21 @@ model Report {
 
   reporterId String
   reporter   User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+}
+
+model UserGift {
+  id          String   @id @default(cuid())
+  giftType    String   // SWEET, KING, SWATTER, LIGHTNING, STEEL, MIDNIGHT, WATERMELON, TECH, SOCIAL, TREND, AMBER, ACHIEVEMENT, HONOR, AGENT, ACADEMY
+  note        String?  // Optional note from admin
+  createdAt   DateTime @default(now())
+
+  user        User     @relation("UserGifts", fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+
+  givenBy     User     @relation("GivenGifts", fields: [givenById], references: [id], onDelete: Cascade)
+  givenById   String
+
+  @@index([userId])
+  @@index([givenById])
 }
 

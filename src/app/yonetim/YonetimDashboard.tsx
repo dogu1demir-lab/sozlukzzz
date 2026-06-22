@@ -11,7 +11,10 @@ import {
   adminDeleteTopicAction,
   adminGetSettingsAction,
   adminUpdateSettingsAction,
-  adminGetStatsAction
+  adminGetStatsAction,
+  adminSendGiftAction,
+  adminRemoveGiftAction,
+  getUserGiftsAction
 } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import {
@@ -32,7 +35,8 @@ import {
   AlertTriangle,
   RefreshCw,
   X,
-  Database
+  Database,
+  Gift
 } from "lucide-react";
 import Link from "next/link";
 
@@ -53,6 +57,24 @@ interface ReportData {
 interface YonetimDashboardProps {
   reports: ReportData[];
 }
+
+const ALL_GIFTS_MAP: Record<string, { name: string; emoji: string; description: string; type: "MEDAL" | "CERTIFICATE" }> = {
+  SWEET: { name: "Tatlı Sinek", emoji: "🍬", description: "Pozitif, sevecen ve tatlı dilli yazarlara verilir.", type: "MEDAL" },
+  KING: { name: "Kral Sinek", emoji: "👑", description: "Derin, yüksek kaliteli yazılar yazan bilge yazarlara verilir.", type: "MEDAL" },
+  SWATTER: { name: "Sinek Raketi", emoji: "🎾", description: "Trolleri raporlayarak asayişi koruyan yazarlara verilir.", type: "MEDAL" },
+  LIGHTNING: { name: "Yıldırım Vızıltı", emoji: "⚡", description: "Gündemdeki sıcak haberleri çok hızlı giren yazarlara verilir.", type: "MEDAL" },
+  STEEL: { name: "Çelik Kanat", emoji: "🛡️", description: "Sözlüğün ilk gününden beri destek veren en sadık emektarlara verilir.", type: "MEDAL" },
+  MIDNIGHT: { name: "Gece Sinekleri", emoji: "☕", description: "Gece geç saatlerde aktif olan, gece kuşu yazarlara verilir.", type: "MEDAL" },
+  WATERMELON: { name: "Karpuz Dilimi", emoji: "🍉", description: "Sözlükde herkesi güldüren mizah yetenekli yazarlara verilir.", type: "MEDAL" },
+  TECH: { name: "Detektör Sinek", emoji: "🔍", description: "Teknik hataları bildiren ve gelişime destek veren yazarlara verilir.", type: "MEDAL" },
+  SOCIAL: { name: "Röportajcı", emoji: "🎤", description: "Sık anket açan ve yazarlarla etkileşimi yüksek olan sosyal yazarlara verilir.", type: "MEDAL" },
+  TREND: { name: "Alev Kanat", emoji: "🔥", description: "Açtığı başlıklar veya entryler trend olan popüler yazarlara verilir.", type: "MEDAL" },
+  AMBER: { name: "Kehribar Sinek", emoji: "💎", description: "Sözlük tarihinde ölümsüzleşen, en elit efsane yazarlara verilir.", type: "MEDAL" },
+  ACHIEVEMENT: { name: "Üstün Başarı Belgesi", emoji: "📜", description: "Sözlüğün kalkınmasında olağanüstü emek veren yazarlara verilir.", type: "CERTIFICATE" },
+  HONOR: { name: "Sözlük Onur Belgesi", emoji: "🎖️", description: "Hiç ceza almamış, örnek ahlaka sahip saygın yazarlara verilir.", type: "CERTIFICATE" },
+  AGENT: { name: "Gizli Teşkilat Belgesi", emoji: "🕵️‍♂️", description: "Trolleri ve spam grupları deşifre eden istihbarat yazarlarına verilir.", type: "CERTIFICATE" },
+  ACADEMY: { name: "Vızıltı Akademisi Diploması", emoji: "🎓", description: "Felsefi, bilimsel veya akademik derinliği olan yazılar yazanlara verilir.", type: "CERTIFICATE" }
+};
 
 type TabType = "REPORTS" | "USERS" | "TOPICS" | "SETTINGS";
 
@@ -91,6 +113,13 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const [stats, setStats] = useState<any>(null);
   const [health, setHealth] = useState<any>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
+
+  // --- Gift Tab State ---
+  const [giftTargetUser, setGiftTargetUser] = useState<any | null>(null);
+  const [giftList, setGiftList] = useState<any[]>([]);
+  const [giftListLoading, setGiftListLoading] = useState(false);
+  const [selectedGiftType, setSelectedGiftType] = useState("SWEET");
+  const [giftNote, setGiftNote] = useState("");
 
   // Clear feedback message after 4 seconds
   useEffect(() => {
@@ -190,6 +219,57 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
       } else {
         setUsersList(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
         showFeedback(`@${username} başarıyla güncellendi zzz.`);
+      }
+    });
+  };
+
+  // --- Gift Handlers ---
+  const handleOpenGiftModal = (usr: any) => {
+    setGiftTargetUser(usr);
+    setGiftListLoading(true);
+    setGiftNote("");
+    setSelectedGiftType("SWEET");
+    playBuzzSound();
+    
+    startTransition(async () => {
+      const result = await getUserGiftsAction(usr.username);
+      setGiftListLoading(false);
+      if (result.error) {
+        showFeedback(result.error, true);
+      } else if (result.gifts) {
+        setGiftList(result.gifts);
+      }
+    });
+  };
+
+  const handleSendGift = () => {
+    if (!giftTargetUser) return;
+    
+    startTransition(async () => {
+      const result = await adminSendGiftAction(giftTargetUser.id, selectedGiftType, giftNote);
+      if (result.error) {
+        showFeedback(result.error, true);
+      } else if (result.gift) {
+        const freshGiftsRes = await getUserGiftsAction(giftTargetUser.username);
+        if (freshGiftsRes.gifts) {
+          setGiftList(freshGiftsRes.gifts);
+        }
+        setGiftNote("");
+        showFeedback("Hediye başarıyla gönderildi zzz.");
+      }
+    });
+  };
+
+  const handleRemoveGift = (userGiftId: string) => {
+    if (!confirm("Bu hediyeyi/belgeyi geri almak istediğinizden emin misiniz zzz?")) return;
+    
+    startTransition(async () => {
+      const result = await adminRemoveGiftAction(userGiftId);
+      if (result.error) {
+        showFeedback(result.error, true);
+      } else {
+        setGiftList(prev => prev.filter(g => g.id !== userGiftId));
+        showFeedback("Hediye başarıyla geri alındı zzz.");
       }
     });
   };
@@ -586,6 +666,15 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                       </button>
                     ) : (
                       <>
+                        <button
+                          onClick={() => handleOpenGiftModal(usr)}
+                          disabled={isPending}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20 text-[10px] font-bold transition-all active:scale-95"
+                        >
+                          <Gift className="w-3 h-3 text-amber-400" />
+                          <span>Hediye 🎁</span>
+                        </button>
+
                         {usr.role === "ADMIN" ? (
                           <button
                             onClick={() => handleUpdateRole(usr.id, "USER", usr.username)}
@@ -623,6 +712,128 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
               Aranan kriterlere uygun yazar bulunamadı zzz.
             </div>
           ) : null}
+
+          {/* Gift/Badge Moderation Modal */}
+          {giftTargetUser && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+              <div className="bg-zinc-950 border border-zinc-850 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 space-y-4 text-left">
+                <div className="flex justify-between items-center border-b border-zinc-900 pb-3">
+                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-amber-400" />
+                    <span>Hediye & Belge Yönetimi: @{giftTargetUser.username}</span>
+                  </h3>
+                  <button
+                    onClick={() => { setGiftTargetUser(null); setGiftList([]); }}
+                    className="p-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Left side: Current gifts list */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-zinc-400 block">Yazarın Mevcut Hediyeleri & Belgeleri</span>
+                  {giftListLoading ? (
+                    <div className="py-4 text-center text-xs text-zinc-550">Yükleniyor...</div>
+                  ) : giftList.length === 0 ? (
+                    <div className="text-[11px] text-zinc-650 italic bg-zinc-900/10 border border-dashed border-zinc-900 p-4 rounded text-center">
+                      Bu yazarın henüz hiç hediyesi/belgesi yok zzz.
+                    </div>
+                  ) : (
+                    <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
+                      {giftList.map((g) => {
+                        const giftInfo = ALL_GIFTS_MAP[g.giftType] || { name: g.giftType, emoji: "🎁", description: "" };
+                        return (
+                          <div key={g.id} className="flex justify-between items-center bg-zinc-900/40 border border-zinc-900 p-2 rounded text-xs gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base select-none">{giftInfo.emoji}</span>
+                              <div>
+                                <span className="font-bold text-zinc-200">{giftInfo.name}</span>
+                                {g.note && <p className="text-[10px] text-zinc-550 italic mt-0.5">"{g.note}"</p>}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveGift(g.id)}
+                              disabled={isPending}
+                              className="p-1.5 rounded hover:bg-red-500/10 text-zinc-500 hover:text-red-400 transition-colors"
+                              title="Hediyeyi Geri Al"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right side: Send new gift form */}
+                <div className="space-y-3.5 border-t border-zinc-900/80 pt-3">
+                  <span className="text-[11px] font-bold text-zinc-400 block">Yeni Hediye / Belge Takdim Et</span>
+                  
+                  {/* Select Gift Type */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-zinc-550 font-bold block">Hediye Türü</label>
+                    <select
+                      value={selectedGiftType}
+                      onChange={(e) => setSelectedGiftType(e.target.value)}
+                      className="w-full h-9 rounded bg-zinc-900 border border-zinc-800 px-2 text-xs text-zinc-200 focus:outline-none focus:border-lime-500"
+                    >
+                      <optgroup label="Sinek Rozetleri & Madalyaları">
+                        <option value="SWEET">🍬 Tatlı Sinek</option>
+                        <option value="KING">👑 Kral Sinek</option>
+                        <option value="SWATTER">🎾 Sinek Raketi</option>
+                        <option value="LIGHTNING">⚡ Yıldırım Vızıltı</option>
+                        <option value="STEEL">🛡️ Çelik Kanat</option>
+                        <option value="MIDNIGHT">☕ Gece Sinekleri</option>
+                        <option value="WATERMELON">🍉 Karpuz Dilimi</option>
+                        <option value="TECH">🔍 Detektör Sinek</option>
+                        <option value="SOCIAL">🎤 Röportajcı</option>
+                        <option value="TREND">🔥 Alev Kanat</option>
+                        <option value="AMBER">💎 Kehribar Sinek (EFSANEVİ)</option>
+                      </optgroup>
+                      <optgroup label="Resmi Başarı & Onur Belgeleri">
+                        <option value="ACHIEVEMENT">📜 Üstün Başarı Belgesi</option>
+                        <option value="HONOR">🎖️ Sözlük Onur Belgesi</option>
+                        <option value="AGENT">🕵️‍♂️ Gizli Teşkilat Belgesi</option>
+                        <option value="ACADEMY">🎓 Vızıltı Akademisi Diploması</option>
+                      </optgroup>
+                    </select>
+                    
+                    {/* Selected Gift description */}
+                    {ALL_GIFTS_MAP[selectedGiftType] && (
+                      <p className="text-[10px] text-zinc-550 italic px-1 mt-1">
+                        {ALL_GIFTS_MAP[selectedGiftType].description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Congratulations Note */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-zinc-550 font-bold block">Tebrik/Hediye Notu (İsteğe Bağlı)</label>
+                    <input
+                      type="text"
+                      placeholder="örn: Harika vızıltıların için tebrikler zzz!"
+                      value={giftNote}
+                      onChange={(e) => setGiftNote(e.target.value)}
+                      maxLength={120}
+                      className="w-full h-9 rounded bg-zinc-900 border border-zinc-800 px-3 text-xs text-zinc-200 focus:outline-none focus:border-lime-500"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      onClick={handleSendGift}
+                      disabled={isPending}
+                      className="px-5 py-2 rounded-lg bg-lime-500 text-black font-extrabold text-xs hover:bg-lime-400 active:scale-95 transition-all"
+                    >
+                      Hediyeyi Takdim Et zzz
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
