@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function MessagesPoller() {
+export default function RealtimeGlobalListener() {
   const router = useRouter();
 
   useEffect(() => {
@@ -20,18 +20,17 @@ export default function MessagesPoller() {
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.type === "NEW_MESSAGE") {
-            // Instantly refresh the page data
+          if (data.type === "NEW_MESSAGE" || data.type === "NEW_ENTRY") {
+            // Instantly refresh Next.js Server Components to pull the new data
             router.refresh();
           }
         } catch (e) {
-          // Heartbeat or other events, refresh page data to be sure
+          // Fallback refresh for heartbeat or raw format
           router.refresh();
         }
       };
 
       eventSource.onerror = () => {
-        // Attempt reconnect after 5 seconds if connection drops
         if (eventSource) {
           eventSource.close();
           eventSource = null;
@@ -44,13 +43,6 @@ export default function MessagesPoller() {
 
     connectSSE();
 
-    // Fallback polling (every 12 seconds) in case of network anomalies
-    const fallbackInterval = setInterval(() => {
-      if (!document.hidden) {
-        router.refresh();
-      }
-    }, 12000);
-
     return () => {
       if (eventSource) {
         eventSource.close();
@@ -58,7 +50,6 @@ export default function MessagesPoller() {
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
-      clearInterval(fallbackInterval);
     };
   }, [router]);
 

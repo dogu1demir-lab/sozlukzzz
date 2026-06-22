@@ -41,3 +41,16 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# custom scripts containing passwords
+/upload_changes.js
+/restart_pm2.js
+/scripts/
+
+# backups
+/backups/
+
+# temp/local files
+/performance_trace.json
+/home_after_optimization.png
+

@@ -58,15 +58,15 @@ export default function SidebarLoadMore({ initialCount }: SidebarLoadMoreProps) 
         <Link
           key={topic.id}
           href={`/baslik/${topic.slug}`}
-          className="flex items-center justify-between px-2 py-1 rounded-lg text-xs sm:text-sm text-zinc-350 hover:text-white hover:bg-zinc-900 transition-all group active:scale-[0.99]"
+          className="flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 border-zinc-900/30 hover:bg-zinc-900/30 hover:border-zinc-800/80"
         >
-          <span className="truncate pr-1.5 group-hover:translate-x-0.5 transition-transform duration-100 flex items-center gap-1">
-            <span className="truncate">{topic.title}</span>
+          <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-start gap-1.5">
+            <span className="break-words whitespace-normal">{topic.title}</span>
             {topic.poll && (
-              <span className="text-[10px] shrink-0" title="Anket">📊</span>
+              <span className="text-[10px] shrink-0 pt-0.5" title="Anket">📊</span>
             )}
           </span>
-          <span className="shrink-0 text-[10px] font-semibold bg-zinc-900 group-hover:bg-lime-950 border border-zinc-850 group-hover:border-lime-500/30 text-zinc-550 group-hover:text-lime-400 px-1.5 py-0.5 rounded-md min-w-[18px] text-center transition-all">
+          <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-none min-w-[18px] text-center transition-all border font-semibold bg-zinc-900/60 group-hover:bg-lime-950 border-zinc-850 group-hover:border-lime-500/30 text-zinc-400 group-hover:text-lime-400">
             {topic._count.entries}
           </span>
         </Link>
@@ -83,7 +83,7 @@ export default function SidebarLoadMore({ initialCount }: SidebarLoadMoreProps) 
             {isLoading ? "Vızıldanıyor..." : "daha fazla vızzz"}
           </button>
         ) : (
-          <div className="text-center py-2 text-[10px] text-zinc-650 italic">
+          <div className="text-center py-2 text-[10px] text-zinc-400 italic">
             Tüm vızıltılar yüklendi zzz.
           </div>
         )}

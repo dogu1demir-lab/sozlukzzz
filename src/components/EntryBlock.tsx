@@ -98,7 +98,7 @@ export default function EntryBlock({
         if (result.topicDeleted) {
           // If the topic was deleted because this was the only entry, redirect to homepage
           alert("Başlıktaki tek entry silindiği için başlık kaldırıldı zzz.");
-          router.push("/");
+          router.push("/bugun");
         } else {
           router.refresh();
         }
@@ -129,20 +129,23 @@ export default function EntryBlock({
     >
       {/* Entry Header */}
       <div className="flex items-center justify-between gap-4">
-        <span className="text-[11px] text-zinc-600 font-mono font-bold select-none">
+        <span className="text-[11px] text-zinc-650 font-mono font-bold select-none">
           #{index + 1}
         </span>
 
         {/* Author & Date */}
-        <div className="flex items-center gap-2 text-xs text-zinc-500">
+        <div className="flex items-center gap-2 text-xs text-zinc-400">
           <Link
             href={`/yazar/${entry.author.username}`}
+            prefetch={false}
             className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
           >
             {entry.author.avatarUrl ? (
               <img
-                src={entry.author.avatarUrl}
+                src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
                 alt={entry.author.username}
+                width={20}
+                height={20}
                 className="w-5 h-5 rounded-full object-cover border border-white/5"
               />
             ) : (
@@ -167,6 +170,8 @@ export default function EntryBlock({
             src={entry.imageUrl}
             alt="PozKes"
             loading="lazy"
+            width={600}
+            height={400}
             className="w-full max-h-96 object-cover hover:scale-[1.02] transition-transform duration-300"
           />
         </div>

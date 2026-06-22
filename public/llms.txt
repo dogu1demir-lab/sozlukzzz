@@ -1,0 +1,25 @@
+# sözlükzzz
+
+> Türkiye'nin en aktif sinek sever sözlüğü. Sinekler, vızıltılar, aerodinamik harikalar ve hayata dair her şey!
+
+## Ana Sayfa Akışları
+
+- [/bugun](https://www.sozlukzzz.tr/bugun): Bugünün öne çıkan vızıltıları ve başlıkları.
+- [/gundem](https://www.sozlukzzz.tr/gundem): En çok vızıldanan güncel konular.
+- [/pozkes](https://www.sozlukzzz.tr/pozkes): Yazarların paylaştığı anlık fotoğraflar (PozKes akışı).
+- [/takip](https://www.sozlukzzz.tr/takip): Takip edilen yazarların özel akışı.
+- [/begenilen](https://www.sozlukzzz.tr/begenilen): En çok beğeni alan vızıltılar.
+- [/goruntulenen](https://www.sozlukzzz.tr/goruntulenen): En çok tıklanan başlıklar.
+
+## Sayfalar & Özellikler
+
+- [/baslik/[slug]](https://www.sozlukzzz.tr/baslik/ornek-baslik): Belirli bir başlık altındaki entry'ler ve anketler.
+- [/yazar/[username]](https://www.sozlukzzz.tr/yazar/kullanici): Yazar profili, Kadraj fotoğrafları, girdileri ve vızıltı puanı.
+- [/mesajlar](https://www.sozlukzzz.tr/mesajlar): Yazarlar arası anlık mesajlaşma paneli.
+- [/yonetim](https://www.sozlukzzz.tr/yonetim): Moderasyon ve yönetim paneli.
+
+## API Entegrasyonları
+
+- `/api/image/[entryId]`: Paylaşılan PozKes görsellerini optimize edilmiş binary formatta sunan proxy.
+- `/api/yazar-image/[username]`: Yazar profil fotoğraflarını sunan proxy.
+- `/api/messages/stream`: Server-Sent Events (SSE) tabanlı gerçek zamanlı mesajlaşma akışı.

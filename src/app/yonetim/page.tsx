@@ -18,7 +18,8 @@ export default async function YonetimPage() {
           Bu sayfayı görüntülemek için moderatör veya yönetici (Admin) yetkisine sahip olmalısınız.
         </p>
         <Link 
-          href="/" 
+          href="/bugun" 
+          prefetch={false}
           className="inline-block px-5 py-2 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-350 hover:text-white hover:border-zinc-700 transition-all"
         >
           Ana Sayfaya Dön

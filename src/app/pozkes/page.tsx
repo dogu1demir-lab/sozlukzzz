@@ -7,6 +7,9 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "PozKes 📸 — sözlükzzz",
   description: "Yazarların paylaştığı anlık fotoğraflar, sinek manzaraları ve kadrajlar. vızzz!",
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr"}/pozkes`,
+  },
   openGraph: {
     title: "PozKes 📸 — sözlükzzz",
     description: "Yazarların paylaştığı anlık fotoğraflar, sinek manzaraları ve kadrajlar. vızzz!",
@@ -56,7 +59,12 @@ export default async function PozKesPage() {
         id: comment.id,
         content: comment.content,
         createdAt: comment.createdAt,
-        author: comment.author,
+        author: {
+          id: comment.author.id,
+          username: comment.author.username,
+          avatarColor: comment.author.avatarColor,
+          avatarUrl: comment.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(comment.author.username)}` : null,
+        },
         likesCount,
         hasLiked
       };
@@ -65,9 +73,14 @@ export default async function PozKesPage() {
     return {
       id: entry.id,
       content: entry.content,
-      imageUrl: entry.imageUrl!,
+      imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : "",
       createdAt: entry.createdAt,
-      author: entry.author,
+      author: {
+        id: entry.author.id,
+        username: entry.author.username,
+        avatarColor: entry.author.avatarColor,
+        avatarUrl: entry.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(entry.author.username)}` : null,
+      },
       likesCount,
       hasLiked,
       comments: formattedComments

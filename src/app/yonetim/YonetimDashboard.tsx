@@ -150,6 +150,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                   <span>Paylaşan:</span>
                   <Link
                     href={`/yazar/${report.targetAuthor}`}
+                    prefetch={false}
                     className="font-bold text-lime-400 hover:underline"
                   >
                     @{report.targetAuthor}
@@ -160,6 +161,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                       <Link
                         href={report.targetUrl}
                         target="_blank"
+                        prefetch={false}
                         className="text-zinc-400 hover:text-white flex items-center gap-1 hover:underline"
                       >
                         <span>İçeriğe Git</span>

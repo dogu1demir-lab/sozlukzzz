@@ -141,8 +141,10 @@ export default function ProfileDashboard({
           <div className="profile-avatar-wrap">
             {author.avatarUrl ? (
               <img
-                src={author.avatarUrl}
+                src={`/api/yazar-image/${encodeURIComponent(author.username)}`}
                 alt={author.username}
+                width={80}
+                height={80}
                 className="w-20 h-20 rounded-full object-cover border-4 border-slate-800 shadow-md shrink-0"
               />
             ) : (
@@ -169,7 +171,11 @@ export default function ProfileDashboard({
               </div>
               <div className="profile-actions">
                 {isSelf ? (
-                  <Link className="btn btn-outline btn-sm text-xs font-bold px-4 py-2 border border-slate-700 hover:border-teal-500 rounded-lg text-slate-350 hover:text-white transition-all bg-slate-900/60" href="/settings">
+                  <Link 
+                    className="btn btn-outline btn-sm text-xs font-bold px-4 py-2 border border-slate-700 hover:border-teal-500 rounded-lg text-slate-350 hover:text-white transition-all bg-slate-900/60" 
+                    href="/settings"
+                    prefetch={false}
+                  >
                     Profili Düzenle
                   </Link>
                 ) : (
@@ -182,6 +188,7 @@ export default function ProfileDashboard({
                       />
                       <Link
                         href={`/mesajlar?u=${author.username}`}
+                        prefetch={false}
                         className="flex items-center gap-1 px-4 py-2 rounded-lg bg-slate-950 border border-slate-800 hover:border-teal-500 text-white text-xs font-bold transition-all"
                       >
                         <MessageSquare className="h-3.5 w-3.5 text-teal-400" />
@@ -261,10 +268,16 @@ export default function ProfileDashboard({
           )}
           {photoEntries.slice(0, isSelf ? 5 : 6).map((photo) => (
             <div key={photo.id} className="photo-showcase-item photo-showcase-item--btn">
-              <Link href={`/pozkes#entry-${photo.id}`} onClick={() => playBuzzSound()}>
+              <Link 
+                href={`/pozkes#entry-${photo.id}`} 
+                prefetch={false}
+                onClick={() => playBuzzSound()}
+              >
                 <img
                   src={photo.imageUrl!}
                   alt="Poz"
+                  width={150}
+                  height={150}
                   className="photo-showcase-img"
                   loading="lazy"
                 />
@@ -326,7 +339,11 @@ export default function ProfileDashboard({
                 textEntries.map((entry) => (
                   <article key={entry.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
                     <div className="flex justify-between items-baseline gap-2">
-                      <Link href={`/baslik/${entry.topic.slug}`} className="text-sm font-bold text-white hover:text-teal-400">
+                      <Link 
+                        href={`/baslik/${entry.topic.slug}`} 
+                        prefetch={false}
+                        className="text-sm font-bold text-white hover:text-teal-400"
+                      >
                         {entry.topic.title}
                       </Link>
                        <span className="text-[10px] text-slate-500">{new Date(entry.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
@@ -349,7 +366,11 @@ export default function ProfileDashboard({
                   <article key={comment.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
                     <div className="flex justify-between items-baseline gap-2">
                       <div className="text-[11px] text-slate-400">
-                        <Link href={`/baslik/${comment.entry.topic.slug}#entry-${comment.entry.id}`} className="font-semibold text-slate-300 hover:text-teal-400">
+                        <Link 
+                          href={`/baslik/${comment.entry.topic.slug}#entry-${comment.entry.id}`} 
+                          prefetch={false}
+                          className="font-semibold text-slate-300 hover:text-teal-400"
+                        >
                           {comment.entry.topic.title}
                         </Link>{" "}
                         başlığındaki gönderiye vızıldadı
@@ -373,9 +394,13 @@ export default function ProfileDashboard({
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {photoEntries.map((photo) => (
                     <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30">
-                      <img src={photo.imageUrl!} alt="Poz" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <img src={photo.imageUrl!} alt="Poz" width={150} height={150} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-2.5 transition-all">
-                        <Link href={`/pozkes#entry-${photo.id}`} className="text-[10px] font-bold text-white hover:underline flex items-center gap-1 justify-between">
+                        <Link 
+                          href={`/pozkes#entry-${photo.id}`} 
+                          prefetch={false}
+                          className="text-[10px] font-bold text-white hover:underline flex items-center gap-1 justify-between"
+                        >
                           <span>Akışta Gör</span>
                           <ArrowRight className="h-3 w-3" />
                         </Link>
@@ -396,11 +421,12 @@ export default function ProfileDashboard({
                   <Link
                     key={f.id}
                     href={`/yazar/${f.username}`}
+                    prefetch={false}
                     onClick={() => playBuzzSound()}
                     className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                   >
                     {f.avatarUrl ? (
-                      <img src={f.avatarUrl} alt={f.username} className="w-8 h-8 rounded-full object-cover" />
+                      <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
                         {f.username.substring(0, 1).toUpperCase()}
@@ -425,11 +451,12 @@ export default function ProfileDashboard({
                   <Link
                     key={f.id}
                     href={`/yazar/${f.username}`}
+                    prefetch={false}
                     onClick={() => playBuzzSound()}
                     className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                   >
                     {f.avatarUrl ? (
-                      <img src={f.avatarUrl} alt={f.username} className="w-8 h-8 rounded-full object-cover" />
+                      <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
                         {f.username.substring(0, 1).toUpperCase()}

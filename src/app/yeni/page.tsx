@@ -4,7 +4,6 @@ import { useState, useRef, useTransition, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createTopicAndEntryAction, createPollTopicAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import confetti from "canvas-confetti";
 import { X, Plus } from "lucide-react";
 
 function NewThreadContent() {
@@ -28,9 +27,12 @@ function NewThreadContent() {
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
 
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const isSubmittingOrPending = isPending || submitting;
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const submittingRef = useRef(false);
 
   const handleTabChange = (newType: "normal" | "poll") => {
     setType(newType);
@@ -82,6 +84,7 @@ function NewThreadContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingOrPending || submittingRef.current) return;
     setError("");
 
     if (!title.trim()) {
@@ -100,19 +103,30 @@ function NewThreadContent() {
         return;
       }
 
+      submittingRef.current = true;
+      setSubmitting(true);
       startTransition(async () => {
         try {
           const result = await createTopicAndEntryAction(title, content, base64Image || undefined);
           if (result.error) {
             setError(result.error);
+            setSubmitting(false);
+            submittingRef.current = false;
           } else if (result.success && result.slug) {
             triggerConfetti();
-            playBuzzSound();
+            playBuzzSound(false, "/eylemhareket.mp3");
             router.push(`/baslik/${result.slug}`);
             router.refresh();
+            // Reset after a 5 second safety timeout to allow resubmission in case redirection fails/gets stuck
+            setTimeout(() => {
+              submittingRef.current = false;
+              setSubmitting(false);
+            }, 5000);
           }
         } catch (e) {
           setError("Başlık oluşturulurken teknik bir sorun oluştu.");
+          setSubmitting(false);
+          submittingRef.current = false;
         }
       });
     } else {
@@ -127,30 +141,43 @@ function NewThreadContent() {
         return;
       }
 
+      submittingRef.current = true;
+      setSubmitting(true);
       startTransition(async () => {
         try {
           const result = await createPollTopicAction(title, pollQuestion, validOptions);
           if (result.error) {
             setError(result.error);
+            setSubmitting(false);
+            submittingRef.current = false;
           } else if (result.success && result.slug) {
             triggerConfetti();
-            playBuzzSound();
+            playBuzzSound(false, "/eylemhareket.mp3");
             router.push(`/baslik/${result.slug}`);
             router.refresh();
+            // Reset after a 5 second safety timeout to allow resubmission in case redirection fails/gets stuck
+            setTimeout(() => {
+              submittingRef.current = false;
+              setSubmitting(false);
+            }, 5000);
           }
         } catch (e) {
           setError("Anket oluşturulurken teknik bir sorun oluştu.");
+          setSubmitting(false);
+          submittingRef.current = false;
         }
       });
     }
   };
 
   const triggerConfetti = () => {
-    confetti({
-      particleCount: 100,
-      spread: 80,
-      origin: { y: 0.6 },
-      colors: ["#14b8a6", "#3b82f6", "#8b5cf6"],
+    import("canvas-confetti").then((mod) => {
+      mod.default({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ["#14b8a6", "#3b82f6", "#8b5cf6"],
+      });
     });
   };
 
@@ -196,7 +223,7 @@ function NewThreadContent() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Konunun başlığı…"
-            disabled={isPending}
+            disabled={isSubmittingOrPending}
           />
         </label>
 
@@ -211,7 +238,7 @@ function NewThreadContent() {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Konunuzun içeriğini buraya yazın…"
-                  disabled={isPending}
+                  disabled={isSubmittingOrPending}
                 />
               </div>
             </label>
@@ -241,7 +268,7 @@ function NewThreadContent() {
                 value={pollQuestion}
                 onChange={(e) => setPollQuestion(e.target.value)}
                 placeholder="Sorunuzu buraya yazın…"
-                disabled={isPending}
+                disabled={isSubmittingOrPending}
               />
               <span className="text-[10px] text-slate-500 self-end mt-1">
                 {pollQuestion.length}/300
@@ -260,7 +287,7 @@ function NewThreadContent() {
                     onChange={(e) => handleOptionChange(idx, e.target.value)}
                     placeholder={`Seçenek ${idx + 1}`}
                     className="flex-1"
-                    disabled={isPending}
+                    disabled={isSubmittingOrPending}
                   />
                   {pollOptions.length > 2 && (
                     <button
@@ -279,7 +306,7 @@ function NewThreadContent() {
                   type="button"
                   onClick={handleAddOption}
                   className="flex items-center justify-center gap-1.5 px-4 py-2 mt-1 rounded-lg border border-dashed border-slate-700 hover:border-teal-500 text-xs font-bold text-slate-350 hover:text-white transition-all bg-slate-900/10 hover:bg-slate-900/30"
-                  disabled={isPending}
+                  disabled={isSubmittingOrPending}
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>+ Seçenek Ekle</span>
@@ -294,7 +321,7 @@ function NewThreadContent() {
             type="button"
             className="px-4 py-2 rounded-lg border border-slate-700 hover:border-teal-500 text-xs font-bold text-slate-350 hover:text-white transition-all bg-slate-900/60"
             onClick={handleCancel}
-            disabled={isPending}
+            disabled={isSubmittingOrPending}
           >
             İptal
           </button>
@@ -307,13 +334,13 @@ function NewThreadContent() {
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
-                disabled={isPending}
+                disabled={isSubmittingOrPending}
               />
               <button
                 type="button"
                 className="px-4 py-2 rounded-lg border border-slate-700 hover:border-teal-500 text-xs font-bold text-slate-350 hover:text-white transition-all bg-slate-900/60"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={isPending}
+                disabled={isSubmittingOrPending}
               >
                 Fotoğraf Ekle
               </button>
@@ -322,10 +349,10 @@ function NewThreadContent() {
 
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isSubmittingOrPending}
             className="px-6 py-2 rounded-lg bg-teal-500 text-white text-xs font-bold hover:bg-teal-400 transition-colors disabled:opacity-50"
           >
-            {isPending ? "Paylaşılıyor..." : type === "normal" ? "Konuyu Paylaş" : "Anketi Paylaş"}
+            {isSubmittingOrPending ? "Paylaşılıyor..." : type === "normal" ? "Konuyu Paylaş" : "Anketi Paylaş"}
           </button>
         </div>
       </form>

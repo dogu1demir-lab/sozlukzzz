@@ -31,7 +31,7 @@ export default function Register() {
 
   return (
     <div className="kaydol-page flex min-h-[calc(100vh-120px)] items-center justify-center py-8 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-300">
-      <div className="w-full max-w-md space-y-6 rounded-2xl border border-zinc-850 bg-black/40 p-5 md:p-6 shadow-2xl backdrop-blur-sm">
+      <div className="w-full max-w-md space-y-6 rounded-2xl border border-zinc-850 bg-zinc-950 p-5 md:p-6 shadow-2xl">
         
         {/* Title */}
         <div className="text-center">

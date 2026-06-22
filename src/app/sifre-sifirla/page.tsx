@@ -35,7 +35,7 @@ function ResetPasswordFormContent() {
   }, [state, router]);
 
   return (
-    <div className="w-full max-w-md space-y-6 rounded-2xl border border-zinc-850 bg-black/40 p-5 md:p-6 shadow-2xl backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="w-full max-w-md space-y-6 rounded-2xl border border-zinc-850 bg-zinc-950 p-5 md:p-6 shadow-2xl animate-in fade-in duration-300">
       {/* Title */}
       <div className="text-center">
         <span className="text-3xl select-none" role="img" aria-label="fly">

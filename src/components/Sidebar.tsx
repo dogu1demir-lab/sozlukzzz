@@ -1,11 +1,18 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import SidebarContent from "./SidebarContent";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isSearchMode, setIsSearchMode] = useState(false);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasQ = !!searchParams.get("q");
+    setIsSearchMode(pathname.startsWith("/baslik/") && hasQ);
+  }, [pathname]);
 
   // Hide sidebar completely on PozKes page and messages page
   if (pathname === "/pozkes" || pathname.startsWith("/mesajlar")) {
@@ -13,10 +20,11 @@ export default function Sidebar() {
   }
 
   const isProfileOrSettings = pathname.startsWith("/yazar") || pathname.startsWith("/settings");
+  const shouldHideOnMobile = isProfileOrSettings || isSearchMode;
 
   return (
     <aside className={`${
-      isProfileOrSettings ? "hidden md:block" : ""
+      shouldHideOnMobile ? "hidden md:block" : ""
     } w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-950 p-2.5 md:p-3 h-64 md:h-[calc(100vh-88px)] overflow-y-auto md:sticky top-[88px] z-30 order-first md:order-first scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent`}>
       <Suspense fallback={
         <div className="space-y-4">

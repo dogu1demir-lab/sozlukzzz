@@ -3,7 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import SendMessageForm from "@/components/SendMessageForm";
-import MessagesPoller from "@/components/MessagesPoller";
+import ChatScrollAnchor from "@/components/ChatScrollAnchor";
 import { formatDate } from "@/lib/utils";
 import { Mail, Send, User, MessageSquare, PlusCircle, AlertCircle, ArrowLeft } from "lucide-react";
 
@@ -143,6 +143,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                 <Link
                   key={conv.username}
                   href={`/mesajlar?u=${conv.username}`}
+                  prefetch={false}
                   className={`flex items-start gap-3 p-4 transition-colors hover:bg-zinc-900/50 ${
                     isActive ? "bg-zinc-900/80" : ""
                   }`}
@@ -199,6 +200,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
               {/* Back Button on Mobile */}
               <Link 
                 href="/mesajlar" 
+                prefetch={false}
                 className="md:hidden p-1.5 -ml-1 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-900 transition-colors"
               >
                 <ArrowLeft className="h-4.5 w-4.5" />
@@ -253,6 +255,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                   </div>
                 );
               })}
+              <ChatScrollAnchor messageCount={chatMessages.length} />
             </div>
 
             {/* Send Message Form */}
@@ -268,8 +271,6 @@ export default async function MessagesPage({ searchParams }: PageProps) {
           </div>
         )}
       </div>
-
-      <MessagesPoller />
     </div>
   );
 }

@@ -5,7 +5,6 @@ import { likeEntryAction, reportAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import { ThumbsUp, ThumbsDown, MessageSquare, Edit3, Trash2, Flag, Share2 } from "lucide-react";
 import Link from "next/link";
-import confetti from "canvas-confetti";
 
 interface ReactionButtonsProps {
   entryId: string;
@@ -49,15 +48,17 @@ export default function ReactionButtons({
       return;
     }
 
-    playBuzzSound();
+    playBuzzSound(false, "/eylemhareket.mp3");
 
     if (type === "LIKE" && reaction !== "LIKE") {
-      // Trigger canvas confetti on like!
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.8 },
-        colors: ["#84cc16", "#14b8a6", "#a855f7"],
+      // Trigger canvas confetti on like dynamically!
+      import("canvas-confetti").then((mod) => {
+        mod.default({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.8 },
+          colors: ["#84cc16", "#14b8a6", "#a855f7"],
+        });
       });
     }
 
@@ -145,6 +146,7 @@ export default function ReactionButtons({
       <button
         onClick={() => handleReaction("LIKE")}
         disabled={isPending}
+        aria-label={`Beğen (${likes})`}
         className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border transition-all active:scale-95 ${
           reaction === "LIKE"
             ? "bg-lime-500/10 text-lime-400 border-lime-500/30"
@@ -159,6 +161,7 @@ export default function ReactionButtons({
       <button
         onClick={() => handleReaction("DISLIKE")}
         disabled={isPending}
+        aria-label={`Beğenme (${dislikes})`}
         className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border transition-all active:scale-95 ${
           reaction === "DISLIKE"
             ? "bg-red-500/10 text-red-400 border-red-500/30"
@@ -174,6 +177,7 @@ export default function ReactionButtons({
         <button
           onClick={handleReport}
           title="Şikayet Et"
+          aria-label="Şikayet Et"
           disabled={isPending}
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border border-transparent text-zinc-500 hover:text-red-400 hover:bg-zinc-900 transition-all active:scale-95"
         >
@@ -186,6 +190,7 @@ export default function ReactionButtons({
         <button
           onClick={() => { playBuzzSound(); setShowShareMenu(!showShareMenu); }}
           title="Paylaş"
+          aria-label="Paylaş"
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border border-transparent text-zinc-500 hover:text-lime-400 hover:bg-zinc-900 transition-all active:scale-95"
         >
           <Share2 className="h-3.5 w-3.5" />
@@ -225,6 +230,7 @@ export default function ReactionButtons({
             <button
               onClick={onEdit}
               title="Entry'yi Düzenle"
+              aria-label="Entry'yi Düzenle"
               className="p-1.5 hover:text-teal-400 hover:bg-zinc-900 rounded-lg transition-colors active:scale-90"
               disabled={isPending}
             >
@@ -235,6 +241,7 @@ export default function ReactionButtons({
             <button
               onClick={onDelete}
               title="Entry'yi Sil"
+              aria-label="Entry'yi Sil"
               className="p-1.5 hover:text-red-400 hover:bg-zinc-900 rounded-lg transition-colors active:scale-90"
               disabled={isPending}
             >

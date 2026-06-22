@@ -28,11 +28,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? author.bio 
     : `@${author.username} yazarının profili, girdileri ve vızıltı puanları.`;
 
-  const avatarImage = author.avatarUrl ? author.avatarUrl : "/og-image.jpg";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
+  const avatarImage = author.avatarUrl 
+    ? `${appUrl}/api/yazar-image/${encodeURIComponent(author.username)}` 
+    : `${appUrl}/og-image.jpg`;
 
   return {
     title: `@${author.username} (Yazar) — sözlükzzz`,
     description: bioSnippet,
+    alternates: {
+      canonical: `${appUrl}/yazar/${encodeURIComponent(username)}`,
+    },
     openGraph: {
       title: `@${author.username} — sözlükzzz`,
       description: bioSnippet,
@@ -140,7 +146,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
     return {
       id: entry.id,
       content: entry.content,
-      imageUrl: entry.imageUrl,
+      imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : null,
       createdAt: entry.createdAt,
       topic: {
         title: entry.topic.title,

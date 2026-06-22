@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "backup": "node scripts/backup.js",
+    "restore": "node scripts/restore.js"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",
@@ -15,13 +17,16 @@
     "@prisma/client": "^7.8.0",
     "better-sqlite3": "^12.11.1",
     "canvas-confetti": "^1.9.4",
+    "ioredis": "^5.11.1",
     "ky": "^2.0.2",
     "lucide-react": "^1.20.0",
     "next": "16.2.9",
     "nodemailer": "^9.0.1",
     "pg": "^8.21.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sharp": "^0.35.2",
+    "ssh2": "^1.17.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

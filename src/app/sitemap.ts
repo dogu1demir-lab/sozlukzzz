@@ -7,6 +7,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Base routes
   const routes = [
     "",
+    "/bugun",
+    "/gundem",
+    "/begenilen",
+    "/goruntulenen",
     "/pozkes",
     "/giris",
     "/kaydol",
@@ -14,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${appUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: "daily" as const,
-    priority: route === "" ? 1.0 : 0.8,
+    priority: route === "" || route === "/bugun" ? 1.0 : 0.8,
   }));
 
   try {

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "./db";
+import { redis } from "./redis";
 
 const SESSION_COOKIE_NAME = "sozlukzzz_session";
 
@@ -21,11 +22,32 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     const payload = JSON.parse(Buffer.from(sessionCookie.value, "base64").toString("utf-8"));
     if (!payload.userId) return null;
 
+    // Check Redis cache first
+    const cacheKey = `user:session:${payload.userId}`;
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (redisErr) {
+      console.error("Redis get session error:", redisErr);
+    }
+
     // Fetch user from DB
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
       select: { id: true, username: true, role: true, avatarColor: true, avatarUrl: true },
     });
+
+    if (user) {
+      // Cache for 30 seconds
+      try {
+        await redis.set(cacheKey, JSON.stringify(user), "EX", 30);
+      } catch (redisErr) {
+        console.error("Redis set session error:", redisErr);
+      }
+    }
+
     return user;
   } catch (e) {
     return null;
@@ -50,3 +72,4 @@ export async function clearSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
 }
+

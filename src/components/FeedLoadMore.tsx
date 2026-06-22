@@ -118,7 +118,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
               </Link>
 
               {/* Author / Date */}
-              <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-500 shrink-0">
+              <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-400 shrink-0">
                 <Link
                   href={`/yazar/${entry.author.username}`}
                   className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"

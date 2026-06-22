@@ -29,7 +29,8 @@ export default function NotFound() {
       {/* Action Buttons */}
       <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center w-full max-w-sm">
         <Link
-          href="/"
+          href="/bugun"
+          prefetch={false}
           className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-lime-500 text-black font-bold hover:bg-lime-400 active:scale-95 transition-all text-sm shadow-lg shadow-lime-500/10"
         >
           <Home className="h-4 w-4" />
@@ -37,6 +38,7 @@ export default function NotFound() {
         </Link>
         <Link
           href="/yeni"
+          prefetch={false}
           className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold hover:bg-zinc-800 hover:text-white active:scale-95 transition-all text-sm"
         >
           <Edit3 className="h-4 w-4" />
@@ -47,7 +49,8 @@ export default function NotFound() {
       {/* Secondary Back Button */}
       <div className="mt-6">
         <Link
-          href="/"
+          href="/bugun"
+          prefetch={false}
           className="inline-flex items-center gap-1 text-xs text-zinc-650 hover:text-zinc-400 font-semibold transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />

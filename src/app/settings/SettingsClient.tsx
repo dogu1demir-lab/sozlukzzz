@@ -83,7 +83,7 @@ export default function SettingsClient({ user }: SettingsClientProps) {
         alert(result.error);
       } else {
         alert("Hesabınız başarıyla silinmiştir zzz.");
-        router.push("/");
+        router.push("/bugun");
         window.location.reload();
       }
     });

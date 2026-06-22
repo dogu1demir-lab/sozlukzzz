@@ -4,7 +4,7 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "mail.guzel.net.tr",
   port: parseInt(process.env.SMTP_PORT || "465", 10),
-  secure: process.env.SMTP_PORT === "465", // true for 465, false for other ports
+  secure: (process.env.SMTP_PORT || "465") === "465", // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER || "yonetim@sozlukzzz.tr",
     pass: process.env.SMTP_PASS || "q3t2bi2K1I",
@@ -13,6 +13,8 @@ const transporter = nodemailer.createTransport({
     // Do not fail on invalid certs
     rejectUnauthorized: false,
   },
+  connectionTimeout: 5000, // 5 seconds connection timeout
+  socketTimeout: 5000,     // 5 seconds socket timeout
 });
 
 /**

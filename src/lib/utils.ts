@@ -1,8 +1,8 @@
-export function playBuzzSound(force = false) {
+export function playBuzzSound(force = false, soundPath = "/vizildi.mp3") {
   if (typeof window === "undefined") return;
   if (!force && localStorage.getItem("buzzMuted") === "true") return;
   try {
-    const audio = new Audio("/vizildi.mp3");
+    const audio = new Audio(soundPath);
     audio.volume = 0.25; // set moderate volume to not annoy the user
     audio.play();
   } catch (e) {

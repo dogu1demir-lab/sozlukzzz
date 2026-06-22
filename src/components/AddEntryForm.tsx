@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createEntryAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
@@ -14,9 +14,12 @@ interface AddEntryFormProps {
 export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps) {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const isSubmittingOrPending = isPending || submitting;
   const router = useRouter();
   const searchParams = useSearchParams();
+  const submittingRef = useRef(false);
 
   const replyTo = searchParams.get("replyTo");
   const replyIndex = searchParams.get("replyIndex");
@@ -37,6 +40,7 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingOrPending || submittingRef.current) return;
     setError("");
 
     if (!isLoggedIn) {
@@ -54,14 +58,26 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
       return;
     }
 
+    submittingRef.current = true;
+    setSubmitting(true);
     startTransition(async () => {
-      const result = await createEntryAction(topicId, content);
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setContent("");
-        playBuzzSound();
-        router.refresh();
+      try {
+        const result = await createEntryAction(topicId, content);
+        if (result.error) {
+          setError(result.error);
+          setSubmitting(false);
+          submittingRef.current = false;
+        } else {
+          setContent("");
+          playBuzzSound(false, "/eylemhareket.mp3");
+          router.refresh();
+          setSubmitting(false);
+          submittingRef.current = false;
+        }
+      } catch (err) {
+        setError("Entry gönderilirken teknik bir hata oluştu.");
+        setSubmitting(false);
+        submittingRef.current = false;
       }
     });
   };
@@ -118,7 +134,7 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="fikirlerini buraya vızıldat zzz..."
-          disabled={isPending}
+          disabled={isSubmittingOrPending}
           className="w-full rounded-xl bg-zinc-900 border border-zinc-800 p-4 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all resize-y"
         />
       </div>
@@ -126,11 +142,11 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isSubmittingOrPending}
           className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-lime-500 text-black font-semibold text-xs hover:bg-lime-400 transition-colors shadow-lg shadow-lime-500/10 disabled:opacity-50"
         >
           <Send className="h-3 w-3" />
-          <span>{isPending ? "gönderiliyor..." : "vızıldat"}</span>
+          <span>{isSubmittingOrPending ? "gönderiliyor..." : "vızıldat"}</span>
         </button>
       </div>
     </form>
