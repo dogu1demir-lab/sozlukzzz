@@ -173,11 +173,19 @@ export default async function Home({ params }: PageProps) {
             select: { id: true }
           }
         },
-        orderBy: {
-          entries: {
-            _count: "desc"
+        orderBy: [
+          {
+            entries: {
+              _count: "desc"
+            }
+          },
+          {
+            updatedAt: "desc"
+          },
+          {
+            id: "desc"
           }
-        },
+        ],
         take: 7
       });
 

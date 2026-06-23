@@ -1208,11 +1208,19 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             select: { id: true }
           }
         },
-        orderBy: {
-          entries: {
-            _count: "desc"
+        orderBy: [
+          {
+            entries: {
+              _count: "desc"
+            }
+          },
+          {
+            updatedAt: "desc"
+          },
+          {
+            id: "desc"
           }
-        },
+        ],
         skip: offset,
         take: limit
       });
@@ -1772,11 +1780,19 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
           poll: { select: { id: true } },
           _count: { select: { entries: true } }
         },
-        orderBy: {
-          entries: {
-            _count: "desc"
+        orderBy: [
+          {
+            entries: {
+              _count: "desc"
+            }
+          },
+          {
+            updatedAt: "desc"
+          },
+          {
+            id: "desc"
           }
-        },
+        ],
         skip: offset,
         take: limit
       });
