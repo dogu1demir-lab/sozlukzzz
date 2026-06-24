@@ -475,7 +475,7 @@ export default async function Home({ params }: PageProps) {
     <div className="space-y-8 animate-in fade-in duration-300">
       
       {/* Banner / Hero Section */}
-      <IntroBanner />
+      <IntroBanner isLoggedIn={!!user} />
 
       {/* Content Stream */}
       <section className="space-y-6">
