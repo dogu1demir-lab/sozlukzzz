@@ -48,6 +48,18 @@ export default function Register() {
 
         {/* Form */}
         <form action={formAction} className="mt-6 space-y-4">
+          {/* Honeypot field (hidden to humans, blocks automated bots) */}
+          <div className="absolute opacity-0 -z-50 pointer-events-none w-0 h-0 overflow-hidden">
+            <label htmlFor="website">Websiteniz</label>
+            <input
+              id="website"
+              name="website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+            />
+          </div>
+
           {state?.error && (
             <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 p-3.5 text-sm text-red-400">
               <AlertCircle className="h-4 w-4 shrink-0" />

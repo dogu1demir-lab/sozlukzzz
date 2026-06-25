@@ -83,6 +83,13 @@ export async function convertToSlug(text: string): Promise<string> {
 
 // Action: Register
 export async function registerAction(prevState: any, formData: FormData) {
+  // Honeypot check to block automated spam bots
+  const honeypot = formData.get("website")?.toString();
+  if (honeypot) {
+    console.log("[SECURITY] Bot registration attempt blocked via Honeypot.");
+    return { error: "Güvenlik kontrolü başarısız oldu zzz." };
+  }
+
   try {
     const disableSignups = await redis.get("settings:disable_signups");
     if (disableSignups === "true") {
