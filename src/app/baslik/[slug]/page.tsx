@@ -14,8 +14,11 @@ import { redis } from "@/lib/redis";
 import { headers } from "next/headers";
 import HashRedirector from "@/components/HashRedirector";
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const { p } = await searchParams;
+  const pageVal = parseInt(p || "1", 10) || 1;
+
   const topic = await prisma.topic.findUnique({
     where: { slug },
     select: { 
@@ -44,14 +47,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? `${appUrl}/api/image/${firstEntry.id}`
     : `${appUrl}/og-image.jpg`;
 
+  const pageSuffix = pageVal > 1 ? ` - Sayfa ${pageVal}` : "";
+  const title = `${topic.title}${pageSuffix} — sözlükzzz`;
+
   return {
-    title: `${topic.title} — sözlükzzz`,
+    title,
     description: snippet,
     alternates: {
-      canonical: `${appUrl}/baslik/${slug}`,
+      canonical: `${appUrl}/baslik/${slug}${pageVal > 1 ? `?p=${pageVal}` : ""}`,
     },
     openGraph: {
-      title: `${topic.title} — sözlükzzz`,
+      title,
       description: snippet,
       images: [
         {
@@ -62,7 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary_large_image",
-      title: `${topic.title} — sözlükzzz`,
+      title,
       description: snippet,
       images: [ogImage],
     }

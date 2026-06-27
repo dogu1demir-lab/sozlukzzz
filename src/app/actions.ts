@@ -420,9 +420,15 @@ export async function createEntryAction(topicId: string, content: string) {
       console.error("Redis global publish error:", redisErr);
     }
 
+    // Calculate target page for this new entry
+    const totalEntries = await prisma.entry.count({
+      where: { topicId }
+    });
+    const page = Math.ceil(totalEntries / 10) || 1;
+
     await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/baslik/${topic.slug}`);
-    return { success: true, entryId: entry.id };
+    return { success: true, entryId: entry.id, page };
   } catch (e) {
     return { error: "Entry gönderilirken bir hata oluştu." };
   }

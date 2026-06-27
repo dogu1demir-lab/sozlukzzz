@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "@/app/actions";
@@ -22,6 +22,7 @@ const initialState: ActionState = {
 export default function Register() {
   const [state, formAction, isPending] = useActionState(registerAction, initialState);
   const router = useRouter();
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     if (state?.success) {
@@ -105,10 +106,21 @@ export default function Register() {
                 type="text"
                 required
                 maxLength={14}
-                className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.replace(/\s/g, ""))}
+                className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 pr-14 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
                 placeholder="kullanıcı adı"
               />
               <User className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
+              <span className={`absolute right-3 top-3 text-[9px] font-black select-none px-1.5 py-0.5 rounded border transition-colors ${
+                username.length >= 14 
+                  ? "bg-red-500/10 text-red-400 border-red-500/20" 
+                  : username.length >= 11
+                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  : "bg-zinc-850 text-zinc-500 border-zinc-800"
+              }`}>
+                {username.length}/14
+              </span>
             </div>
 
             {/* Password Input */}
