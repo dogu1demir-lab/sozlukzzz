@@ -264,10 +264,10 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
 
   const paginationControls = totalPages > 1 && (
     <div className="flex justify-between items-center gap-4 py-2 border-y border-zinc-900/60 my-4 select-none">
-      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider shrink-0">
         Sayfa {sanitizedPage} / {totalPages} ({totalEntries} entry)
       </span>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-[65%] sm:max-w-none py-1 shrink-0">
         {sanitizedPage > 1 && (
           <Link
             href={`/baslik/${topic.slug}?p=${sanitizedPage - 1}`}
