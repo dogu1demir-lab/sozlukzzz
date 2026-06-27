@@ -151,15 +151,26 @@ export default function SettingsClient({ user }: SettingsClientProps) {
           <label className="form-label" htmlFor="settings-bio">
             Hakkımda
           </label>
-          <textarea
-            id="settings-bio"
-            className="form-input"
-            maxLength={300}
-            rows={4}
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Kendinizden kısaca bahsedin zzz..."
-          />
+          <div className="relative">
+            <textarea
+              id="settings-bio"
+              className="form-input pr-12 pb-8"
+              maxLength={160}
+              rows={4}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Kendinizden kısaca bahsedin zzz..."
+            />
+            <span className={`absolute right-3 bottom-3 text-[9px] font-black select-none px-1.5 py-0.5 rounded border transition-colors ${
+              bio.length >= 160 
+                ? "bg-red-500/10 text-red-400 border-red-500/20" 
+                : bio.length >= 140
+                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                : "bg-slate-900 text-slate-500 border-slate-800"
+            }`}>
+              {bio.length}/160
+            </span>
+          </div>
 
           <label className="form-label" htmlFor="settings-color">
             Avatar Rengi

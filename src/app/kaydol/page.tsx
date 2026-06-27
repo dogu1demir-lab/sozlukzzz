@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { Lock, User, AlertCircle, ArrowRight, UserPlus, Mail } from "lucide-react";
+import { Lock, User, AlertCircle, ArrowRight, UserPlus, Mail, Eye, EyeOff } from "lucide-react";
 
 interface ActionState {
   error?: string;
@@ -23,6 +23,7 @@ export default function Register() {
   const [state, formAction, isPending] = useActionState(registerAction, initialState);
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (state?.success) {
@@ -131,12 +132,20 @@ export default function Register() {
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
-                className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
+                className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 pr-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
                 placeholder="şifre (en az 6 karakter)"
               />
               <Lock className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
+              <button
+                type="button"
+                onClick={() => { playBuzzSound(); setShowPassword(!showPassword); }}
+                className="absolute right-3 top-3.5 text-zinc-500 hover:text-zinc-300 transition-colors"
+                title={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           </div>
 
