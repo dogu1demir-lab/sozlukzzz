@@ -73,7 +73,7 @@ export const revalidate = 0; // Disable caching to fetch real-time entries
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; p?: string }>;
 }
 
 export default async function TopicPage({ params, searchParams }: PageProps) {
@@ -81,10 +81,13 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
   if (slug === "pozkes-galeri") {
     redirect("/pozkes");
   }
-  const { q } = await searchParams;
+  const { q, p } = await searchParams;
   const user = await getSessionUser();
 
-  // Fetch topic with entries, authors, likes and poll
+  const currentPage = parseInt(p || "1", 10) || 1;
+  const itemsPerPage = 10;
+
+  // Fetch topic with poll only (entries are queried separately with pagination)
   const topic = await prisma.topic.findUnique({
     where: { slug },
     include: {
@@ -96,17 +99,6 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
             }
           },
           votes: true
-        }
-      },
-      entries: {
-        include: {
-          author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
-          },
-          likes: true
-        },
-        orderBy: {
-          createdAt: "asc"
         }
       }
     }
@@ -187,8 +179,30 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
     );
   }
 
+  // Query paginated entries
+  const totalEntries = await prisma.entry.count({
+    where: { topicId: topic.id }
+  });
+  const totalPages = Math.ceil(totalEntries / itemsPerPage) || 1;
+  const sanitizedPage = Math.max(1, Math.min(currentPage, totalPages));
+
+  const entries = await prisma.entry.findMany({
+    where: { topicId: topic.id },
+    include: {
+      author: {
+        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+      },
+      likes: true
+    },
+    orderBy: {
+      createdAt: "asc"
+    },
+    skip: (sanitizedPage - 1) * itemsPerPage,
+    take: itemsPerPage
+  });
+
   // Format entries with user's specific reactions
-  const formattedEntries = topic.entries.map((entry) => {
+  const formattedEntries = entries.map((entry) => {
     const likesCount = entry.likes.filter((l) => l.isLike).length;
     const dislikesCount = entry.likes.filter((l) => !l.isLike).length;
     const userLike = user ? entry.likes.find((l) => l.userId === user.id) : null;
@@ -227,6 +241,69 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
     };
   }
 
+  // Generate smart pagination page list
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const range = 2; // Show 2 pages before and after the active page
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= sanitizedPage - range && i <= sanitizedPage + range)) {
+        pages.push(i);
+      } else if (pages[pages.length - 1] !== '...') {
+        pages.push('...');
+      }
+    }
+    return pages;
+  };
+
+  const paginationControls = totalPages > 1 && (
+    <div className="flex justify-between items-center gap-4 py-2 border-y border-zinc-900/60 my-4 select-none">
+      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">
+        Sayfa {sanitizedPage} / {totalPages} ({totalEntries} entry)
+      </span>
+      <div className="flex items-center gap-1.5">
+        {sanitizedPage > 1 && (
+          <Link
+            href={`/baslik/${topic.slug}?p=${sanitizedPage - 1}`}
+            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-black text-zinc-300 hover:text-white hover:border-zinc-700 transition-all cursor-pointer"
+          >
+            Geri
+          </Link>
+        )}
+        {getPageNumbers().map((pageNum, idx) => {
+          if (pageNum === '...') {
+            return (
+              <span key={`dots-${idx}`} className="text-zinc-650 text-xs px-1 select-none">
+                ...
+              </span>
+            );
+          }
+          const isCurrent = pageNum === sanitizedPage;
+          return (
+            <Link
+              key={pageNum}
+              href={`/baslik/${topic.slug}?p=${pageNum}`}
+              className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                isCurrent
+                  ? "bg-lime-500 text-black shadow-lg shadow-lime-500/10 pointer-events-none"
+                  : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 active:scale-95 cursor-pointer"
+              }`}
+            >
+              {pageNum}
+            </Link>
+          );
+        })}
+        {sanitizedPage < totalPages && (
+          <Link
+            href={`/baslik/${topic.slug}?p=${sanitizedPage + 1}`}
+            className="px-2.5 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[10px] font-black text-zinc-300 hover:text-white hover:border-zinc-700 transition-all cursor-pointer"
+          >
+            İleri
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
       
@@ -254,6 +331,9 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
         />
       )}
 
+      {/* Top Pagination */}
+      {paginationControls}
+
       {/* Entries List */}
       <div className="space-y-4">
         {formattedEntries.length === 0 ? (
@@ -273,6 +353,9 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
           ))
         )}
       </div>
+
+      {/* Bottom Pagination */}
+      {paginationControls}
 
       {/* Add Entry Editor Form */}
       <Suspense fallback={<div className="h-20 bg-zinc-950/20 animate-pulse rounded-xl border border-zinc-900"></div>}>

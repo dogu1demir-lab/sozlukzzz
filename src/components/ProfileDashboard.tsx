@@ -122,8 +122,19 @@ export default function ProfileDashboard({
   const textEntries = entries.filter((e) => !e.imageUrl);
   const photoEntries = entries.filter((e) => !!e.imageUrl);
 
+  const [entriesLimit, setEntriesLimit] = useState(10);
+  const [commentsLimit, setCommentsLimit] = useState(10);
+  const [followersLimit, setFollowersLimit] = useState(10);
+  const [followingLimit, setFollowingLimit] = useState(10);
+  const [photosLimit, setPhotosLimit] = useState(10);
+
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
+    setEntriesLimit(10);
+    setCommentsLimit(10);
+    setFollowersLimit(10);
+    setFollowingLimit(10);
+    setPhotosLimit(10);
   };
 
   // Stack gifts by type for display
@@ -415,23 +426,35 @@ export default function ProfileDashboard({
               {textEntries.length === 0 ? (
                 <div className="text-center py-6 text-xs text-slate-500 italic">Henüz başlık açılmamış veya entry girilmemiş.</div>
               ) : (
-                textEntries.map((entry) => (
-                  <article key={entry.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
-                    <div className="flex justify-between items-baseline gap-2">
-                      <Link 
-                        href={`/baslik/${entry.topic.slug}`} 
-                        prefetch={false}
-                        className="text-sm font-bold text-white hover:text-teal-400"
+                <>
+                  {textEntries.slice(0, entriesLimit).map((entry) => (
+                    <article key={entry.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
+                      <div className="flex justify-between items-baseline gap-2">
+                        <Link 
+                          href={`/baslik/${entry.topic.slug}`} 
+                          prefetch={false}
+                          className="text-sm font-bold text-white hover:text-teal-400"
+                        >
+                          {entry.topic.title}
+                        </Link>
+                         <span className="text-[10px] text-slate-500">{new Date(entry.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
+                      </div>
+                      <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        <MentionText content={entry.content} />
+                      </div>
+                    </article>
+                  ))}
+                  {textEntries.length > entriesLimit && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => { playBuzzSound(); setEntriesLimit(prev => prev + 10); }}
+                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
                       >
-                        {entry.topic.title}
-                      </Link>
-                       <span className="text-[10px] text-slate-500">{new Date(entry.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
+                        Daha Fazla Göster zzz
+                      </button>
                     </div>
-                    <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                      <MentionText content={entry.content} />
-                    </div>
-                  </article>
-                ))
+                  )}
+                </>
               )}
             </div>
           )}
@@ -441,26 +464,38 @@ export default function ProfileDashboard({
               {comments.length === 0 ? (
                 <div className="text-center py-6 text-xs text-slate-500 italic">Henüz yorum yapılmamış.</div>
               ) : (
-                comments.map((comment) => (
-                  <article key={comment.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
-                    <div className="flex justify-between items-baseline gap-2">
-                      <div className="text-[11px] text-slate-400">
-                        <Link 
-                          href={`/baslik/${comment.entry.topic.slug}#entry-${comment.entry.id}`} 
-                          prefetch={false}
-                          className="font-semibold text-slate-300 hover:text-teal-400"
-                        >
-                          {comment.entry.topic.title}
-                        </Link>{" "}
-                        başlığındaki gönderiye vızıldadı
+                <>
+                  {comments.slice(0, commentsLimit).map((comment) => (
+                    <article key={comment.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
+                      <div className="flex justify-between items-baseline gap-2">
+                        <div className="text-[11px] text-slate-400">
+                          <Link 
+                            href={`/baslik/${comment.entry.topic.slug}#entry-${comment.entry.id}`} 
+                            prefetch={false}
+                            className="font-semibold text-slate-300 hover:text-teal-400"
+                          >
+                            {comment.entry.topic.title}
+                          </Link>{" "}
+                          başlığındaki gönderiye vızıldadı
+                        </div>
+                         <span className="text-[10px] text-slate-500">{new Date(comment.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
                       </div>
-                       <span className="text-[10px] text-slate-500">{new Date(comment.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
+                      <div className="text-xs text-slate-200">
+                        <MentionText content={comment.content} />
+                      </div>
+                    </article>
+                  ))}
+                  {comments.length > commentsLimit && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => { playBuzzSound(); setCommentsLimit(prev => prev + 10); }}
+                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                      >
+                        Daha Fazla Göster zzz
+                      </button>
                     </div>
-                    <div className="text-xs text-slate-200">
-                      <MentionText content={comment.content} />
-                    </div>
-                  </article>
-                ))
+                  )}
+                </>
               )}
             </div>
           )}
@@ -470,83 +505,123 @@ export default function ProfileDashboard({
               {photoEntries.length === 0 ? (
                 <div className="text-center py-6 text-xs text-slate-500 italic">Henüz fotoğraf paylaşılmamış.</div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {photoEntries.map((photo) => (
-                    <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30">
-                      <img src={photo.imageUrl!} alt="Poz" width={150} height={150} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-2.5 transition-all">
-                        <Link 
-                          href={`/pozkes#entry-${photo.id}`} 
-                          prefetch={false}
-                          className="text-[10px] font-bold text-white hover:underline flex items-center gap-1 justify-between"
-                        >
-                          <span>Akışta Gör</span>
-                          <ArrowRight className="h-3 w-3" />
-                        </Link>
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {photoEntries.slice(0, photosLimit).map((photo) => (
+                      <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30">
+                        <img src={photo.imageUrl!} alt="Poz" width={150} height={150} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-2.5 transition-all">
+                          <Link 
+                            href={`/pozkes#entry-${photo.id}`} 
+                            prefetch={false}
+                            className="text-[10px] font-bold text-white hover:underline flex items-center gap-1 justify-between"
+                          >
+                            <span>Akışta Gör</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                  {photoEntries.length > photosLimit && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => { playBuzzSound(); setPhotosLimit(prev => prev + 10); }}
+                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                      >
+                        Daha Fazla Göster zzz
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           )}
 
           {activeTab === "takipci" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-4">
               {followers.length === 0 ? (
-                <div className="col-span-2 text-center py-6 text-xs text-slate-500 italic">Henüz takipçi bulunmuyor.</div>
+                <div className="text-center py-6 text-xs text-slate-500 italic">Henüz takipçi bulunmuyor.</div>
               ) : (
-                followers.map((f) => (
-                  <Link
-                    key={f.id}
-                    href={`/yazar/${f.username}`}
-                    prefetch={false}
-                    onClick={() => playBuzzSound()}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
-                  >
-                    {f.avatarUrl ? (
-                      <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
-                        {f.username.substring(0, 1).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <span className="text-xs font-bold text-slate-200 block truncate">@{f.username}</span>
-                      {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold">Admin</span>}
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {followers.slice(0, followersLimit).map((f) => (
+                      <Link
+                        key={f.id}
+                        href={`/yazar/${f.username}`}
+                        prefetch={false}
+                        onClick={() => playBuzzSound()}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
+                      >
+                        {f.avatarUrl ? (
+                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
+                            {f.username.substring(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-slate-200 block truncate">@{f.username}</span>
+                          {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold">Admin</span>}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                  {followers.length > followersLimit && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => { playBuzzSound(); setFollowersLimit(prev => prev + 10); }}
+                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                      >
+                        Daha Fazla Göster zzz
+                      </button>
                     </div>
-                  </Link>
-                ))
+                  )}
+                </>
               )}
             </div>
           )}
 
           {activeTab === "takip" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-4">
               {following.length === 0 ? (
-                <div className="col-span-2 text-center py-6 text-xs text-slate-500 italic">Takip edilen yazar bulunmuyor.</div>
+                <div className="text-center py-6 text-xs text-slate-500 italic">Takip edilen yazar bulunmuyor.</div>
               ) : (
-                following.map((f) => (
-                  <Link
-                    key={f.id}
-                    href={`/yazar/${f.username}`}
-                    prefetch={false}
-                    onClick={() => playBuzzSound()}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
-                  >
-                    {f.avatarUrl ? (
-                      <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
-                        {f.username.substring(0, 1).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <span className="text-xs font-bold text-slate-200 block truncate">@{f.username}</span>
-                      {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold">Admin</span>}
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {following.slice(0, followingLimit).map((f) => (
+                      <Link
+                        key={f.id}
+                        href={`/yazar/${f.username}`}
+                        prefetch={false}
+                        onClick={() => playBuzzSound()}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
+                      >
+                        {f.avatarUrl ? (
+                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
+                            {f.username.substring(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-slate-200 block truncate">@{f.username}</span>
+                          {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold">Admin</span>}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                  {following.length > followingLimit && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        onClick={() => { playBuzzSound(); setFollowingLimit(prev => prev + 10); }}
+                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                      >
+                        Daha Fazla Göster zzz
+                      </button>
                     </div>
-                  </Link>
-                ))
+                  )}
+                </>
               )}
             </div>
           )}

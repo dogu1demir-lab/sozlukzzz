@@ -103,8 +103,8 @@ export async function registerAction(prevState: any, formData: FormData) {
   const password = formData.get("password")?.toString();
   const email = formData.get("email")?.toString().trim().toLowerCase();
 
-  if (!username || !password || username.length < 3 || password.length < 6) {
-    return { error: "Kullanıcı adı en az 3, şifre en az 6 karakter olmalıdır." };
+  if (!username || !password || username.length < 3 || username.length > 14 || password.length < 6) {
+    return { error: "Kullanıcı adı 3-14 karakter, şifre en az 6 karakter olmalıdır." };
   }
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

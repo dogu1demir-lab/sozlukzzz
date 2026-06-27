@@ -104,6 +104,7 @@ export default function Register() {
                 name="username"
                 type="text"
                 required
+                maxLength={14}
                 className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
                 placeholder="kullanıcı adı"
               />
