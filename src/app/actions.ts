@@ -159,7 +159,11 @@ export async function registerAction(prevState: any, formData: FormData) {
     }
 
     await setSessionCookie(user.id);
-    return { success: true };
+    let xSignupEventId = "";
+    try {
+      xSignupEventId = (await redis.get("settings:x_signup_event_id")) || "";
+    } catch (redisErr) {}
+    return { success: true, xSignupEventId };
   } catch (e) {
     return { error: "Kayıt olurken bir hata oluştu." };
   }
@@ -2283,12 +2287,14 @@ export async function adminGetSettingsAction() {
     const disableSignups = await redis.get("settings:disable_signups");
     const disablePozkes = await redis.get("settings:disable_pozkes");
     const xPixelId = await redis.get("settings:x_pixel_id");
+    const xSignupEventId = await redis.get("settings:x_signup_event_id");
 
     return {
       success: true,
       disableSignups: disableSignups === "true",
       disablePozkes: disablePozkes === "true",
-      xPixelId: xPixelId || ""
+      xPixelId: xPixelId || "",
+      xSignupEventId: xSignupEventId || ""
     };
   } catch (error) {
     console.error("adminGetSettingsAction error:", error);
@@ -2296,7 +2302,12 @@ export async function adminGetSettingsAction() {
   }
 }
 
-export async function adminUpdateSettingsAction(disableSignups: boolean, disablePozkes: boolean, xPixelId?: string) {
+export async function adminUpdateSettingsAction(
+  disableSignups: boolean,
+  disablePozkes: boolean,
+  xPixelId?: string,
+  xSignupEventId?: string
+) {
   const user = await getSessionUser();
   if (!user || user.role !== "ADMIN") {
     return { error: "Yetkisiz işlem." };
@@ -2307,6 +2318,9 @@ export async function adminUpdateSettingsAction(disableSignups: boolean, disable
     await redis.set("settings:disable_pozkes", disablePozkes ? "true" : "false");
     if (xPixelId !== undefined) {
       await redis.set("settings:x_pixel_id", xPixelId.trim());
+    }
+    if (xSignupEventId !== undefined) {
+      await redis.set("settings:x_signup_event_id", xSignupEventId.trim());
     }
 
     return { success: true };

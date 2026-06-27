@@ -10,11 +10,13 @@ import { Lock, User, AlertCircle, ArrowRight, UserPlus, Mail } from "lucide-reac
 interface ActionState {
   error?: string;
   success?: boolean;
+  xSignupEventId?: string;
 }
 
 const initialState: ActionState = {
   error: "",
   success: false,
+  xSignupEventId: "",
 };
 
 export default function Register() {
@@ -23,6 +25,14 @@ export default function Register() {
 
   useEffect(() => {
     if (state?.success) {
+      if (state.xSignupEventId && typeof window !== "undefined" && (window as any).twq) {
+        try {
+          (window as any).twq('event', state.xSignupEventId, {});
+          console.log("[X PIXEL] Fired signup event tag successfully:", state.xSignupEventId);
+        } catch (err) {
+          console.error("[X PIXEL] Event tag error:", err);
+        }
+      }
       playBuzzSound();
       router.push("/");
       router.refresh();

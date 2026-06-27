@@ -109,7 +109,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const [mergeSearching, setMergeSearching] = useState(false);
 
   // --- Settings Tab State ---
-  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, xPixelId: "" });
+  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, xPixelId: "", xSignupEventId: "" });
   const [stats, setStats] = useState<any>(null);
   const [health, setHealth] = useState<any>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
@@ -163,7 +163,8 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
         setSettings({
           disableSignups: settingsRes.disableSignups,
           disablePozkes: settingsRes.disablePozkes,
-          xPixelId: settingsRes.xPixelId || ""
+          xPixelId: settingsRes.xPixelId || "",
+          xSignupEventId: settingsRes.xSignupEventId || ""
         });
       }
 
@@ -362,7 +363,12 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
     setSettings(updatedSettings);
 
     startTransition(async () => {
-      const result = await adminUpdateSettingsAction(updatedSettings.disableSignups, updatedSettings.disablePozkes, updatedSettings.xPixelId);
+      const result = await adminUpdateSettingsAction(
+        updatedSettings.disableSignups,
+        updatedSettings.disablePozkes,
+        updatedSettings.xPixelId,
+        updatedSettings.xSignupEventId
+      );
       if (result.error) {
         showFeedback(result.error, true);
         // Revert UI switch
@@ -376,11 +382,16 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const handleSaveXPixel = () => {
     playBuzzSound();
     startTransition(async () => {
-      const result = await adminUpdateSettingsAction(settings.disableSignups, settings.disablePozkes, settings.xPixelId);
+      const result = await adminUpdateSettingsAction(
+        settings.disableSignups,
+        settings.disablePozkes,
+        settings.xPixelId,
+        settings.xSignupEventId
+      );
       if (result.error) {
         showFeedback(result.error, true);
       } else {
-        showFeedback("Twitter (X) Pixel ID başarıyla güncellendi zzz.");
+        showFeedback("Twitter (X) piksel ayarları başarıyla güncellendi zzz.");
       }
     });
   };
@@ -1196,14 +1207,36 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                         onChange={(e) => setSettings(prev => ({ ...prev, xPixelId: e.target.value }))}
                         disabled={isPending}
                         placeholder="Örn: rd6i8"
-                        className="max-w-xs h-9 rounded-lg bg-zinc-900 border border-zinc-800 px-3 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
+                        className="max-w-xs h-9 rounded-lg bg-zinc-900 border border-zinc-800 px-3 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all w-full"
                       />
+                    </div>
+                  </div>
+
+                  {/* Twitter (X) Yeni Kayıt Event ID */}
+                  <div className="flex flex-col gap-2 py-4 border-t border-zinc-900/40">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-zinc-200">Twitter (X) Yeni Kayıt Event ID</span>
+                      <p className="text-[10px] text-zinc-550 max-w-md">
+                        Yeni üye kayıtlarını takip etmek için olay (event) kimliğini (örn: tw-rd6i8-rd8qk) girin.
+                      </p>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      <input
+                        type="text"
+                        value={settings.xSignupEventId || ""}
+                        onChange={(e) => setSettings(prev => ({ ...prev, xSignupEventId: e.target.value }))}
+                        disabled={isPending}
+                        placeholder="Örn: tw-rd6i8-rd8qk"
+                        className="max-w-xs h-9 rounded-lg bg-zinc-900 border border-zinc-800 px-3 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all w-full"
+                      />
+                    </div>
+                    <div className="mt-2">
                       <button
                         onClick={handleSaveXPixel}
                         disabled={isPending}
                         className="px-4 py-2 bg-lime-500 hover:bg-lime-400 disabled:opacity-50 text-black text-xs font-bold rounded-lg transition-colors cursor-pointer"
                       >
-                        Kaydet
+                        Twitter Piksel Ayarlarını Kaydet
                       </button>
                     </div>
                   </div>
