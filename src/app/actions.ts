@@ -2503,3 +2503,26 @@ export async function getUserGiftsAction(username: string) {
     return { error: "Hediyeler yüklenirken bir hata oluştu." };
   }
 }
+
+export async function getEntryPageAction(entryId: string) {
+  try {
+    const entry = await prisma.entry.findUnique({
+      where: { id: entryId },
+      select: { createdAt: true, topicId: true }
+    });
+    if (!entry) return { success: false, page: 1 };
+
+    const beforeCount = await prisma.entry.count({
+      where: {
+        topicId: entry.topicId,
+        createdAt: { lte: entry.createdAt }
+      }
+    });
+
+    const page = Math.ceil(beforeCount / 10) || 1;
+    return { success: true, page };
+  } catch (err) {
+    console.error("getEntryPageAction error:", err);
+    return { success: false, page: 1 };
+  }
+}

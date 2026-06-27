@@ -12,6 +12,7 @@ import PollBlock from "@/components/PollBlock";
 import { Metadata } from "next";
 import { redis } from "@/lib/redis";
 import { headers } from "next/headers";
+import HashRedirector from "@/components/HashRedirector";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -306,6 +307,7 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
+      <HashRedirector currentEntryIds={formattedEntries.map(e => e.id)} />
       
       {/* Topic Title Header */}
       <div className="border-b border-zinc-900 pb-3 flex items-center justify-between">
