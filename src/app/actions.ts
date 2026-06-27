@@ -2282,11 +2282,13 @@ export async function adminGetSettingsAction() {
   try {
     const disableSignups = await redis.get("settings:disable_signups");
     const disablePozkes = await redis.get("settings:disable_pozkes");
+    const xPixelId = await redis.get("settings:x_pixel_id");
 
     return {
       success: true,
       disableSignups: disableSignups === "true",
-      disablePozkes: disablePozkes === "true"
+      disablePozkes: disablePozkes === "true",
+      xPixelId: xPixelId || ""
     };
   } catch (error) {
     console.error("adminGetSettingsAction error:", error);
@@ -2294,7 +2296,7 @@ export async function adminGetSettingsAction() {
   }
 }
 
-export async function adminUpdateSettingsAction(disableSignups: boolean, disablePozkes: boolean) {
+export async function adminUpdateSettingsAction(disableSignups: boolean, disablePozkes: boolean, xPixelId?: string) {
   const user = await getSessionUser();
   if (!user || user.role !== "ADMIN") {
     return { error: "Yetkisiz işlem." };
@@ -2303,6 +2305,9 @@ export async function adminUpdateSettingsAction(disableSignups: boolean, disable
   try {
     await redis.set("settings:disable_signups", disableSignups ? "true" : "false");
     await redis.set("settings:disable_pozkes", disablePozkes ? "true" : "false");
+    if (xPixelId !== undefined) {
+      await redis.set("settings:x_pixel_id", xPixelId.trim());
+    }
 
     return { success: true };
   } catch (error) {

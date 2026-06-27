@@ -7,6 +7,7 @@ import RealtimeGlobalListener from "@/components/RealtimeGlobalListener";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redis } from "@/lib/redis";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -107,6 +108,13 @@ export default async function RootLayout({
   });
   const latestUsername = latestUser?.username || "";
 
+  let xPixelId: string | null = null;
+  try {
+    xPixelId = await redis.get("settings:x_pixel_id");
+  } catch (err) {
+    console.error("Redis get xPixelId error:", err);
+  }
+
   return (
     <html lang="tr" className="h-full dark notranslate">
       <body
@@ -128,6 +136,18 @@ export default async function RootLayout({
           </main>
         </div>
         <RealtimeGlobalListener />
+
+        {/* X conversion tracking base code */}
+        {xPixelId && (
+          <Script id="x-pixel" strategy="afterInteractive">
+            {`
+              !function(e,t,n,s,u,a){e.twq||(s=e.twq=function(){s.exe?s.exe.apply(s,arguments):s.queue.push(arguments);
+              },s.version='1.1',s.queue=[],u=t.createElement(n),u.async=!0,u.src='https://static.ads-twitter.com/uwt.js',
+              a=t.getElementsByTagName(n)[0],a.parentNode.insertBefore(u,a))}(window,document,'script');
+              twq('config','${xPixelId}');
+            `}
+          </Script>
+        )}
       </body>
     </html>
   );

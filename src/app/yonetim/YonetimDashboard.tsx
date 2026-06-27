@@ -109,7 +109,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const [mergeSearching, setMergeSearching] = useState(false);
 
   // --- Settings Tab State ---
-  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false });
+  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, xPixelId: "" });
   const [stats, setStats] = useState<any>(null);
   const [health, setHealth] = useState<any>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
@@ -162,7 +162,8 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
       if (settingsRes.success && settingsRes.disableSignups !== undefined && settingsRes.disablePozkes !== undefined) {
         setSettings({
           disableSignups: settingsRes.disableSignups,
-          disablePozkes: settingsRes.disablePozkes
+          disablePozkes: settingsRes.disablePozkes,
+          xPixelId: settingsRes.xPixelId || ""
         });
       }
 
@@ -361,13 +362,25 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
     setSettings(updatedSettings);
 
     startTransition(async () => {
-      const result = await adminUpdateSettingsAction(updatedSettings.disableSignups, updatedSettings.disablePozkes);
+      const result = await adminUpdateSettingsAction(updatedSettings.disableSignups, updatedSettings.disablePozkes, updatedSettings.xPixelId);
       if (result.error) {
         showFeedback(result.error, true);
         // Revert UI switch
         setSettings(settings);
       } else {
         showFeedback("Sistem ayarları başarıyla güncellendi zzz.");
+      }
+    });
+  };
+
+  const handleSaveXPixel = () => {
+    playBuzzSound();
+    startTransition(async () => {
+      const result = await adminUpdateSettingsAction(settings.disableSignups, settings.disablePozkes, settings.xPixelId);
+      if (result.error) {
+        showFeedback(result.error, true);
+      } else {
+        showFeedback("Twitter (X) Pixel ID başarıyla güncellendi zzz.");
       }
     });
   };
@@ -1166,6 +1179,33 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                     >
                       <span className="w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform" />
                     </button>
+                  </div>
+
+                  {/* Twitter (X) Pixel ID */}
+                  <div className="flex flex-col gap-2 py-4">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-zinc-200">Twitter (X) Pixel ID</span>
+                      <p className="text-[10px] text-zinc-550 max-w-md">
+                        Twitter reklam dönüşümlerini izlemek için piksel kimliğini (örn: rd6i8) girin. Boş bırakırsanız piksel izleme kodu siteden tamamen kaldırılır.
+                      </p>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                      <input
+                        type="text"
+                        value={settings.xPixelId || ""}
+                        onChange={(e) => setSettings(prev => ({ ...prev, xPixelId: e.target.value }))}
+                        disabled={isPending}
+                        placeholder="Örn: rd6i8"
+                        className="max-w-xs h-9 rounded-lg bg-zinc-900 border border-zinc-800 px-3 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
+                      />
+                      <button
+                        onClick={handleSaveXPixel}
+                        disabled={isPending}
+                        className="px-4 py-2 bg-lime-500 hover:bg-lime-400 disabled:opacity-50 text-black text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                      >
+                        Kaydet
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
