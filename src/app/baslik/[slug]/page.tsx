@@ -353,7 +353,7 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
             <EntryBlock
               key={entry.id}
               entry={entry as any}
-              index={idx}
+              index={(sanitizedPage - 1) * 10 + idx}
               isLoggedIn={!!user}
               currentUserId={user?.id}
               isAdmin={user?.role === "ADMIN"}
