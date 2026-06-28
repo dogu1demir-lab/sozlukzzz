@@ -20,6 +20,10 @@ export default function RealtimeGlobalListener() {
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          if (data.type === "NEW_ENTRY" && data.topicId) {
+            const buzzEvent = new CustomEvent("topic-buzz", { detail: { topicId: data.topicId } });
+            window.dispatchEvent(buzzEvent);
+          }
           if (data.type === "NEW_MESSAGE" || data.type === "NEW_ENTRY") {
             // Instantly refresh Next.js Server Components to pull the new data
             router.refresh();

@@ -25,6 +25,26 @@ export default function SidebarContent() {
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const handleBuzz = (e: Event) => {
+      const topicId = (e as CustomEvent).detail?.topicId;
+      if (topicId) {
+        setBuzzingTopics(prev => ({ ...prev, [topicId]: true }));
+        setTimeout(() => {
+          setBuzzingTopics(prev => {
+            const copy = { ...prev };
+            delete copy[topicId];
+            return copy;
+          });
+        }, 5000);
+      }
+    };
+
+    window.addEventListener("topic-buzz", handleBuzz);
+    return () => window.removeEventListener("topic-buzz", handleBuzz);
+  }, []);
 
   // 1. Detect and preserve tab state across page transitions
   useEffect(() => {
@@ -216,8 +236,11 @@ export default function SidebarContent() {
                   prefetch={false}
                   className="flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 border-zinc-900/30 hover:bg-zinc-900/30 hover:border-zinc-800/80"
                 >
-                  <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-start gap-1.5">
+                  <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-center gap-1.5 flex-wrap">
                     <span className="break-words whitespace-normal">{topic.title}</span>
+                    {buzzingTopics[topic.id] && (
+                      <span className="text-[11px] animate-bounce select-none shrink-0" title="Yeni vızıltı! zzz">🔥</span>
+                    )}
                     {topic.poll && (
                       <span className="text-[10px] shrink-0 pt-0.5" title="Anket">📊</span>
                     )}

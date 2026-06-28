@@ -13,6 +13,30 @@ function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
 
+// Helper: Calculate user score and check link posting capability (Level 15 / Aerodinamik Sinek -> score >= 930)
+async function userCanPostLinks(userId: string, role: string): Promise<{ allowed: boolean; score: number }> {
+  if (role === "ADMIN") return { allowed: true, score: 99999 };
+
+  const totalEntries = await prisma.entry.count({
+    where: { authorId: userId }
+  });
+
+  const totalComments = await prisma.comment.count({
+    where: { authorId: userId }
+  });
+
+  // Calculate likes received (isLike: true)
+  const totalLikesReceived = await prisma.like.count({
+    where: {
+      entry: { authorId: userId },
+      isLike: true
+    }
+  });
+
+  const score = (totalEntries * 10) + (totalComments * 5) + (totalLikesReceived * 3);
+  return { allowed: score >= 930, score };
+}
+
 // Helper: Invalidate cached entries/sidebars on database modifications
 export async function clearAllFeedAndSidebarCaches(userId?: string, extraUserIds?: string[]) {
   try {
@@ -225,6 +249,16 @@ export async function createTopicAndEntryAction(title: string, content: string, 
   if (cleanContent.length < 45) {
     return { error: "İçerik en az 45 karakter olmalıdır zzz." };
   }
+
+  const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
+  if (linkRegex.test(cleanTitle) || linkRegex.test(cleanContent)) {
+    const { allowed, score } = await userCanPostLinks(user.id, user.role);
+    if (!allowed) {
+      return { 
+        error: `Link paylaşabilmek için en az 15. rütbe (Aerodinamik Sinek) olmanız gerekmektedir. Şu anki puanınız: ${score} (Gerekli: 930) zzz!` 
+      };
+    }
+  }
   if (cleanContent.length > 5000) {
     return { error: "İçerik en fazla 5000 karakter olabilir zzz." };
   }
@@ -322,7 +356,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
 
     // Publish global update to Redis for real-time sidebar & page updates
     try {
-      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY" }));
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY", topicId: newTopic.id }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }
@@ -345,6 +379,16 @@ export async function createEntryAction(topicId: string, content: string) {
   if (!cleanContent) return { error: "İçerik boş olamaz." };
   if (cleanContent.length < 45) {
     return { error: "Entry en az 45 karakter olmalıdır zzz." };
+  }
+
+  const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
+  if (linkRegex.test(cleanContent)) {
+    const { allowed, score } = await userCanPostLinks(user.id, user.role);
+    if (!allowed) {
+      return { 
+        error: `Link paylaşabilmek için en az 15. rütbe (Aerodinamik Sinek) olmanız gerekmektedir. Şu anki puanınız: ${score} (Gerekli: 930) zzz!` 
+      };
+    }
   }
   if (cleanContent.length > 5000) {
     return { error: "Entry en fazla 5000 karakter olabilir zzz." };
@@ -421,7 +465,7 @@ export async function createEntryAction(topicId: string, content: string) {
 
     // Publish global update to Redis for real-time sidebar & page updates
     try {
-      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY" }));
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY", topicId }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }
@@ -1532,6 +1576,16 @@ export async function editEntryAction(entryId: string, newContent: string) {
   if (!cleanContent) return { error: "İçerik boş olamaz." };
   if (cleanContent.length < 45) {
     return { error: "İçerik en az 45 karakter olmalıdır zzz." };
+  }
+
+  const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
+  if (linkRegex.test(cleanContent)) {
+    const { allowed, score } = await userCanPostLinks(user.id, user.role);
+    if (!allowed) {
+      return { 
+        error: `Link paylaşabilmek için en az 15. rütbe (Aerodinamik Sinek) olmanız gerekmektedir. Şu anki puanınız: ${score} (Gerekli: 930) zzz!` 
+      };
+    }
   }
 
   try {
