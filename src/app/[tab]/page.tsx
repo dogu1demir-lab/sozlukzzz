@@ -137,7 +137,12 @@ export default async function Home({ params }: PageProps) {
       });
 
       const combined = [...todayTopics, ...yesterdayTopics];
-      const paginatedTopics = combined.slice(0, 7);
+      let initialLimit = 7;
+      if (todayTopics.length > 0 && todayTopics.length < 7) {
+        // Show at least 4 yesterday topics on first load
+        initialLimit = Math.max(7, todayTopics.length + 4);
+      }
+      const paginatedTopics = combined.slice(0, initialLimit);
 
       entries = paginatedTopics
         .filter(t => t.entries.length > 0)

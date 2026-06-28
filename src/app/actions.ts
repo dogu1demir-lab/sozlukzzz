@@ -1259,7 +1259,12 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
       });
 
       const combined = [...todayTopics, ...yesterdayTopics];
-      const paginatedTopics = combined.slice(offset, offset + limit);
+      let pageLimit = limit;
+      if (offset === 0 && todayTopics.length > 0 && todayTopics.length < limit) {
+        // Expand the first page limit to show at least 10 yesterday topics on home feed
+        pageLimit = Math.max(limit, todayTopics.length + 10);
+      }
+      const paginatedTopics = combined.slice(offset, offset + pageLimit);
 
       entries = paginatedTopics
         .filter(t => t.entries.length > 0)
@@ -1901,8 +1906,13 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         isYesterday: true
       }));
 
-      const combined = [...mappedToday, ...mappedYesterday];
-      formattedTopics = combined.slice(offset, offset + limit);
+       const combined = [...mappedToday, ...mappedYesterday];
+      let pageLimit = limit;
+      if (offset === 0 && mappedToday.length > 0 && mappedToday.length < limit) {
+        // Expand the first page limit to show at least 15 yesterday topics
+        pageLimit = Math.max(limit, mappedToday.length + 15);
+      }
+      formattedTopics = combined.slice(offset, offset + pageLimit);
       
     } else if (activeTab === "gundem") {
       const topics = await prisma.topic.findMany({
