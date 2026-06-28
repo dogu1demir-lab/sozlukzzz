@@ -80,15 +80,12 @@ export default async function Home({ params }: PageProps) {
         )
       );
       const todayStart = new Date(todayStartTurkey.getTime() - 3 * 60 * 60 * 1000);
+      const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
-      const topics = await prisma.topic.findMany({
+      const todayTopics = await prisma.topic.findMany({
         where: {
           slug: { not: "pozkes-galeri" },
-          entries: {
-            some: {
-              createdAt: { gte: todayStart }
-            }
-          }
+          lastEntryAt: { gte: todayStart }
         },
         include: {
           entries: {
@@ -109,11 +106,40 @@ export default async function Home({ params }: PageProps) {
         },
         orderBy: {
           lastEntryAt: "desc"
-        },
-        take: 7
+        }
       });
 
-      entries = topics
+      const yesterdayTopics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" },
+          lastEntryAt: { gte: yesterdayStart, lt: todayStart }
+        },
+        include: {
+          entries: {
+            orderBy: {
+              createdAt: "asc"
+            },
+            take: 1,
+            include: {
+              author: {
+                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+              },
+              likes: true
+            }
+          },
+          poll: {
+            select: { id: true }
+          }
+        },
+        orderBy: {
+          lastEntryAt: "desc"
+        }
+      });
+
+      const combined = [...todayTopics, ...yesterdayTopics];
+      const paginatedTopics = combined.slice(0, 7);
+
+      entries = paginatedTopics
         .filter(t => t.entries.length > 0)
         .map(t => {
           const entry = t.entries[0];

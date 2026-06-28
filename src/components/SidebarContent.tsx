@@ -13,6 +13,7 @@ interface TopicItem {
   poll: { id: string } | null;
   entryCount: number;
   lastEntryAt?: string;
+  isYesterday?: boolean;
 }
 
 export default function SidebarContent() {
@@ -259,27 +260,38 @@ export default function SidebarContent() {
           </div>
         ) : (
           <>
-            {topics.map((topic) => {
+            {topics.map((topic, index) => {
+              const showYesterdayDivider = activeTab === "bugun" && topic.isYesterday && (index === 0 || !topics[index - 1].isYesterday);
               return (
-                <Link
-                  key={topic.id}
-                  href={`/baslik/${topic.slug}`}
-                  prefetch={false}
-                  className="flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 border-zinc-900/30 hover:bg-zinc-900/30 hover:border-zinc-800/80"
-                >
-                  <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-center gap-1.5 flex-wrap">
-                    <span className="break-words whitespace-normal">{topic.title}</span>
-                    {buzzingTopics[topic.id] && (
-                      <span className="text-[11px] animate-bounce select-none shrink-0" title="Yeni vızıltı! zzz">🔥</span>
-                    )}
-                    {topic.poll && (
-                      <span className="text-[10px] shrink-0 pt-0.5" title="Anket">📊</span>
-                    )}
-                  </span>
-                  <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-none min-w-[18px] text-center transition-all border font-semibold bg-zinc-900/60 group-hover:bg-lime-950 border-zinc-850 group-hover:border-lime-500/30 text-zinc-400 group-hover:text-lime-400">
-                    {topic.entryCount}
-                  </span>
-                </Link>
+                <div key={topic.id}>
+                  {showYesterdayDivider && (
+                    <div className="flex items-center justify-center gap-2 my-4 px-2 select-none">
+                      <div className="h-[1px] flex-1 bg-zinc-900"></div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-950 px-2.5 py-0.5 border border-zinc-900 rounded-sm">
+                        dünküler
+                      </span>
+                      <div className="h-[1px] flex-1 bg-zinc-900"></div>
+                    </div>
+                  )}
+                  <Link
+                    href={`/baslik/${topic.slug}`}
+                    prefetch={false}
+                    className="flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 border-zinc-900/30 hover:bg-zinc-900/30 hover:border-zinc-800/80"
+                  >
+                    <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-center gap-1.5 flex-wrap">
+                      <span className="break-words whitespace-normal">{topic.title}</span>
+                      {buzzingTopics[topic.id] && (
+                        <span className="text-[11px] animate-bounce select-none shrink-0" title="Yeni vızıltı! zzz">🔥</span>
+                      )}
+                      {topic.poll && (
+                        <span className="text-[10px] shrink-0 pt-0.5" title="Anket">📊</span>
+                      )}
+                    </span>
+                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-none min-w-[18px] text-center transition-all border font-semibold bg-zinc-900/60 group-hover:bg-lime-950 border-zinc-850 group-hover:border-lime-500/30 text-zinc-400 group-hover:text-lime-400">
+                      {topic.entryCount}
+                    </span>
+                  </Link>
+                </div>
               );
             })}
 

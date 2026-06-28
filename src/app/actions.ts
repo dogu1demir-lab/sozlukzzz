@@ -1202,15 +1202,12 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         )
       );
       const todayStart = new Date(todayStartTurkey.getTime() - 3 * 60 * 60 * 1000);
+      const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
-      const topics = await prisma.topic.findMany({
+      const todayTopics = await prisma.topic.findMany({
         where: {
           slug: { not: "pozkes-galeri" },
-          entries: {
-            some: {
-              createdAt: { gte: todayStart }
-            }
-          }
+          lastEntryAt: { gte: todayStart }
         },
         include: {
           entries: {
@@ -1231,12 +1228,40 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         },
         orderBy: {
           lastEntryAt: "desc"
-        },
-        skip: offset,
-        take: limit
+        }
       });
 
-      entries = topics
+      const yesterdayTopics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" },
+          lastEntryAt: { gte: yesterdayStart, lt: todayStart }
+        },
+        include: {
+          entries: {
+            orderBy: {
+              createdAt: "asc"
+            },
+            take: 1,
+            include: {
+              author: {
+                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+              },
+              likes: true
+            }
+          },
+          poll: {
+            select: { id: true }
+          }
+        },
+        orderBy: {
+          lastEntryAt: "desc"
+        }
+      });
+
+      const combined = [...todayTopics, ...yesterdayTopics];
+      const paginatedTopics = combined.slice(offset, offset + limit);
+
+      entries = paginatedTopics
         .filter(t => t.entries.length > 0)
         .map(t => ({
           ...t.entries[0],
@@ -1814,15 +1839,12 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         )
       );
       const todayStart = new Date(todayStartTurkey.getTime() - 3 * 60 * 60 * 1000);
+      const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
       
-      const topics = await prisma.topic.findMany({
+      const todayTopics = await prisma.topic.findMany({
         where: {
           slug: { not: "pozkes-galeri" },
-          entries: {
-            some: {
-              createdAt: { gte: todayStart }
-            }
-          }
+          lastEntryAt: { gte: todayStart }
         },
         include: {
           poll: { select: { id: true } },
@@ -1836,19 +1858,51 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         },
         orderBy: {
           lastEntryAt: "desc"
-        },
-        skip: offset,
-        take: limit
+        }
       });
-      
-      formattedTopics = topics.map(t => ({
+
+      const yesterdayTopics = await prisma.topic.findMany({
+        where: {
+          slug: { not: "pozkes-galeri" },
+          lastEntryAt: { gte: yesterdayStart, lt: todayStart }
+        },
+        include: {
+          poll: { select: { id: true } },
+          _count: {
+            select: {
+              entries: {
+                where: { createdAt: { gte: yesterdayStart, lt: todayStart } }
+              }
+            }
+          }
+        },
+        orderBy: {
+          lastEntryAt: "desc"
+        }
+      });
+
+      const mappedToday = todayTopics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries,
-        lastEntryAt: t.lastEntryAt.toISOString()
+        lastEntryAt: t.lastEntryAt.toISOString(),
+        isYesterday: false
       }));
+
+      const mappedYesterday = yesterdayTopics.map(t => ({
+        id: t.id,
+        title: t.title,
+        slug: t.slug,
+        poll: t.poll,
+        entryCount: t._count.entries,
+        lastEntryAt: t.lastEntryAt.toISOString(),
+        isYesterday: true
+      }));
+
+      const combined = [...mappedToday, ...mappedYesterday];
+      formattedTopics = combined.slice(offset, offset + limit);
       
     } else if (activeTab === "gundem") {
       const topics = await prisma.topic.findMany({
