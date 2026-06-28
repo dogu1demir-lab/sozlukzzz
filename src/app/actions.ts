@@ -365,6 +365,12 @@ export async function createEntryAction(topicId: string, content: string) {
       }
     });
 
+    // Touch topic updatedAt to bubble it up in sidebars and feeds
+    await prisma.topic.update({
+      where: { id: topicId },
+      data: { updatedAt: new Date() }
+    });
+
     // Parse mentions and create notifications
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
