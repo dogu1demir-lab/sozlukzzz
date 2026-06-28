@@ -276,7 +276,7 @@ export default function SidebarContent() {
                   <Link
                     href={`/baslik/${topic.slug}`}
                     prefetch={false}
-                    className="flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 border-zinc-900/30 hover:bg-zinc-900/30 hover:border-zinc-800/80"
+                    className="sidebar-topic-item flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 hover:bg-zinc-900/30 hover:border-zinc-800/80"
                   >
                     <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-center gap-1.5 flex-wrap">
                       <span className="break-words whitespace-normal">{topic.title}</span>

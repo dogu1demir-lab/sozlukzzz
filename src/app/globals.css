@@ -1271,3 +1271,13 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Sidebar Topic Item Border Highlight */
+.sidebar-topic-item {
+  border-color: rgba(24, 24, 27, 0.3) !important;
+}
+@supports (color: color-mix(in oklab, red, red)) {
+  .sidebar-topic-item {
+    border-color: color-mix(in oklab, lab(40 4.14 -13.48) 30%, transparent) !important;
+  }
+}
