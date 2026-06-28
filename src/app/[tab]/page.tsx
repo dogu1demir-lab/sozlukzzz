@@ -367,7 +367,9 @@ export default async function Home({ params }: PageProps) {
           likes: true
         },
         orderBy: {
-          createdAt: "desc"
+          likes: {
+            _count: "desc"
+          }
         },
         take: 100
       });
