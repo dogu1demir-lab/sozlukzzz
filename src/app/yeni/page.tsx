@@ -2,7 +2,7 @@
 
 import { useState, useRef, useTransition, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createTopicAndEntryAction, createPollTopicAction } from "@/app/actions";
+import { createTopicAndEntryAction, createPollTopicAction, getAllUsernamesAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import { X, Plus } from "lucide-react";
 
@@ -22,6 +22,14 @@ function NewThreadContent() {
   const [content, setContent] = useState("");
   const [base64Image, setBase64Image] = useState<string | null>(null);
 
+  // Mentions Autocomplete States
+  const [allUsernames, setAllUsernames] = useState<string[]>([]);
+  const [filteredUsernames, setFilteredUsernames] = useState<string[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownIndex, setDropdownIndex] = useState(0);
+  const [mentionSearch, setMentionSearch] = useState<string | null>(null);
+  const [mentionIndex, setMentionIndex] = useState<number>(-1);
+
   // Poll State
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
@@ -33,6 +41,81 @@ function NewThreadContent() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
+
+  const handleFocus = async () => {
+    if (allUsernames.length === 0) {
+      try {
+        const users = await getAllUsernamesAction();
+        setAllUsernames(users);
+      } catch (err) {
+        console.error("Failed to load usernames for mentions:", err);
+      }
+    }
+  };
+
+  const handleTextareaChange = (val: string, cursorIndex: number) => {
+    setContent(val);
+    
+    // Check if we are currently typing a username mention
+    const textBeforeCursor = val.slice(0, cursorIndex);
+    const lastWordMatch = textBeforeCursor.match(/@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]*)$/);
+    
+    if (lastWordMatch) {
+      const searchStr = lastWordMatch[1];
+      const matchStart = lastWordMatch.index;
+      setMentionSearch(searchStr);
+      setMentionIndex(matchStart !== undefined ? matchStart : -1);
+      
+      const filtered = allUsernames
+        .filter(name => name.toLowerCase().includes(searchStr.toLowerCase()))
+        .slice(0, 5);
+      setFilteredUsernames(filtered);
+      setShowDropdown(filtered.length > 0);
+      setDropdownIndex(0);
+    } else {
+      setShowDropdown(false);
+      setMentionSearch(null);
+    }
+  };
+
+  const selectMention = (username: string) => {
+    if (mentionIndex === -1) return;
+    const before = content.slice(0, mentionIndex);
+    const searchLen = mentionSearch !== null ? mentionSearch.length : 0;
+    const after = content.slice(mentionIndex + searchLen + 1); // +1 for '@'
+    const newContent = `${before}@${username} ${after}`;
+    setContent(newContent);
+    setShowDropdown(false);
+    setMentionSearch(null);
+    
+    // Return focus to textarea and place cursor after the added mention
+    setTimeout(() => {
+      const tx = document.getElementById("new-topic-textarea") as HTMLTextAreaElement;
+      if (tx) {
+        tx.focus();
+        const newPos = mentionIndex + username.length + 2; // +1 for '@', +1 for space
+        tx.setSelectionRange(newPos, newPos);
+      }
+    }, 10);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (showDropdown && filteredUsernames.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setDropdownIndex((prev) => (prev + 1) % filteredUsernames.length);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setDropdownIndex((prev) => (prev - 1 + filteredUsernames.length) % filteredUsernames.length);
+      } else if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        selectMention(filteredUsernames[dropdownIndex]);
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setShowDropdown(false);
+      }
+    }
+  };
 
   const handleTabChange = (newType: "normal" | "poll") => {
     setType(newType);
@@ -231,15 +314,43 @@ function NewThreadContent() {
           <>
             <label>
               İçerik
-              <div className="mention-wrap">
+              <div className="mention-wrap relative">
                 <textarea
+                  id="new-topic-textarea"
                   required
                   rows={8}
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onFocus={handleFocus}
+                  onChange={(e) => handleTextareaChange(e.target.value, e.target.selectionStart)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Konunuzun içeriğini buraya yazın…"
                   disabled={isSubmittingOrPending}
                 />
+
+                {/* Autocomplete Mentions Dropdown */}
+                {showDropdown && filteredUsernames.length > 0 && (
+                  <div className="absolute z-50 left-4 bottom-full mb-1.5 w-52 bg-zinc-950 border border-zinc-850 rounded-xl overflow-hidden shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150">
+                    <div className="p-2.5 border-b border-zinc-900 bg-zinc-950 text-[10px] text-zinc-500 font-bold uppercase tracking-wider select-none">
+                      yazarlar
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {filteredUsernames.map((username, idx) => (
+                        <button
+                          key={username}
+                          type="button"
+                          onClick={() => selectMention(username)}
+                          className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition-colors ${
+                            idx === dropdownIndex 
+                              ? "bg-lime-500 text-black font-bold" 
+                              : "text-zinc-300 hover:bg-zinc-900/60 hover:text-white"
+                          }`}
+                        >
+                          <span>@{username}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </label>
 

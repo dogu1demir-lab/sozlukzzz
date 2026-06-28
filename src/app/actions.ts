@@ -2663,3 +2663,17 @@ export async function getEntryPageAction(entryId: string) {
     return { success: false, page: 1 };
   }
 }
+
+// Action: Fetch all usernames for autocomplete mentions
+export async function getAllUsernamesAction(): Promise<string[]> {
+  try {
+    const users = await prisma.user.findMany({
+      select: { username: true },
+      orderBy: { username: "asc" }
+    });
+    return users.map(u => u.username);
+  } catch (err) {
+    console.error("getAllUsernamesAction error:", err);
+    return [];
+  }
+}
