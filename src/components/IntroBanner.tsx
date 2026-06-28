@@ -141,10 +141,21 @@ export default function IntroBanner({ isLoggedIn }: IntroBannerProps) {
             </div>
 
             {/* Modal Footer */}
-            <div className="mt-5 pt-3 border-t border-zinc-900 flex justify-end shrink-0">
+            <div className="mt-5 pt-3 border-t border-zinc-900 flex justify-between items-center gap-4 shrink-0">
+              {!isLoggedIn ? (
+                <Link
+                  href="/kaydol"
+                  onClick={() => { playBuzzSound(); setIsModalOpen(false); }}
+                  className="inline-flex items-center gap-1 px-4 py-2 bg-lime-500 hover:bg-lime-400 text-black text-xs font-extrabold rounded-lg transition-all active:scale-95 cursor-pointer shrink-0"
+                >
+                  Manifestoyu İmzala & Katıl 🪰
+                </Link>
+              ) : (
+                <div />
+              )}
               <button
                 onClick={() => { playBuzzSound(); setIsModalOpen(false); }}
-                className="px-5 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-bold text-white rounded-lg transition-colors active:scale-95"
+                className="px-5 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-bold text-white rounded-lg transition-colors active:scale-95 shrink-0"
               >
                 Vızıldayarak Kapat zzz
               </button>
