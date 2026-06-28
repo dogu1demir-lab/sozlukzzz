@@ -1347,7 +1347,11 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           },
           likes: true
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: {
+          likes: {
+            _count: "desc"
+          }
+        },
         take: 150
       });
       const uniqueMap = new Map<string, any>();
