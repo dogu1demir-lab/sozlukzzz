@@ -409,11 +409,8 @@ export async function createEntryAction(topicId: string, content: string) {
       }
     });
 
-    // Touch topic updatedAt to bubble it up in sidebars and feeds
-    await prisma.topic.update({
-      where: { id: topicId },
-      data: { updatedAt: new Date() }
-    });
+    // Touch topic lastEntryAt to bubble it up in sidebars and feeds (using raw SQL to prevent Prisma's automatic updatedAt trigger)
+    await prisma.$executeRaw`UPDATE "Topic" SET "lastEntryAt" = ${new Date()} WHERE "id" = ${topicId}`;
 
     // Parse mentions and create notifications
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
@@ -1175,7 +1172,7 @@ export async function getMoreTopicsAction(offset: number, limit: number = 35) {
         }
       },
       orderBy: {
-        updatedAt: "desc"
+        lastEntryAt: "desc"
       },
       skip: offset,
       take: limit
@@ -1233,7 +1230,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           }
         },
         orderBy: {
-          updatedAt: "desc"
+          lastEntryAt: "desc"
         },
         skip: offset,
         take: limit
@@ -1357,7 +1354,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             }
           },
           orderBy: {
-            updatedAt: "desc"
+            lastEntryAt: "desc"
           },
           skip: offset,
           take: limit
@@ -1838,7 +1835,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
           }
         },
         orderBy: {
-          updatedAt: "desc"
+          lastEntryAt: "desc"
         },
         skip: offset,
         take: limit
@@ -1850,7 +1847,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries,
-        updatedAt: t.updatedAt.toISOString()
+        lastEntryAt: t.lastEntryAt.toISOString()
       }));
       
     } else if (activeTab === "gundem") {
@@ -1869,7 +1866,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
             }
           },
           {
-            updatedAt: "desc"
+            lastEntryAt: "desc"
           },
           {
             id: "desc"
@@ -1885,7 +1882,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries,
-        updatedAt: t.updatedAt.toISOString()
+        lastEntryAt: t.lastEntryAt.toISOString()
       }));
       
     } else if (activeTab === "takip") {
@@ -1912,7 +1909,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
           _count: { select: { entries: true } }
         },
         orderBy: {
-          updatedAt: "desc"
+          lastEntryAt: "desc"
         },
         skip: offset,
         take: limit
@@ -1924,7 +1921,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries,
-        updatedAt: t.updatedAt.toISOString()
+        lastEntryAt: t.lastEntryAt.toISOString()
       }));
       
     } else if (activeTab === "begenilen") {
@@ -1963,7 +1960,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries,
-        updatedAt: t.updatedAt.toISOString()
+        lastEntryAt: t.lastEntryAt.toISOString()
       }));
       
     } else if (activeTab === "goruntulenen") {
@@ -1988,7 +1985,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries,
-        updatedAt: t.updatedAt.toISOString()
+        lastEntryAt: t.lastEntryAt.toISOString()
       }));
       
     } else {
@@ -2001,7 +1998,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
           _count: { select: { entries: true } }
         },
         orderBy: {
-          updatedAt: "desc"
+          lastEntryAt: "desc"
         },
         skip: offset,
         take: limit
@@ -2013,7 +2010,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         slug: t.slug,
         poll: t.poll,
         entryCount: t._count.entries,
-        updatedAt: t.updatedAt.toISOString()
+        lastEntryAt: t.lastEntryAt.toISOString()
       }));
     }
 

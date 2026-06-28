@@ -108,7 +108,7 @@ export default async function Home({ params }: PageProps) {
           }
         },
         orderBy: {
-          updatedAt: "desc"
+          lastEntryAt: "desc"
         },
         take: 7
       });
@@ -180,7 +180,7 @@ export default async function Home({ params }: PageProps) {
             }
           },
           {
-            updatedAt: "desc"
+            lastEntryAt: "desc"
           },
           {
             id: "desc"
@@ -307,7 +307,7 @@ export default async function Home({ params }: PageProps) {
           }
         },
         orderBy: {
-          updatedAt: "desc"
+          lastEntryAt: "desc"
         },
         take: 7
       });

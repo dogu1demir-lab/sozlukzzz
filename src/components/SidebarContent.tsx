@@ -12,7 +12,7 @@ interface TopicItem {
   slug: string;
   poll: { id: string } | null;
   entryCount: number;
-  updatedAt?: string;
+  lastEntryAt?: string;
 }
 
 export default function SidebarContent() {
@@ -54,8 +54,8 @@ export default function SidebarContent() {
     const timeouts: NodeJS.Timeout[] = [];
 
     topics.forEach((topic) => {
-      if (!topic.updatedAt) return;
-      const updatedTime = new Date(topic.updatedAt).getTime();
+      if (!topic.lastEntryAt) return;
+      const updatedTime = new Date(topic.lastEntryAt).getTime();
       const elapsed = now - updatedTime;
       const remaining = 60000 - elapsed; // 60 seconds window
 
