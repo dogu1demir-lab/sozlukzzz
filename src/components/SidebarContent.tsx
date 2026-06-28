@@ -12,6 +12,7 @@ interface TopicItem {
   slug: string;
   poll: { id: string } | null;
   entryCount: number;
+  updatedAt?: string;
 }
 
 export default function SidebarContent() {
@@ -27,6 +28,7 @@ export default function SidebarContent() {
   const [isPending, startTransition] = useTransition();
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
 
+  // Listen to live topic-buzz events (anlık sinyaller)
   useEffect(() => {
     const handleBuzz = (e: Event) => {
       const topicId = (e as CustomEvent).detail?.topicId;
@@ -38,13 +40,42 @@ export default function SidebarContent() {
             delete copy[topicId];
             return copy;
           });
-        }, 5000);
+        }, 60000); // 60 seconds
       }
     };
 
     window.addEventListener("topic-buzz", handleBuzz);
     return () => window.removeEventListener("topic-buzz", handleBuzz);
   }, []);
+
+  // Check recently updated topics on initial mount / page load
+  useEffect(() => {
+    const now = Date.now();
+    const timeouts: NodeJS.Timeout[] = [];
+
+    topics.forEach((topic) => {
+      if (!topic.updatedAt) return;
+      const updatedTime = new Date(topic.updatedAt).getTime();
+      const elapsed = now - updatedTime;
+      const remaining = 60000 - elapsed; // 60 seconds window
+
+      if (remaining > 0) {
+        setBuzzingTopics((prev) => ({ ...prev, [topic.id]: true }));
+        const t = setTimeout(() => {
+          setBuzzingTopics((prev) => {
+            const copy = { ...prev };
+            delete copy[topic.id];
+            return copy;
+          });
+        }, remaining);
+        timeouts.push(t);
+      }
+    });
+
+    return () => {
+      timeouts.forEach((t) => clearTimeout(t));
+    };
+  }, [topics]);
 
   // 1. Detect and preserve tab state across page transitions
   useEffect(() => {

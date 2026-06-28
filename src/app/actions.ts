@@ -1849,7 +1849,8 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         title: t.title,
         slug: t.slug,
         poll: t.poll,
-        entryCount: t._count.entries
+        entryCount: t._count.entries,
+        updatedAt: t.updatedAt.toISOString()
       }));
       
     } else if (activeTab === "gundem") {
@@ -1883,7 +1884,8 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         title: t.title,
         slug: t.slug,
         poll: t.poll,
-        entryCount: t._count.entries
+        entryCount: t._count.entries,
+        updatedAt: t.updatedAt.toISOString()
       }));
       
     } else if (activeTab === "takip") {
@@ -1921,7 +1923,8 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         title: t.title,
         slug: t.slug,
         poll: t.poll,
-        entryCount: t._count.entries
+        entryCount: t._count.entries,
+        updatedAt: t.updatedAt.toISOString()
       }));
       
     } else if (activeTab === "begenilen") {
@@ -1959,7 +1962,8 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         title: t.title,
         slug: t.slug,
         poll: t.poll,
-        entryCount: t._count.entries
+        entryCount: t._count.entries,
+        updatedAt: t.updatedAt.toISOString()
       }));
       
     } else if (activeTab === "goruntulenen") {
@@ -1983,7 +1987,8 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         title: t.title,
         slug: t.slug,
         poll: t.poll,
-        entryCount: t._count.entries
+        entryCount: t._count.entries,
+        updatedAt: t.updatedAt.toISOString()
       }));
       
     } else {
@@ -2007,7 +2012,8 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         title: t.title,
         slug: t.slug,
         poll: t.poll,
-        entryCount: t._count.entries
+        entryCount: t._count.entries,
+        updatedAt: t.updatedAt.toISOString()
       }));
     }
 
