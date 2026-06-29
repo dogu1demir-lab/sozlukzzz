@@ -207,7 +207,7 @@ export default function MentionText({ content }: MentionTextProps) {
         parts.push(
           <Link
             key={key++}
-            href={`/baslik/${slug}`}
+            href={`/baslik/${slug}?q=${encodeURIComponent(bkzTitle)}`}
             className="text-lime-400 font-semibold hover:underline"
           >
             (bkz: {bkzTitle})
@@ -218,7 +218,7 @@ export default function MentionText({ content }: MentionTextProps) {
         parts.push(
           <Link
             key={key++}
-            href={`/baslik/${slug}`}
+            href={`/baslik/${slug}?q=${encodeURIComponent(gbkzTitle)}`}
             className="text-lime-400 border-b border-dashed border-lime-500/50 hover:text-lime-300 font-semibold transition-colors"
           >
             {gbkzTitle}
