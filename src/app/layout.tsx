@@ -54,8 +54,12 @@ export default async function RootLayout({
   
   let notifications: any[] = [];
   let unreadNotificationsCount = 0;
+  let unreadMessagesCount = 0;
 
   if (user) {
+    unreadMessagesCount = await prisma.message.count({
+      where: { receiverId: user.id, isRead: false }
+    });
     const notifsCacheKey = `user:notifications:${user.id}`;
     const countCacheKey = `user:notifications:count:${user.id}`;
 
@@ -123,6 +127,7 @@ export default async function RootLayout({
         <Header 
           user={user} 
           unreadNotificationsCount={unreadNotificationsCount} 
+          unreadMessagesCount={unreadMessagesCount}
           notifications={notifications} 
           latestUsername={latestUsername}
         />

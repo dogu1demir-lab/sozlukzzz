@@ -31,11 +31,12 @@ import {
 interface HeaderProps {
   user: SessionUser | null;
   unreadNotificationsCount: number;
+  unreadMessagesCount?: number;
   notifications: any[];
   latestUsername?: string;
 }
 
-export default function Header({ user, unreadNotificationsCount, notifications, latestUsername }: HeaderProps) {
+export default function Header({ user, unreadNotificationsCount, unreadMessagesCount = 0, notifications, latestUsername }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -375,6 +376,11 @@ export default function Header({ user, unreadNotificationsCount, notifications, 
                 className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-lime-400 transition-all relative shrink-0"
               >
                 <Mail className="h-4.5 w-4.5" />
+                {unreadMessagesCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white animate-pulse">
+                    {unreadMessagesCount}
+                  </span>
+                )}
               </Link>
 
               <div className="relative shrink-0 z-30" ref={notifRef}>
