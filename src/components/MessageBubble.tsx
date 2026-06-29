@@ -83,6 +83,7 @@ export default function MessageBubble({ msg, currentUserId }: MessageBubbleProps
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               disabled={isPending}
+              maxLength={2000}
               className="w-full bg-zinc-950 text-zinc-100 rounded-lg p-2 text-xs border border-zinc-850 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all resize-none"
             />
             <div className="flex justify-end gap-1.5">

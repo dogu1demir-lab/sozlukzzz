@@ -54,8 +54,9 @@ export default function SendMessageForm({ receiverUsername }: SendMessageFormPro
         value={content}
         onChange={(e) => setContent(e.target.value)}
         disabled={isSubmittingOrPending}
+        maxLength={2000}
         placeholder="Mesajını buraya vızıldat zzz..."
-        className="flex-1 h-10 rounded-full bg-zinc-900 border border-zinc-800 px-4 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
+        className="flex-1 h-10 rounded-full bg-zinc-900 border border-zinc-800 px-4 text-sm text-zinc-200 placeholder-zinc-550 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
       />
       <button
         type="submit"
