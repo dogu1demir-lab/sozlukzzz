@@ -58,7 +58,7 @@ function EmbedWrapper({ type, children }: { type: "twitter" | "video"; children:
           {type === "twitter" ? (
             <>
               <span className="text-sm group-hover:scale-110 transition-transform duration-150">🐦</span>
-              <span>X/Twitter içeriğini göster</span>
+              <span>video veya içeriğini göster</span>
             </>
           ) : (
             <>
