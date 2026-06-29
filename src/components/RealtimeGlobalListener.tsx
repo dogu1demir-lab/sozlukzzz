@@ -43,9 +43,9 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
             router.refresh();
           } 
           else if (data.type === "NEW_MESSAGE") {
-            // Play sinek vızıltısı sound for incoming private messages from other users
+            // Play Nokia SMS sound for incoming private messages from other users
             if (data.senderUsername && data.senderUsername !== currentUsername) {
-              playBuzzSound(false, "/vizildi.mp3");
+              playBuzzSound(false, "/sms_nokia_old.mp3");
             }
             router.refresh();
           }
