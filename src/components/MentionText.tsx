@@ -107,7 +107,7 @@ export default function MentionText({ content }: MentionTextProps) {
       result.push(
         <div key={key++} className="my-4 max-w-lg border border-zinc-900 bg-zinc-950/40 rounded-2xl p-0.5 overflow-hidden">
           <blockquote className="twitter-tweet" data-theme="dark" data-align="center">
-            <a href={tweetUrl}></a>
+            <a href={tweetUrl} rel="nofollow"></a>
           </blockquote>
         </div>
       );
@@ -123,7 +123,7 @@ export default function MentionText({ content }: MentionTextProps) {
           key={key++}
           href={normalUrl}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="noopener noreferrer nofollow"
           className="text-lime-400 font-semibold hover:underline break-all"
         >
           {normalUrl}
