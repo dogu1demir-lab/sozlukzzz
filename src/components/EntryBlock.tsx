@@ -71,7 +71,6 @@ export default function EntryBlock({
       return;
     }
 
-    playBuzzSound();
     startTransition(async () => {
       const result = await editEntryAction(entry.id, editContent);
       if (result.error) {
@@ -89,7 +88,6 @@ export default function EntryBlock({
       return;
     }
 
-    playBuzzSound();
     startTransition(async () => {
       const result = await deleteEntryAction(entry.id);
       if (result.error) {

@@ -21,8 +21,6 @@ export default function FollowButton({ targetUserId, initialIsFollowing, isLogge
       return;
     }
 
-    playBuzzSound();
-
     startTransition(async () => {
       const result = await followUserAction(targetUserId);
       if (result.error) {

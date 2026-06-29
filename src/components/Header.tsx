@@ -69,23 +69,7 @@ export default function Header({ user, unreadNotificationsCount, notifications, 
     }
   };
 
-  // Periodic background fly buzz (every 15 to 45 seconds)
-  useEffect(() => {
-    let timerId: NodeJS.Timeout;
-    
-    function playBackgroundBuzz() {
-      const delay = 15000 + Math.random() * 30000;
-      timerId = setTimeout(() => {
-        if (localStorage.getItem("buzzMuted") !== "true") {
-          playBuzzSound();
-        }
-        playBackgroundBuzz();
-      }, delay);
-    }
-    
-    playBackgroundBuzz();
-    return () => clearTimeout(timerId);
-  }, []);
+
 
   // Typewriter effect for latest yazar
   useEffect(() => {

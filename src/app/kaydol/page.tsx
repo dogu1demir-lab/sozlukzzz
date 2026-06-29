@@ -140,7 +140,7 @@ export default function Register() {
               <Lock className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
               <button
                 type="button"
-                onClick={() => { playBuzzSound(); setShowPassword(!showPassword); }}
+                onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-3.5 text-zinc-500 hover:text-zinc-300 transition-colors"
                 title={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
               >
@@ -154,7 +154,6 @@ export default function Register() {
             <button
               type="submit"
               disabled={isPending}
-              onClick={() => playBuzzSound()}
               className="group relative flex w-full justify-center rounded-full bg-lime-500 py-2.5 px-4 text-sm font-bold text-black hover:bg-lime-400 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2 focus:ring-offset-zinc-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>{isPending ? "kayıt yapılıyor..." : "kaydol"}</span>

@@ -40,7 +40,6 @@ export default function SettingsClient({ user }: SettingsClientProps) {
     reader.onload = () => {
       const base64 = reader.result as string;
       setAvatarUrl(base64);
-      playBuzzSound();
 
       startTransition(async () => {
         const result = await updateProfileAvatarAction(base64);
@@ -57,7 +56,6 @@ export default function SettingsClient({ user }: SettingsClientProps) {
 
   const handleSaveInfo = (e: React.FormEvent) => {
     e.preventDefault();
-    playBuzzSound();
 
     startTransition(async () => {
       const result = await updateProfileInfoAction(bio, avatarColor);
@@ -74,8 +72,6 @@ export default function SettingsClient({ user }: SettingsClientProps) {
     if (!confirm("Hesabınızı silmek istediğinize emin misiniz? Tüm girdileriniz, beğenileriniz ve mesajlarınız KALICI olarak silinecektir. Bu işlem geri alınamaz!")) {
       return;
     }
-
-    playBuzzSound();
 
     startTransition(async () => {
       const result = await deleteAccountAction();

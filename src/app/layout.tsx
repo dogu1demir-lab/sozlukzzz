@@ -135,7 +135,7 @@ export default async function RootLayout({
             {children}
           </main>
         </div>
-        <RealtimeGlobalListener />
+        <RealtimeGlobalListener currentUsername={user?.username} />
 
         {/* X conversion tracking base code */}
         {xPixelId && (

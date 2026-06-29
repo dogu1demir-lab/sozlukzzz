@@ -356,7 +356,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
 
     // Publish global update to Redis for real-time sidebar & page updates
     try {
-      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY", topicId: newTopic.id }));
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }

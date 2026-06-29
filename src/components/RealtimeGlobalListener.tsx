@@ -2,8 +2,13 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { playBuzzSound } from "@/lib/utils";
 
-export default function RealtimeGlobalListener() {
+interface RealtimeGlobalListenerProps {
+  currentUsername?: string;
+}
+
+export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlobalListenerProps) {
   const router = useRouter();
 
   useEffect(() => {
@@ -20,16 +25,32 @@ export default function RealtimeGlobalListener() {
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.type === "NEW_ENTRY" && data.topicId) {
+
+          if (data.type === "NEW_TOPIC") {
+            // Trigger buzz flame icon
+            if (data.topicId) {
+              const buzzEvent = new CustomEvent("topic-buzz", { detail: { topicId: data.topicId } });
+              window.dispatchEvent(buzzEvent);
+            }
+            // Play sinek vızıltısı sound for new topic!
+            playBuzzSound(false, "/vizildi.mp3");
+            router.refresh();
+          } 
+          else if (data.type === "NEW_ENTRY" && data.topicId) {
+            // Trigger buzz flame icon (No sound for normal entries by others as requested)
             const buzzEvent = new CustomEvent("topic-buzz", { detail: { topicId: data.topicId } });
             window.dispatchEvent(buzzEvent);
-          }
-          if (data.type === "NEW_MESSAGE" || data.type === "NEW_ENTRY") {
-            // Instantly refresh Next.js Server Components to pull the new data
+            router.refresh();
+          } 
+          else if (data.type === "NEW_MESSAGE") {
+            // Play sinek vızıltısı sound for incoming private messages from other users
+            if (data.senderUsername && data.senderUsername !== currentUsername) {
+              playBuzzSound(false, "/vizildi.mp3");
+            }
             router.refresh();
           }
         } catch (e) {
-          // Fallback refresh for heartbeat or raw format
+          // Fallback refresh
           router.refresh();
         }
       };
@@ -55,7 +76,7 @@ export default function RealtimeGlobalListener() {
         clearTimeout(reconnectTimeout);
       }
     };
-  }, [router]);
+  }, [router, currentUsername]);
 
   return null;
 }
