@@ -106,7 +106,7 @@ export default function MentionText({ content }: MentionTextProps) {
     } else if (tweetUrl) {
       result.push(
         <div key={key++} className="my-4 max-w-lg border border-zinc-900 bg-zinc-950/40 rounded-2xl p-0.5 overflow-hidden">
-          <blockquote className="twitter-tweet" data-theme="dark" data-align="center">
+          <blockquote className="twitter-tweet" data-theme="dark" data-align="center" data-dnt="true">
             <a href={tweetUrl} rel="nofollow"></a>
           </blockquote>
         </div>
