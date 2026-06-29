@@ -7,6 +7,7 @@ import ChatScrollAnchor from "@/components/ChatScrollAnchor";
 import { formatDate } from "@/lib/utils";
 import { Mail, Send, User, MessageSquare, PlusCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import MessageBubble from "@/components/MessageBubble";
+import ClearConversationButton from "@/components/ClearConversationButton";
 
 export const revalidate = 0; // Fresh messages every time
 
@@ -226,6 +227,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                 </h3>
                 <span className="text-[9px] text-zinc-500 block">vızzz zzz</span>
               </div>
+              <ClearConversationButton partnerUsername={activePartner.username} />
             </div>
 
             {/* Messages Scroll Area */}

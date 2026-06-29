@@ -672,6 +672,43 @@ export async function deleteMessageAction(messageId: string) {
   }
 }
 
+// Action: Clear/Delete Conversation (Sohbeti Kökten Temizleme)
+export async function clearConversationAction(partnerUsername: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  try {
+    const partner = await prisma.user.findUnique({
+      where: { username: partnerUsername }
+    });
+
+    if (!partner) return { error: "Kullanıcı bulunamadı." };
+
+    // Delete all messages in the thread (both sent and received)
+    await prisma.message.deleteMany({
+      where: {
+        OR: [
+          { senderId: user.id, receiverId: partner.id },
+          { senderId: partner.id, receiverId: user.id }
+        ]
+      }
+    });
+
+    // Notify both users for instant updates
+    try {
+      await redis.publish(`user:${partner.id}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+      await redis.publish(`user:${user.id}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+    } catch (redisErr) {
+      console.error("Redis publish error:", redisErr);
+    }
+
+    revalidatePath(`/mesajlar`);
+    return { success: true };
+  } catch (e) {
+    return { error: "Sohbet geçmişi temizlenirken bir hata oluştu." };
+  }
+}
+
 // Action: Mark Notifications as Read
 export async function markNotificationsAsReadAction() {
   const user = await getSessionUser();
