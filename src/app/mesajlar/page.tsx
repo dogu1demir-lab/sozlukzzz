@@ -6,6 +6,7 @@ import SendMessageForm from "@/components/SendMessageForm";
 import ChatScrollAnchor from "@/components/ChatScrollAnchor";
 import { formatDate } from "@/lib/utils";
 import { Mail, Send, User, MessageSquare, PlusCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import MessageBubble from "@/components/MessageBubble";
 
 export const revalidate = 0; // Fresh messages every time
 
@@ -229,32 +230,9 @@ export default async function MessagesPage({ searchParams }: PageProps) {
 
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col bg-zinc-950/10">
-              {chatMessages.map((msg) => {
-                const isMe = msg.senderId === user.id;
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col max-w-[70%] rounded-2xl px-4 py-2.5 text-sm ${
-                      isMe
-                        ? "self-end bg-lime-500 text-black rounded-tr-none font-medium"
-                        : "self-start bg-zinc-900 text-zinc-200 rounded-tl-none border border-zinc-800"
-                    }`}
-                  >
-                    <span>{msg.content}</span>
-                    <span
-                      className={`text-[9px] text-right mt-1.5 block ${
-                        isMe ? "text-zinc-800" : "text-zinc-500"
-                      }`}
-                    >
-                      {new Date(msg.createdAt).toLocaleTimeString("tr-TR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZone: "Europe/Istanbul"
-                      })}
-                    </span>
-                  </div>
-                );
-              })}
+              {chatMessages.map((msg) => (
+                <MessageBubble key={msg.id} msg={msg} currentUserId={user.id} />
+              ))}
               <ChatScrollAnchor messageCount={chatMessages.length} />
             </div>
 

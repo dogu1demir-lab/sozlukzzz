@@ -121,6 +121,27 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
     }
   }, [replyTo]);
 
+  const handleInsertBkz = () => {
+    const textarea = document.getElementById("entry-textarea") as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    const selectedText = text.substring(start, end);
+    const replacement = `(bkz: ${selectedText})`;
+
+    const newContent = text.substring(0, start) + replacement + text.substring(end);
+    setContent(newContent);
+
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + 7 + selectedText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 50);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmittingOrPending || submittingRef.current) return;
@@ -262,7 +283,18 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
         )}
       </div>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleInsertBkz}
+            title="Bakınız Ekle"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:text-lime-400 hover:border-lime-500/20 text-xs font-semibold transition-colors cursor-pointer select-none"
+          >
+            <span>bkz</span>
+          </button>
+        </div>
+
         <button
           type="submit"
           disabled={isSubmittingOrPending}

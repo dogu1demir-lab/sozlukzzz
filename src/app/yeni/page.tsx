@@ -264,6 +264,27 @@ function NewThreadContent() {
     });
   };
 
+  const handleInsertBkz = () => {
+    const textarea = document.getElementById("new-topic-textarea") as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    const selectedText = text.substring(start, end);
+    const replacement = `(bkz: ${selectedText})`;
+
+    const newContent = text.substring(0, start) + replacement + text.substring(end);
+    setContent(newContent);
+
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + 7 + selectedText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 50);
+  };
+
   const handleCancel = () => {
     playBuzzSound();
     router.push("/");
@@ -428,6 +449,16 @@ function NewThreadContent() {
         )}
 
         <div className="form-actions mt-4 flex items-center justify-end gap-2.5">
+          {type === "normal" && (
+            <button
+              type="button"
+              className="px-4 py-2 rounded-lg border border-slate-750 hover:border-teal-500 text-xs font-bold text-slate-350 hover:text-white transition-all bg-slate-900/60 cursor-pointer select-none"
+              onClick={handleInsertBkz}
+              title="Bakınız Ekle"
+            >
+              bkz
+            </button>
+          )}
           <button
             type="button"
             className="px-4 py-2 rounded-lg border border-slate-700 hover:border-teal-500 text-xs font-bold text-slate-350 hover:text-white transition-all bg-slate-900/60"

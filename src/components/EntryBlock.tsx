@@ -54,6 +54,28 @@ export default function EntryBlock({
 
   const isOwner = currentUserId === entry.author.id;
   const canDelete = isOwner || isAdmin;
+  const canEdit = isOwner || isAdmin;
+
+  const handleInsertBkzEdit = () => {
+    const textarea = document.getElementById(`edit-textarea-${entry.id}`) as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    const selectedText = text.substring(start, end);
+    const replacement = `(bkz: ${selectedText})`;
+
+    const newContent = text.substring(0, start) + replacement + text.substring(end);
+    setEditContent(newContent);
+
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + 7 + selectedText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 50);
+  };
 
   const handleEditToggle = () => {
     setEditContent(currentContent);
@@ -180,6 +202,7 @@ export default function EntryBlock({
         {isEditing ? (
           <div className="flex flex-col gap-2 mt-2">
             <textarea
+              id={`edit-textarea-${entry.id}`}
               className="w-full p-3 bg-zinc-900 border border-zinc-800 focus:border-teal-500 focus:outline-none rounded-lg text-sm text-zinc-100 placeholder-zinc-550"
               rows={5}
               value={editContent}
@@ -188,6 +211,14 @@ export default function EntryBlock({
               disabled={isPending}
             />
             <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleInsertBkzEdit}
+                disabled={isPending}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-zinc-800 text-[11px] font-bold text-zinc-400 hover:text-lime-400 hover:border-lime-500/20 transition-all bg-zinc-950/20 cursor-pointer select-none"
+              >
+                <span>bkz</span>
+              </button>
               <button
                 type="button"
                 onClick={handleEditToggle}
@@ -226,7 +257,7 @@ export default function EntryBlock({
           entryIndex={index + 1}
           onEdit={!isEditing ? handleEditToggle : undefined}
           onDelete={handleDelete}
-          isOwner={isOwner}
+          isOwner={canEdit}
           canDelete={canDelete}
         />
       </div>

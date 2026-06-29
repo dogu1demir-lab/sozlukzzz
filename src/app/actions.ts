@@ -597,6 +597,81 @@ export async function sendMessageAction(receiverUsername: string, content: strin
   }
 }
 
+// Action: Edit Private Message
+export async function editMessageAction(messageId: string, newContent: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  const cleanContent = newContent.trim();
+  if (!cleanContent) return { error: "Mesaj boş olamaz." };
+  if (cleanContent.length > 2000) {
+    return { error: "Mesaj en fazla 2000 karakter olabilir zzz." };
+  }
+
+  try {
+    const message = await prisma.message.findUnique({
+      where: { id: messageId }
+    });
+
+    if (!message) return { error: "Mesaj bulunamadı." };
+    if (message.senderId !== user.id) {
+      return { error: "Bu işlem için yetkiniz yoktur." };
+    }
+
+    await prisma.message.update({
+      where: { id: messageId },
+      data: { content: cleanContent }
+    });
+
+    // Notify both users for instant updates
+    try {
+      await redis.publish(`user:${message.receiverId}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+      await redis.publish(`user:${message.senderId}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+    } catch (redisErr) {
+      console.error("Redis publish error:", redisErr);
+    }
+
+    revalidatePath(`/mesajlar`);
+    return { success: true };
+  } catch (e) {
+    return { error: "Mesaj düzenlenirken bir hata oluştu." };
+  }
+}
+
+// Action: Delete Private Message (Kökten Silme)
+export async function deleteMessageAction(messageId: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  try {
+    const message = await prisma.message.findUnique({
+      where: { id: messageId }
+    });
+
+    if (!message) return { error: "Mesaj bulunamadı." };
+    if (message.senderId !== user.id) {
+      return { error: "Bu işlem için yetkiniz yoktur." };
+    }
+
+    await prisma.message.delete({
+      where: { id: messageId }
+    });
+
+    // Notify both users for instant updates
+    try {
+      await redis.publish(`user:${message.receiverId}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+      await redis.publish(`user:${message.senderId}:messages`, JSON.stringify({ type: "NEW_MESSAGE", senderUsername: user.username }));
+    } catch (redisErr) {
+      console.error("Redis publish error:", redisErr);
+    }
+
+    revalidatePath(`/mesajlar`);
+    return { success: true };
+  } catch (e) {
+    return { error: "Mesaj silinirken bir hata oluştu." };
+  }
+}
+
 // Action: Mark Notifications as Read
 export async function markNotificationsAsReadAction() {
   const user = await getSessionUser();
@@ -1623,8 +1698,8 @@ export async function editEntryAction(entryId: string, newContent: string) {
 
     if (!entry) return { error: "Entry bulunamadı." };
 
-    // Only author can edit
-    if (entry.authorId !== user.id) {
+    // Only author or admin can edit
+    if (entry.authorId !== user.id && user.role !== "ADMIN") {
       return { error: "Yalnızca kendi girdiğinizi düzenleyebilirsiniz." };
     }
 
