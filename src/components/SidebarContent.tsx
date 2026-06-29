@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
@@ -28,6 +28,12 @@ export default function SidebarContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
+
+  // Ref to track topics length in background interval to avoid stale closures
+  const topicsLengthRef = useRef(0);
+  useEffect(() => {
+    topicsLengthRef.current = topics.length;
+  }, [topics]);
 
   // Listen to live topic-buzz events (anlık sinyaller)
   useEffect(() => {
@@ -173,6 +179,7 @@ export default function SidebarContent() {
 
     const interval = setInterval(() => {
       if (document.hidden) return;
+      if (topicsLengthRef.current > 30) return; // Skip background poller refresh if user has loaded page 2+
 
       const idleTime = Date.now() - lastActivity;
       if (idleTime > 3 * 60 * 1000) return;
