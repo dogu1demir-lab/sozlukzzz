@@ -174,19 +174,17 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
         setContent("");
         playBuzzSound(false, "/eylemhareket.mp3");
         
-        startTransition(() => {
-          if (result.page && result.entryId) {
-            router.push(`${window.location.pathname}?p=${result.page}#entry-${result.entryId}`);
-            setTimeout(() => {
-              const el = document.getElementById(`entry-${result.entryId}`);
-              if (el) {
-                el.scrollIntoView({ behavior: "smooth" });
-              }
-            }, 300);
-          } else {
-            router.refresh();
-          }
-        });
+        if (result.page && result.entryId) {
+          router.push(`${window.location.pathname}?p=${result.page}#entry-${result.entryId}`);
+          setTimeout(() => {
+            const el = document.getElementById(`entry-${result.entryId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 300);
+        } else {
+          router.refresh();
+        }
 
         // Safe status reset outside the transition tick
         setSubmitting(false);
