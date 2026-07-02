@@ -23,6 +23,10 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
    * **Sayfalama Zekası:** Eğer paylaşılan entry başka bir sayfada ise, sistem otomatik olarak doğru sayfaya (`?p=sayfa#entry-entryID`) yönlendirir ve tarayıcı ekranını o entry'nin üstüne kaydırır.
    * **Kod Referansı:** [ReactionButtons.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ReactionButtons.tsx) & [HashRedirector.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/HashRedirector.tsx)
 
+4. **Kullanıcı Adı veya E-posta ile Giriş Desteği**
+   * **Açıklama:** Yazarların üye olurken Türkçe/İngilizce karakter farklarını unutabilmesi (örn: `tuğce` vs `tuğçe`) ve giriş yaparken zorlanmasını engellemek amacıyla, giriş formuna hem kullanıcı adı hem de e-posta ile giriş desteği eklendi. Arayüz placeholder'ı `"kullanıcı adı veya e-posta"` olarak güncellendi.
+   * **Kod Referansı:** [giris/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/giris/page.tsx) & [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+
 ### 🐛 Hata Düzeltmeleri
 1. **Tüm Gönderi ve Form Yönlendirme Askılarının Giderilmesi (Standartlaştırma)**
    * **Sorun:** Yeni konu açma sayfasındaki kilitlenme çözülmüştü; ancak benzer şekilde **Yorum/Entry Yazma Formu** ve **PozKes Fotoğraf Yükleme Formu** da asenkron veri gönderme işlemlerini doğrudan `startTransition` içinde yürüttüğü ve peşine `router.refresh()` çakışması yaşadığı için ara sıra `"Gönderiliyor..."` aşamasında takılı kalabiliyordu.
