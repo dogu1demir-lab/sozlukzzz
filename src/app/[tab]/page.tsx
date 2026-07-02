@@ -475,7 +475,7 @@ export default async function Home({ params }: PageProps) {
   }
 
   const dbDuration = performance.now() - dbStart;
-  console.log(`[PERF] Tab [${activeTab}] DB/Redis query took: ${dbDuration.toFixed(1)}ms`);
+
 
   // Map entries to inject user reactions
   const formattedEntries = entries.map((entry) => {
@@ -691,9 +691,6 @@ export default async function Home({ params }: PageProps) {
       </section>
     </div>
   );
-
-  console.log(`[PERF] Page render duration: ${(performance.now() - renderStart).toFixed(1)}ms`);
-  console.log(`[PERF] Total page execute: ${(performance.now() - pageStart).toFixed(1)}ms`);
   
   return element;
 }
