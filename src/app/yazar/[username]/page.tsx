@@ -199,6 +199,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       author={{
         id: author.id,
         username: author.username,
+        displayName: author.displayName,
         avatarColor: author.avatarColor,
         avatarUrl: author.avatarUrl,
         role: author.role,
