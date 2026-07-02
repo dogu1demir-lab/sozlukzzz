@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { Lock, User, AlertCircle, ArrowRight, UserPlus, Mail, Eye, EyeOff } from "lucide-react";
+import { Lock, User, AlertCircle, ArrowRight, UserPlus, Mail, Eye, EyeOff, AtSign } from "lucide-react";
 
 interface ActionState {
   error?: string;
@@ -19,9 +19,22 @@ const initialState: ActionState = {
   xSignupEventId: "",
 };
 
+function cleanUsernameHandleClient(input: string): string {
+  let val = input.toLowerCase();
+  const turkishChars: { [key: string]: string } = {
+    'ı': 'i', 'ş': 's', 'ç': 'c', 'ğ': 'g', 'ü': 'u', 'ö': 'o',
+    'â': 'a', 'î': 'i', 'û': 'u'
+  };
+  for (const char in turkishChars) {
+    val = val.replaceAll(char, turkishChars[char]);
+  }
+  return val.replace(/[^a-z0-9_]/g, "");
+}
+
 export default function Register() {
   const [state, formAction, isPending] = useActionState(registerAction, initialState);
   const router = useRouter();
+  const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -96,10 +109,38 @@ export default function Register() {
               <Mail className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
             </div>
 
-            {/* Username Input */}
+            {/* Display Name Input */}
+            <div className="relative">
+              <label htmlFor="displayName" className="sr-only">
+                görünen adınız
+              </label>
+              <input
+                id="displayName"
+                name="displayName"
+                type="text"
+                required
+                maxLength={20}
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 pr-14 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
+                placeholder="görünen adınız (örn: Şehriban Gaaç)"
+              />
+              <User className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
+              <span className={`absolute right-3 top-3 text-[9px] font-black select-none px-1.5 py-0.5 rounded border transition-colors ${
+                displayName.length >= 20 
+                  ? "bg-red-500/10 text-red-400 border-red-500/20" 
+                  : displayName.length >= 17
+                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                  : "bg-zinc-850 text-zinc-500 border-zinc-800"
+              }`}>
+                {displayName.length}/20
+              </span>
+            </div>
+
+            {/* Username Input (Handle) */}
             <div className="relative">
               <label htmlFor="username" className="sr-only">
-                kullanıcı adı
+                kullanıcı adı / etiketiniz
               </label>
               <input
                 id="username"
@@ -108,11 +149,11 @@ export default function Register() {
                 required
                 maxLength={14}
                 value={username}
-                onChange={(e) => setUsername(e.target.value.replace(/\s/g, ""))}
+                onChange={(e) => setUsername(cleanUsernameHandleClient(e.target.value))}
                 className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 pr-14 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
-                placeholder="kullanıcı adı"
+                placeholder="kullanıcı adı / etiketiniz (örn: sehriban)"
               />
-              <User className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
+              <AtSign className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
               <span className={`absolute right-3 top-3 text-[9px] font-black select-none px-1.5 py-0.5 rounded border transition-colors ${
                 username.length >= 14 
                   ? "bg-red-500/10 text-red-400 border-red-500/20" 

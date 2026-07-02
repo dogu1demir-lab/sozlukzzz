@@ -136,34 +136,44 @@ export async function registerAction(prevState: any, formData: FormData) {
     console.error("Redis signup check error:", err);
   }
 
-  const rawUsername = formData.get("username")?.toString().trim();
+  const displayName = formData.get("displayName")?.toString().trim();
+  const username = formData.get("username")?.toString().trim().toLowerCase();
   const password = formData.get("password")?.toString();
   const email = formData.get("email")?.toString().trim().toLowerCase();
 
-  if (!rawUsername || !password || rawUsername.length < 3 || rawUsername.length > 14 || password.length < 6) {
-    return { error: "Kullanıcı adı 3-14 karakter, şifre en az 6 karakter olmalıdır." };
+  if (!displayName || !username || !password || !email) {
+    return { error: "Lütfen tüm alanları doldurun." };
   }
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (displayName.length < 3 || displayName.length > 20) {
+    return { error: "Görünen isim 3-20 karakter arasında olmalıdır." };
+  }
+
+  if (username.length < 3 || username.length > 14) {
+    return { error: "Kullanıcı adı (etiket) 3-14 karakter arasında olmalıdır." };
+  }
+
+  if (password.length < 6) {
+    return { error: "Şifre en az 6 karakter olmalıdır." };
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "Lütfen geçerli bir e-posta adresi girin." };
   }
 
-  // Check alphanumeric username
-  if (!/^[a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+$/.test(rawUsername)) {
-    return { error: "Kullanıcı adı yalnızca harf, sayı ve alt çizgi içerebilir." };
+  // Check display name characters (allow spaces, Turkish characters)
+  if (!/^[a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ\s]+$/.test(displayName)) {
+    return { error: "Görünen isim yalnızca harf, sayı, boşluk ve alt çizgi içerebilir." };
   }
 
-  // Generate target displayName and clean English handle
-  const targetDisplayName = rawUsername;
-  const targetHandle = cleanUsernameHandle(rawUsername);
-
-  if (targetHandle.length < 3) {
-    return { error: "Kullanıcı adı en az 3 geçerli karakter içermelidir." };
+  // Check username handle characters (strictly English alphanumeric and underscores)
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    return { error: "Kullanıcı adı (etiket) yalnızca küçük İngilizce harfler, sayılar ve alt çizgi içerebilir." };
   }
 
   try {
     const existingUser = await prisma.user.findUnique({
-      where: { username: targetHandle }
+      where: { username }
     });
 
     if (existingUser) {
@@ -184,8 +194,8 @@ export async function registerAction(prevState: any, formData: FormData) {
 
     const user = await prisma.user.create({
       data: {
-        username: targetHandle,
-        displayName: targetDisplayName,
+        username: username,
+        displayName: displayName,
         passwordHash: hashPassword(password),
         email: email,
         avatarColor: randomColor,
@@ -194,7 +204,7 @@ export async function registerAction(prevState: any, formData: FormData) {
 
     // Send a beautifully styled welcome email in the background without blocking registration
     if (email) {
-      sendWelcomeEmail(email, targetDisplayName).catch((mailError) => {
+      sendWelcomeEmail(email, displayName).catch((mailError) => {
         console.error("Welcome email sending failed in background:", mailError);
       });
     }
