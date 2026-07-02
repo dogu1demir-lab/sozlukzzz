@@ -165,7 +165,7 @@ function NewThreadContent() {
     playBuzzSound();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmittingOrPending || submittingRef.current) return;
     setError("");
@@ -188,30 +188,28 @@ function NewThreadContent() {
 
       submittingRef.current = true;
       setSubmitting(true);
-      startTransition(async () => {
-        try {
-          const result = await createTopicAndEntryAction(title, content, base64Image || undefined);
-          if (result.error) {
-            setError(result.error);
-            setSubmitting(false);
-            submittingRef.current = false;
-          } else if (result.success && result.slug) {
-            triggerConfetti();
-            playBuzzSound(false, "/eylemhareket.mp3");
-            router.push(`/baslik/${result.slug}`);
-            router.refresh();
-            // Reset after a 5 second safety timeout to allow resubmission in case redirection fails/gets stuck
-            setTimeout(() => {
-              submittingRef.current = false;
-              setSubmitting(false);
-            }, 5000);
-          }
-        } catch (e) {
-          setError("Başlık oluşturulurken teknik bir sorun oluştu.");
+      
+      try {
+        const result = await createTopicAndEntryAction(title, content, base64Image || undefined);
+        if (result.error) {
+          setError(result.error);
           setSubmitting(false);
           submittingRef.current = false;
+        } else if (result.success && result.slug) {
+          triggerConfetti();
+          playBuzzSound(false, "/eylemhareket.mp3");
+          router.push(`/baslik/${result.slug}`);
+          // Reset after a 5 second safety timeout
+          setTimeout(() => {
+            submittingRef.current = false;
+            setSubmitting(false);
+          }, 5000);
         }
-      });
+      } catch (e) {
+        setError("Başlık oluşturulurken teknik bir sorun oluştu.");
+        setSubmitting(false);
+        submittingRef.current = false;
+      }
     } else {
       if (!pollQuestion.trim()) {
         setError("Lütfen anket sorusunu girin.");
@@ -226,30 +224,28 @@ function NewThreadContent() {
 
       submittingRef.current = true;
       setSubmitting(true);
-      startTransition(async () => {
-        try {
-          const result = await createPollTopicAction(title, pollQuestion, validOptions);
-          if (result.error) {
-            setError(result.error);
-            setSubmitting(false);
-            submittingRef.current = false;
-          } else if (result.success && result.slug) {
-            triggerConfetti();
-            playBuzzSound(false, "/eylemhareket.mp3");
-            router.push(`/baslik/${result.slug}`);
-            router.refresh();
-            // Reset after a 5 second safety timeout to allow resubmission in case redirection fails/gets stuck
-            setTimeout(() => {
-              submittingRef.current = false;
-              setSubmitting(false);
-            }, 5000);
-          }
-        } catch (e) {
-          setError("Anket oluşturulurken teknik bir sorun oluştu.");
+      
+      try {
+        const result = await createPollTopicAction(title, pollQuestion, validOptions);
+        if (result.error) {
+          setError(result.error);
           setSubmitting(false);
           submittingRef.current = false;
+        } else if (result.success && result.slug) {
+          triggerConfetti();
+          playBuzzSound(false, "/eylemhareket.mp3");
+          router.push(`/baslik/${result.slug}`);
+          // Reset after a 5 second safety timeout
+          setTimeout(() => {
+            submittingRef.current = false;
+            setSubmitting(false);
+          }, 5000);
         }
-      });
+      } catch (e) {
+        setError("Anket oluşturulurken teknik bir sorun oluştu.");
+        setSubmitting(false);
+        submittingRef.current = false;
+      }
     }
   };
 
