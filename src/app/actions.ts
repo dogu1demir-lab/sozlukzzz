@@ -356,7 +356,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
 
     // Publish global update to Redis for real-time sidebar & page updates
     try {
-      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title }));
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title, slug: newTopic.slug }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }
@@ -1190,7 +1190,7 @@ export async function createPollTopicAction(title: string, question: string, opt
 
     // Publish global update to Redis for real-time sidebar & page updates
     try {
-      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title }));
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title, slug: newTopic.slug }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }

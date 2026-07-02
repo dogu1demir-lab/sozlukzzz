@@ -48,10 +48,16 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
 
             // Native notification if backgrounded
             if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
-              new Notification("Yeni Başlık! 🔥", {
+              const notification = new Notification("Yeni Başlık! 🔥", {
                 body: `"${data.title || "Yeni bir konu açıldı!"}" başlığı vızıldatıldı!`,
                 icon: "/icon.jpg"
               });
+              notification.onclick = () => {
+                window.focus();
+                if (data.slug) {
+                  router.push(`/baslik/${data.slug}`);
+                }
+              };
             }
 
             router.refresh();
@@ -74,10 +80,14 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
 
               // Native notification if backgrounded
               if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
-                new Notification(`@${data.senderUsername}`, {
+                const notification = new Notification(`@${data.senderUsername}`, {
                   body: "Sana yeni bir vızzz gönderdi! 💬",
                   icon: "/icon.jpg"
                 });
+                notification.onclick = () => {
+                  window.focus();
+                  router.push(`/mesajlar?u=${data.senderUsername}`);
+                };
               }
             }
             router.refresh();
