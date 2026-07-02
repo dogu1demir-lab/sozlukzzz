@@ -198,10 +198,10 @@ function NewThreadContent() {
         } else if (result.success && result.slug) {
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
-          // Give 600ms for sound and confetti to play before redirecting
+          // Give 700ms for sound and confetti to play before redirecting
           setTimeout(() => {
             window.location.href = `/baslik/${result.slug}`;
-          }, 600);
+          }, 700);
         }
       } catch (e) {
         setError("Başlık oluşturulurken teknik bir sorun oluştu.");
@@ -232,10 +232,10 @@ function NewThreadContent() {
         } else if (result.success && result.slug) {
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
-          // Give 600ms for sound and confetti to play before redirecting
+          // Give 700ms for sound and confetti to play before redirecting
           setTimeout(() => {
             window.location.href = `/baslik/${result.slug}`;
-          }, 600);
+          }, 700);
         }
       } catch (e) {
         setError("Anket oluşturulurken teknik bir sorun oluştu.");
