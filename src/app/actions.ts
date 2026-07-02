@@ -1113,6 +1113,19 @@ export async function deleteAccountAction() {
       where: { id: user.id }
     });
 
+    // Clean up empty topics that have 0 entries left
+    try {
+      await prisma.topic.deleteMany({
+        where: {
+          entries: {
+            none: {}
+          }
+        }
+      });
+    } catch (topicErr) {
+      console.error("Failed to clean up empty topics:", topicErr);
+    }
+
     // Clear cookie
     await clearSessionCookie();
 
