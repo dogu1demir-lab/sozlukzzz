@@ -135,6 +135,7 @@ export default function Register() {
               }`}>
                 {displayName.length}/20
               </span>
+              <p className="text-[10px] text-zinc-500 mt-1 pl-1">Sitede görünecek adınız. Türkçe karakter ve boşluk serbesttir.</p>
             </div>
 
             {/* Username Input (Handle) */}
@@ -163,6 +164,7 @@ export default function Register() {
               }`}>
                 {username.length}/14
               </span>
+              <p className="text-[10px] text-zinc-500 mt-1 pl-1">Profil adresiniz (örn: @sehriban). Türkçe karakterler otomatik temizlenir.</p>
             </div>
 
             {/* Password Input */}
