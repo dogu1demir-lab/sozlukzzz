@@ -30,6 +30,18 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
    * **Akıllı Giriş:** Eski Türkçe karakterli kullanıcı adına sahip yazarlar, sisteme eski isimleriyle (`tuğçe` gibi) yazarak girseler bile kod arka planda bunu otomatik İngilizce formata (`tugce`) çevirerek sorunsuzca giriş yaptırır.
    * **Kod Referansı:** [giris/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/giris/page.tsx), [kaydol/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/kaydol/page.tsx) & [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
 
+5. **Türkçe Karakter ve Profil Rotaları Sağlamlaştırma (Robust Sanitization)**
+   * **Açıklama:** Arama motorları veya manuel girişler üzerinden gelen Türkçe karakterli profil linkleri (`/yazar/tuğçe`) ve profil resimleri (`/api/yazar-image/tuğçe`) otomatik temizlenerek doğru İngilizce handle (`tugce`) ile eşleştirilir. 404 hataları tamamen engellenmiştir.
+   * **Kod Referansı:** [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yazar/%5Busername%5D/page.tsx), [route.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/api/yazar-image/%5Busername%5D/route.ts), [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/mesajlar/page.tsx)
+
+6. **Akıllı Bahsetme (Mention) ve Bildirim Çözümleme**
+   * **Açıklama:** Entry ve PozKes yorumlarında kullanıcılar eski alışkanlıklarıyla Türkçe karakterli etiket yazsa dahi (Örn: `@tuğçe`), motor bunu arka planda otomatik temizleyerek `tugce` kullanıcısına yönlendirir ve bildirimi anında ulaştırır.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts), [MentionText.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/MentionText.tsx)
+
+7. **Zincirleme Silme (Cascade Delete) ve Hesap Silme Mimarisi**
+   * **Açıklama:** Veritabanındaki ilişkiler `onDelete: Cascade` ile güçlendirildi. Bir yazar silindiğinde veya entry silindiğinde tüm alt yorumlar, beğeniler, özel mesajlar ve bildirimler otomatik temizlenir. Yazar silindikten sonra boş kalan kovan başlıklar (`none: {}`) sistem tarafından otomatik olarak temizlenerek veri kirliliği önlenir.
+   * **Kod Referansı:** [schema.prisma](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/prisma/schema.prisma) & [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts) (deleteAccountAction)
+
 ### 🐛 Hata Düzeltmeleri
 1. **Tüm Gönderi ve Form Yönlendirme Askılarının Giderilmesi (Standartlaştırma)**
    * **Sorun:** Yeni konu açma sayfasındaki kilitlenme çözülmüştü; ancak benzer şekilde **Yorum/Entry Yazma Formu** ve **PozKes Fotoğraf Yükleme Formu** da asenkron veri gönderme işlemlerini doğrudan `startTransition` içinde yürüttüğü ve peşine `router.refresh()` çakışması yaşadığı için ara sıra `"Gönderiliyor..."` aşamasında takılı kalabiliyordu.
