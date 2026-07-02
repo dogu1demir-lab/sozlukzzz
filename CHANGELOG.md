@@ -36,3 +36,10 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
    * **Sorun:** Her ana sayfa besleme (feed) yüklenmesinde sunucuda `[PERF]` etiketli performans günlük yazıları (`console.log`) çalıştırılıyordu. Bu durum, sunucu diskinin uzun vadede gereksiz log kayıtlarıyla dolma riski taşıyordu.
    * **Çözüm:** Üretim (production) kodlarındaki tüm tekrarlayan `[PERF]` log yazma işlemleri temizlendi. PM2 loglarının temiz ve hafif kalması sağlandı.
    * **Kod Referansı:** [[tab]/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/%5Btab%5D/page.tsx)
+
+3. **Boşluksuz Harf Dizilerinden Kaynaklanan Arayüz Taşmalarının Çözülmesi**
+   * **Sorun:** Boşluk bırakılmadan girilen uzun harf blokları (`wwww...` veya `3333...` gibi) tarayıcı tarafından tek parça kelime kabul ediliyordu. `span` etiketleri varsayılan olarak `inline` davrandığından, arayüze eklenen `break-words` kuralları çalışmıyor ve sol menüdeki başlık metni sağa kayarak entry sayısı rozetinin üstünü kapatıyordu.
+   * **Çözüm:** 
+     * Sol menüdeki başlık ve yükleme metinleri (`SidebarContent.tsx`, `SidebarLoadMore.tsx`) ile ana akış tab listelerindeki başlık span'lerine **`break-words break-all block min-w-0`** sınıfları eklendi.
+     * `span` etiketleri blok elemana dönüştürülerek, sınırları aşan uzun metinlerin hece bazında otomatik alt satıra kırılarak taşması tamamen engellendi.
+   * **Kod Referansı:** [SidebarContent.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/SidebarContent.tsx), [SidebarLoadMore.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/SidebarLoadMore.tsx), [[tab]/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/%5Btab%5D/page.tsx), [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
