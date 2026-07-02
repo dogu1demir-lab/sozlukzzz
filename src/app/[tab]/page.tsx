@@ -546,7 +546,7 @@ export default async function Home({ params }: PageProps) {
                       prefetch={false}
                       className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
                     >
-                      <span className="break-words break-all block min-w-0">{entry.topic.title}</span>
+                      <span className="break-words block min-w-0">{entry.topic.title}</span>
                       {entry.topic.poll && (
                         <span className="text-xs shrink-0" title="Anket">📊</span>
                       )}
@@ -645,7 +645,7 @@ export default async function Home({ params }: PageProps) {
                         prefetch={false}
                         className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
                       >
-                        <span className="break-words break-all block min-w-0">{topic.title}</span>
+                        <span className="break-words block min-w-0">{topic.title}</span>
                         {topic.poll && (
                           <span className="text-xs shrink-0" title="Anket">📊</span>
                         )}
