@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { cleanUsernameHandle } from "@/lib/utils";
 
 export const revalidate = 600; // Cache for 10 minutes
 
@@ -10,12 +11,13 @@ interface RouteParams {
 export async function GET(request: Request, { params }: RouteParams) {
   const { username } = await params;
   const decodedUsername = decodeURIComponent(username);
+  const targetHandle = cleanUsernameHandle(decodedUsername);
 
   try {
     const user = await prisma.user.findFirst({
       where: {
         username: {
-          equals: decodedUsername,
+          equals: targetHandle,
           mode: "insensitive"
         }
       },

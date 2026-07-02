@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import SendMessageForm from "@/components/SendMessageForm";
 import ChatScrollAnchor from "@/components/ChatScrollAnchor";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cleanUsernameHandle } from "@/lib/utils";
 import { Mail, Send, User, MessageSquare, PlusCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import MessageBubble from "@/components/MessageBubble";
 import ClearConversationButton from "@/components/ClearConversationButton";
@@ -87,8 +87,9 @@ export default async function MessagesPage({ searchParams }: PageProps) {
   let chatMessages: any[] = [];
 
   if (u) {
+    const targetHandle = cleanUsernameHandle(u);
     activePartner = await prisma.user.findUnique({
-      where: { username: u },
+      where: { username: targetHandle },
       select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
     });
 

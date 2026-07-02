@@ -13,18 +13,7 @@ function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
 
-// Helper: Clean username to English handle format
-function cleanUsernameHandle(input: string): string {
-  let slug = input.trim().toLowerCase();
-  const turkishChars: { [key: string]: string } = {
-    'ı': 'i', 'ş': 's', 'ç': 'c', 'ğ': 'g', 'ü': 'u', 'ö': 'o',
-    'â': 'a', 'î': 'i', 'û': 'u'
-  };
-  for (const char in turkishChars) {
-    slug = slug.replaceAll(char, turkishChars[char]);
-  }
-  return slug.replace(/[^a-z0-9_]/g, '');
-}
+import { cleanUsernameHandle } from "@/lib/utils";
 
 // Helper: Calculate user score and check link posting capability (Level 15 / Aerodinamik Sinek -> score >= 930)
 async function userCanPostLinks(userId: string, role: string): Promise<{ allowed: boolean; score: number }> {
@@ -329,8 +318,9 @@ export async function createTopicAndEntryAction(title: string, content: string, 
       const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
       const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
       
-      for (const username of mentionedUsernames) {
-        if (username.toLowerCase() === user.username.toLowerCase()) continue;
+      for (const rawUsername of mentionedUsernames) {
+        const username = cleanUsernameHandle(rawUsername);
+        if (username === user.username) continue;
         const targetUser = await prisma.user.findUnique({
           where: { username }
         });
@@ -375,8 +365,9 @@ export async function createTopicAndEntryAction(title: string, content: string, 
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
     
-    for (const username of mentionedUsernames) {
-      if (username.toLowerCase() === user.username.toLowerCase()) continue;
+    for (const rawUsername of mentionedUsernames) {
+      const username = cleanUsernameHandle(rawUsername);
+      if (username === user.username) continue;
       const targetUser = await prisma.user.findUnique({
         where: { username }
       });
@@ -455,8 +446,9 @@ export async function createEntryAction(topicId: string, content: string) {
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
     const uniqueMentions = Array.from(new Set(mentionedUsernames));
 
-    for (const username of uniqueMentions) {
-      if (username.toLowerCase() === user.username.toLowerCase()) continue;
+    for (const rawUsername of uniqueMentions) {
+      const username = cleanUsernameHandle(rawUsername);
+      if (username === user.username) continue;
       const targetUser = await prisma.user.findUnique({
         where: { username }
       });
@@ -595,8 +587,9 @@ export async function sendMessageAction(receiverUsername: string, content: strin
   }
 
   try {
+    const targetHandle = cleanUsernameHandle(receiverUsername);
     const receiver = await prisma.user.findUnique({
-      where: { username: receiverUsername }
+      where: { username: targetHandle }
     });
 
     if (!receiver) return { error: "Alıcı kullanıcı bulunamadı." };
@@ -716,8 +709,9 @@ export async function clearConversationAction(partnerUsername: string) {
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
 
   try {
+    const targetHandle = cleanUsernameHandle(partnerUsername);
     const partner = await prisma.user.findUnique({
-      where: { username: partnerUsername }
+      where: { username: targetHandle }
     });
 
     if (!partner) return { error: "Kullanıcı bulunamadı." };
@@ -885,8 +879,9 @@ export async function createPozKesEntryAction(title: string, content: string, ba
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
     
-    for (const username of mentionedUsernames) {
-      if (username.toLowerCase() === user.username.toLowerCase()) continue;
+    for (const rawUsername of mentionedUsernames) {
+      const username = cleanUsernameHandle(rawUsername);
+      if (username === user.username) continue;
       const targetUser = await prisma.user.findUnique({
         where: { username }
       });
@@ -968,9 +963,10 @@ export async function createCommentAction(entryId: string, content: string) {
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
     
-    for (const username of mentionedUsernames) {
-      if (username.toLowerCase() === user.username.toLowerCase()) continue;
-      if (username.toLowerCase() === entry.author.username.toLowerCase()) continue; // already notified above
+    for (const rawUsername of mentionedUsernames) {
+      const username = cleanUsernameHandle(rawUsername);
+      if (username === user.username) continue;
+      if (username === cleanUsernameHandle(entry.author.username)) continue; // already notified above
       
       const targetUser = await prisma.user.findUnique({
         where: { username }

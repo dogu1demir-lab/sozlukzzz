@@ -22,3 +22,15 @@ export function formatDate(date: Date | string): string {
     timeZone: "Europe/Istanbul"
   });
 }
+
+export function cleanUsernameHandle(input: string): string {
+  let slug = input.trim().toLowerCase();
+  const turkishChars: { [key: string]: string } = {
+    'ı': 'i', 'ş': 's', 'ç': 'c', 'ğ': 'g', 'ü': 'u', 'ö': 'o',
+    'â': 'a', 'î': 'i', 'û': 'u'
+  };
+  for (const char in turkishChars) {
+    slug = slug.replaceAll(char, turkishChars[char]);
+  }
+  return slug.replace(/[^a-z0-9_]/g, "");
+}

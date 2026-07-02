@@ -3,15 +3,17 @@ import { getSessionUser } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import ProfileDashboard from "@/components/ProfileDashboard";
 import { Metadata } from "next";
+import { cleanUsernameHandle } from "@/lib/utils";
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
   const decodedUsername = decodeURIComponent(username);
+  const targetHandle = cleanUsernameHandle(decodedUsername);
 
   const author = await prisma.user.findFirst({
     where: {
       username: {
-        equals: decodedUsername,
+        equals: targetHandle,
         mode: "insensitive"
       }
     },
@@ -67,12 +69,13 @@ interface PageProps {
 export default async function AuthorProfilePage({ params }: PageProps) {
   const { username } = await params;
   const decodedUsername = decodeURIComponent(username);
+  const targetHandle = cleanUsernameHandle(decodedUsername);
   const sessionUser = await getSessionUser();
 
   const author = await prisma.user.findFirst({
     where: {
       username: {
-        equals: decodedUsername,
+        equals: targetHandle,
         mode: "insensitive"
       }
     },
