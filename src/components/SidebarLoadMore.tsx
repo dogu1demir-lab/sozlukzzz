@@ -61,7 +61,7 @@ export default function SidebarLoadMore({ initialCount }: SidebarLoadMoreProps) 
           className="flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 border-zinc-900/30 hover:bg-zinc-900/30 hover:border-zinc-800/80"
         >
           <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-start gap-1.5">
-            <span className="break-words whitespace-normal">{topic.title}</span>
+            <span className="break-words break-all block whitespace-normal min-w-0">{topic.title}</span>
             {topic.poll && (
               <span className="text-[10px] shrink-0 pt-0.5" title="Anket">📊</span>
             )}
