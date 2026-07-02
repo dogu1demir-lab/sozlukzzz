@@ -1770,6 +1770,19 @@ export async function deleteEntryAction(entryId: string) {
         where: { id: topicId }
       });
       topicDeleted = true;
+    } else {
+      // Recalculate the lastEntryAt based on the newest remaining entry
+      const latestEntry = await prisma.entry.findFirst({
+        where: { topicId },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true }
+      });
+      if (latestEntry) {
+        await prisma.topic.update({
+          where: { id: topicId },
+          data: { lastEntryAt: latestEntry.createdAt }
+        });
+      }
     }
 
     await clearAllFeedAndSidebarCaches(user.id);
