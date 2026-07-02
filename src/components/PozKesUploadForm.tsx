@@ -58,7 +58,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
     playBuzzSound();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmittingOrPending || submittingRef.current) return;
     setError("");
@@ -80,36 +80,34 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
 
     submittingRef.current = true;
     setSubmitting(true);
-    startTransition(async () => {
-      try {
-        const result = await createPozKesEntryAction(title, content, base64Image);
-        if (result.error) {
-          setError(result.error);
-          setSubmitting(false);
-          submittingRef.current = false;
-        } else {
-          // Clear form
-          setContent("");
-          setBase64Image("");
-          if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-          }
-          playBuzzSound();
-          // Redirect to PozKes tab on home page or the newly created topic
-          router.push(result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes");
-          router.refresh();
-          // Reset after a 5 second safety timeout to allow resubmission in case redirection fails/gets stuck
-          setTimeout(() => {
-            submittingRef.current = false;
-            setSubmitting(false);
-          }, 5000);
+    try {
+      const result = await createPozKesEntryAction(title, content, base64Image);
+      if (result.error) {
+        setError(result.error);
+        setSubmitting(false);
+        submittingRef.current = false;
+      } else {
+        // Clear form
+        setContent("");
+        setBase64Image("");
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
         }
-      } catch (err) {
-        setError("PozKes yüklenirken teknik bir hata oluştu.");
+        playBuzzSound();
+        
+        startTransition(() => {
+          router.push(result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes");
+        });
+
+        // Safe status reset outside the transition tick
         setSubmitting(false);
         submittingRef.current = false;
       }
-    });
+    } catch (err) {
+      setError("PozKes yüklenirken teknik bir hata oluştu.");
+      setSubmitting(false);
+      submittingRef.current = false;
+    }
   };
 
   if (!isLoggedIn) {

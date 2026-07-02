@@ -142,7 +142,7 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
     }, 50);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmittingOrPending || submittingRef.current) return;
     setError("");
@@ -164,17 +164,17 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
 
     submittingRef.current = true;
     setSubmitting(true);
-    startTransition(async () => {
-      try {
-        const result = await createEntryAction(topicId, content);
-        if (result.error) {
-          setError(result.error);
-          setSubmitting(false);
-          submittingRef.current = false;
-        } else {
-          setContent("");
-          playBuzzSound(false, "/eylemhareket.mp3");
-          
+    try {
+      const result = await createEntryAction(topicId, content);
+      if (result.error) {
+        setError(result.error);
+        setSubmitting(false);
+        submittingRef.current = false;
+      } else {
+        setContent("");
+        playBuzzSound(false, "/eylemhareket.mp3");
+        
+        startTransition(() => {
           if (result.page && result.entryId) {
             router.push(`${window.location.pathname}?p=${result.page}#entry-${result.entryId}`);
             setTimeout(() => {
@@ -186,16 +186,17 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
           } else {
             router.refresh();
           }
+        });
 
-          setSubmitting(false);
-          submittingRef.current = false;
-        }
-      } catch (err) {
-        setError("Entry gönderilirken teknik bir hata oluştu.");
+        // Safe status reset outside the transition tick
         setSubmitting(false);
         submittingRef.current = false;
       }
-    });
+    } catch (err) {
+      setError("Entry gönderilirken teknik bir hata oluştu.");
+      setSubmitting(false);
+      submittingRef.current = false;
+    }
   };
 
   if (!isLoggedIn) {
