@@ -35,25 +35,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? `${appUrl}/api/yazar-image/${encodeURIComponent(author.username)}` 
     : `${appUrl}/og-image.jpg`;
 
+  const nameToShow = author.displayName 
+    ? `${author.displayName} (@${author.username})` 
+    : `@${author.username}`;
+
+  const title = `${nameToShow} (Yazar) — sözlükzzz`;
+
   return {
-    title: `@${author.username} (Yazar) — sözlükzzz`,
+    title,
     description: bioSnippet,
     alternates: {
       canonical: `${appUrl}/yazar/${encodeURIComponent(username)}`,
     },
     openGraph: {
-      title: `@${author.username} — sözlükzzz`,
+      title,
       description: bioSnippet,
       images: [
         {
           url: avatarImage,
-          alt: `@${author.username}`,
+          alt: nameToShow,
         }
       ]
     },
     twitter: {
       card: "summary",
-      title: `@${author.username} — sözlükzzz`,
+      title,
       description: bioSnippet,
       images: [avatarImage],
     }
