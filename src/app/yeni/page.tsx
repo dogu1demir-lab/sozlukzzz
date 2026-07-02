@@ -35,9 +35,9 @@ function NewThreadContent() {
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
 
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">("idle");
   const [isPending, startTransition] = useTransition();
-  const isSubmittingOrPending = isPending || submitting;
+  const isSubmittingOrPending = isPending || submitStatus !== "idle";
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
@@ -187,22 +187,23 @@ function NewThreadContent() {
       }
 
       submittingRef.current = true;
-      setSubmitting(true);
+      setSubmitStatus("submitting");
       
       try {
         const result = await createTopicAndEntryAction(title, content, base64Image || undefined);
         if (result.error) {
           setError(result.error);
-          setSubmitting(false);
+          setSubmitStatus("idle");
           submittingRef.current = false;
         } else if (result.success && result.slug) {
+          setSubmitStatus("redirecting");
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
           router.push(`/baslik/${result.slug}`);
         }
       } catch (e) {
         setError("Başlık oluşturulurken teknik bir sorun oluştu.");
-        setSubmitting(false);
+        setSubmitStatus("idle");
         submittingRef.current = false;
       }
     } else {
@@ -218,22 +219,23 @@ function NewThreadContent() {
       }
 
       submittingRef.current = true;
-      setSubmitting(true);
+      setSubmitStatus("submitting");
       
       try {
         const result = await createPollTopicAction(title, pollQuestion, validOptions);
         if (result.error) {
           setError(result.error);
-          setSubmitting(false);
+          setSubmitStatus("idle");
           submittingRef.current = false;
         } else if (result.success && result.slug) {
+          setSubmitStatus("redirecting");
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
           router.push(`/baslik/${result.slug}`);
         }
       } catch (e) {
         setError("Anket oluşturulurken teknik bir sorun oluştu.");
-        setSubmitting(false);
+        setSubmitStatus("idle");
         submittingRef.current = false;
       }
     }
@@ -480,7 +482,13 @@ function NewThreadContent() {
             disabled={isSubmittingOrPending}
             className="px-6 py-2 rounded-lg bg-teal-500 text-white text-xs font-bold hover:bg-teal-400 transition-colors disabled:opacity-50"
           >
-            {isSubmittingOrPending ? "Paylaşılıyor..." : type === "normal" ? "Konuyu Paylaş" : "Anketi Paylaş"}
+            {submitStatus === "submitting"
+              ? "Gönderiliyor..."
+              : submitStatus === "redirecting"
+              ? "Başlık Açıldı! Gidiliyor..."
+              : type === "normal"
+              ? "Konuyu Paylaş"
+              : "Anketi Paylaş"}
           </button>
         </div>
       </form>
