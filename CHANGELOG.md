@@ -2,6 +2,25 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.2.0] - 2026-07-03
+
+### 🚀 UX & Yönlendirme İyileştirmeleri
+1. **Entry Yazarı & Mobil Yönlendirme Düzeltmesi (`router-push-freeze`)**
+   * **Açıklama:** Entry formu gönderildiğinde, Next.js istemci tarafındaki sayfa geçişlerinin (`router.push`) yavaş mobil bağlantılarda veya Safari mobil motorlarında takılmasını engellemek için `startTransition` sarmalayıcısı kaldırıldı. Redirection artık anında ve kilitlenmesiz başlar.
+   * **Kod Referansı:** [AddEntryForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/AddEntryForm.tsx)
+
+2. **Nokta Atışı Odaklanma Güvencesi (`HashRedirector-fallback`)**
+   * **Açıklama:** Hedeflenen yorum zaten güncel sayfada çizilmiş olsa bile, Next.js'in asenkron DOM render gecikmelerini bertaraf etmek amacıyla `HashRedirector` bileşenine 100ms gecikmeli bir yumuşak kaydırma (`scrollIntoView`) yedekleme mekanizması eklendi.
+   * **Kod Referansı:** [HashRedirector.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/HashRedirector.tsx)
+
+3. **Entry Silme Sonrası Tarih Güncelleme Zekası (`lastEntryAt-recalculation`)**
+   * **Açıklama:** Çok entry'li bir konuda yazarlar kendi entry'lerini sildiklerinde, o konunun Bugün/Dün sekmelerindeki sıralamasını bozmamak ve sol menüde `0` adet entry ile kalmasını engellemek için, başlığın son entry yazılma tarihi (`lastEntryAt`) kalan en güncel entry'nin tarihine geriye dönük olarak yeniden hesaplanarak güncellenmesi sağlandı.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+
+4. **Kusursuz Kelime Kaydırma Yapısı (`break-words`)**
+   * **Açıklama:** Sol menüdeki (Vızıldayanlar/Dünküler) başlıklar alt satıra geçerken kelimelerin ortasından anlamsızca bölünmesi (`break-all`) sorunu düzeltildi. Başlıklar artık dil kurallarına uygun şekilde, kelimeleri bütün halinde tutarak alt satıra kayar (`break-words`).
+   * **Kod Referansı:** [SidebarContent.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/SidebarContent.tsx), [SidebarLoadMore.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/SidebarLoadMore.tsx), [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/%5Btab%5D/page.tsx)
+
 ---
 
 ## [1.1.0] - 2026-07-02
