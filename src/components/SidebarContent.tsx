@@ -58,6 +58,10 @@ export default function SidebarContent() {
   // Listen to live sidebar refresh signals to update topics list in real-time
   useEffect(() => {
     const handleRefresh = () => {
+      const initialLimit = activeTab === "bugun" ? 30 : 12;
+      // Skip real-time refresh if the user has loaded more topics (page 2+) to prevent resetting list state
+      if (topicsLengthRef.current > initialLimit) return;
+
       fetchTopics(activeTab, true);
     };
 
