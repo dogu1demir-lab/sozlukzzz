@@ -95,9 +95,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
         }
         playBuzzSound();
         
-        startTransition(() => {
-          router.push(result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes");
-        });
+        router.push(result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes");
 
         // Safe status reset outside the transition tick
         setSubmitting(false);
