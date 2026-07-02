@@ -199,6 +199,7 @@ function NewThreadContent() {
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
           router.push(`/baslik/${result.slug}`);
+          router.refresh();
           // Reset after a 5 second safety timeout
           setTimeout(() => {
             submittingRef.current = false;
@@ -235,6 +236,7 @@ function NewThreadContent() {
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
           router.push(`/baslik/${result.slug}`);
+          router.refresh();
           // Reset after a 5 second safety timeout
           setTimeout(() => {
             submittingRef.current = false;
