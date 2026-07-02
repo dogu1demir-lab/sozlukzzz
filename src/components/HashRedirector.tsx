@@ -30,7 +30,7 @@ export default function HashRedirector({ currentEntryIds }: HashRedirectorProps)
           if (el) {
             el.scrollIntoView({ behavior: "smooth" });
           }
-        }, 100);
+        }, 300);
         return;
       }
 

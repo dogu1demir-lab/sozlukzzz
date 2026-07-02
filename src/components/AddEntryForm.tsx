@@ -164,6 +164,11 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
 
     submittingRef.current = true;
     setSubmitting(true);
+    
+    if (typeof window !== "undefined" && document.activeElement) {
+      (document.activeElement as HTMLElement).blur();
+    }
+    
     try {
       const result = await createEntryAction(topicId, content);
       if (result.error) {
