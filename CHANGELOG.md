@@ -28,3 +28,8 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
    * **Sorun:** Yeni konu açıldığında form gönderildikten sonra sayfa yönlenmeyip `"Paylaşılıyor..."` butonunda kilitli kalıyordu.
    * **Çözüm:** Kilitlenmeye sebep olan React `startTransition` kaldırıldı. İstemci taraflı yönlendirmenin Next.js önbelleğine takılmasını engellemek için `router.push()` sonrasına **`router.refresh()`** entegre edildi. Artık yönlendirmeler anlık tamamlanıyor.
    * **Kod Referansı:** [yeni/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx)
+
+2. **Gereksiz PM2 Log Dosyası Şişmesinin Engellenmesi**
+   * **Sorun:** Her ana sayfa besleme (feed) yüklenmesinde sunucuda `[PERF]` etiketli performans günlük yazıları (`console.log`) çalıştırılıyordu. Bu durum, sunucu diskinin uzun vadede gereksiz log kayıtlarıyla dolma riski taşıyordu.
+   * **Çözüm:** Üretim (production) kodlarındaki tüm tekrarlayan `[PERF]` log yazma işlemleri temizlendi. PM2 loglarının temiz ve hafif kalması sağlandı.
+   * **Kod Referansı:** [[tab]/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/%5Btab%5D/page.tsx)
