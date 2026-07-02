@@ -24,10 +24,13 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
    * **Kod Referansı:** [ReactionButtons.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ReactionButtons.tsx) & [HashRedirector.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/HashRedirector.tsx)
 
 ### 🐛 Hata Düzeltmeleri
-1. **Yeni Konu/Anket Açma Yönlendirme Askısı Çözüldü**
-   * **Sorun:** Yeni konu açıldığında form gönderildikten sonra sayfa yönlenmeyip `"Paylaşılıyor..."` butonunda kilitli kalıyordu.
-   * **Çözüm:** İstemci tarafı SPA (Single Page Application) akışını ve sayfa yenilenmeden yumuşak geçiş hissini korumak için resmi Next.js/React standardına geçildi. Rota yönlendirmesi (`router.push()`), React'in asenkron UI geçişlerini yöneten **`startTransition`** sarmalayıcısı içine alındı. Önbellek çakışmalarını tetikleyen anlık `router.refresh()` ve yönlendirme sırasında origin sayfanın re-render olmasına sebep olan state güncellemeleri kaldırılarak kilitlenme tamamen giderildi. Artık mobil ve masaüstü tarayıcılarda sayfa yenilenmeden, konfeti ve ses efektleriyle akıcı şekilde çalışıyor.
-   * **Kod Referansı:** [yeni/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx)
+1. **Tüm Gönderi ve Form Yönlendirme Askılarının Giderilmesi (Standartlaştırma)**
+   * **Sorun:** Yeni konu açma sayfasındaki kilitlenme çözülmüştü; ancak benzer şekilde **Yorum/Entry Yazma Formu** ve **PozKes Fotoğraf Yükleme Formu** da asenkron veri gönderme işlemlerini doğrudan `startTransition` içinde yürüttüğü ve peşine `router.refresh()` çakışması yaşadığı için ara sıra `"Gönderiliyor..."` aşamasında takılı kalabiliyordu.
+   * **Çözüm:** Tüm formlar (`AddEntryForm`, `PozKesUploadForm`) yeni kararlı standardımıza geçirildi:
+     * Asenkron API çağrısı `startTransition` dışına alındı.
+     * Sadece yönlendirme (`router.push`) / sayfa güncelleme (`router.refresh`) işlemleri `startTransition` içerisine dahil edildi.
+     * Form gönderildikten sonra oluşan geçici arayüz kilitlenmeleri ve geçiş kesintileri tamamen engellendi.
+   * **Kod Referansı:** [yeni/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx), [AddEntryForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/AddEntryForm.tsx), [PozKesUploadForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesUploadForm.tsx)
 
 2. **Gereksiz PM2 Log Dosyası Şişmesinin Engellenmesi**
    * **Sorun:** Her ana sayfa besleme (feed) yüklenmesinde sunucuda `[PERF]` etiketli performans günlük yazıları (`console.log`) çalıştırılıyordu. Bu durum, sunucu diskinin uzun vadede gereksiz log kayıtlarıyla dolma riski taşıyordu.
