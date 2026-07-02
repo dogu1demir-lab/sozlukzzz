@@ -18,9 +18,10 @@ interface SettingsClientProps {
     bio: string | null;
     role: string;
   };
+  disableSelfDeletion?: boolean;
 }
 
-export default function SettingsClient({ user }: SettingsClientProps) {
+export default function SettingsClient({ user, disableSelfDeletion = false }: SettingsClientProps) {
   const router = useRouter();
   const [bio, setBio] = useState(user.bio || "");
   const [avatarColor, setAvatarColor] = useState(user.avatarColor);
@@ -213,17 +214,25 @@ export default function SettingsClient({ user }: SettingsClientProps) {
       {/* Dangerous Zone Card */}
       <section className="settings-section settings-danger-zone">
         <h2>Tehlikeli Bölge</h2>
-        <p className="text-xs text-slate-400 mb-4">
-          Hesabınızı sildiğinizde tüm verileriniz kalıcı olarak kaldırılır. Bu işlem geri alınamaz.
-        </p>
-        <button
-          onClick={handleDeleteAccount}
-          disabled={isPending}
-          type="button"
-          className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white transition-all"
-        >
-          Hesabı Sil
-        </button>
+        {disableSelfDeletion ? (
+          <p className="text-xs text-red-400 font-bold bg-red-500/5 p-3 rounded-lg border border-red-500/20">
+            Hesap silme işlemi yönetici tarafından geçici olarak devre dışı bırakılmıştır zzz.
+          </p>
+        ) : (
+          <>
+            <p className="text-xs text-slate-400 mb-4">
+              Hesabınızı sildiğinizde tüm verileriniz kalıcı olarak kaldırılır. Bu işlem geri alınamaz.
+            </p>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={isPending}
+              type="button"
+              className="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+            >
+              Hesabı Sil
+            </button>
+          </>
+        )}
       </section>
     </div>
   );

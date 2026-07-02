@@ -109,7 +109,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const [mergeSearching, setMergeSearching] = useState(false);
 
   // --- Settings Tab State ---
-  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, xPixelId: "", xSignupEventId: "" });
+  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, disableSelfDeletion: false, xPixelId: "", xSignupEventId: "" });
   const [stats, setStats] = useState<any>(null);
   const [health, setHealth] = useState<any>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
@@ -163,6 +163,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
         setSettings({
           disableSignups: settingsRes.disableSignups,
           disablePozkes: settingsRes.disablePozkes,
+          disableSelfDeletion: !!settingsRes.disableSelfDeletion,
           xPixelId: settingsRes.xPixelId || "",
           xSignupEventId: settingsRes.xSignupEventId || ""
         });
@@ -354,7 +355,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   };
 
   // --- Setting Actions ---
-  const handleToggleSetting = (key: "disableSignups" | "disablePozkes") => {
+  const handleToggleSetting = (key: "disableSignups" | "disablePozkes" | "disableSelfDeletion") => {
     const updatedSettings = {
       ...settings,
       [key]: !settings[key]
@@ -366,6 +367,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
       const result = await adminUpdateSettingsAction(
         updatedSettings.disableSignups,
         updatedSettings.disablePozkes,
+        updatedSettings.disableSelfDeletion,
         updatedSettings.xPixelId,
         updatedSettings.xSignupEventId
       );
@@ -385,6 +387,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
       const result = await adminUpdateSettingsAction(
         settings.disableSignups,
         settings.disablePozkes,
+        settings.disableSelfDeletion,
         settings.xPixelId,
         settings.xSignupEventId
       );
@@ -1177,7 +1180,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                   <div className="flex justify-between items-center py-4">
                     <div className="space-y-0.5">
                       <span className="text-xs font-bold text-zinc-200">PozKes Paylaşımını Kapat</span>
-                      <p className="text-[10px] text-zinc-550 max-w-md">
+                      <p className="text-[10px] text-zinc-555 max-w-md">
                         Aktif edildiğinde yazarların PozKes'e yeni fotoğraf/görsel yüklemesi geçici olarak kapatılır.
                       </p>
                     </div>
@@ -1186,6 +1189,25 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                       disabled={isPending}
                       className={`w-12 h-6.5 rounded-full p-1 transition-colors relative flex items-center ${
                         settings.disablePozkes ? "bg-red-500 justify-end" : "bg-zinc-800 justify-start"
+                      }`}
+                    >
+                      <span className="w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform" />
+                    </button>
+                  </div>
+
+                  {/* Self Deletion Toggle */}
+                  <div className="flex justify-between items-center py-4">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-zinc-200">Yazarların Kendi Hesabını Silmesini Kapat</span>
+                      <p className="text-[10px] text-zinc-555 max-w-md">
+                        Aktif edildiğinde yazarlar kendi hesaplarını ayarlar sayfasından silemezler.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleToggleSetting("disableSelfDeletion")}
+                      disabled={isPending}
+                      className={`w-12 h-6.5 rounded-full p-1 transition-colors relative flex items-center ${
+                        settings.disableSelfDeletion ? "bg-red-500 justify-end" : "bg-zinc-800 justify-start"
                       }`}
                     >
                       <span className="w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform" />

@@ -28,7 +28,16 @@ export default async function SettingsPage() {
     redirect("/giris");
   }
 
+  let disableSelfDeletion = false;
+  try {
+    const { redis } = require("@/lib/redis");
+    const cached = await redis.get("settings:disable_self_deletion");
+    disableSelfDeletion = cached === "true";
+  } catch (err) {
+    console.error("Failed to read self deletion setting:", err);
+  }
+
   return (
-    <SettingsClient user={user} />
+    <SettingsClient user={user} disableSelfDeletion={disableSelfDeletion} />
   );
 }

@@ -18,7 +18,7 @@ export default function SendMessageForm({ receiverUsername }: SendMessageFormPro
   const router = useRouter();
   const submittingRef = useRef(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || isSubmittingOrPending || submittingRef.current) return;
 
@@ -26,25 +26,20 @@ export default function SendMessageForm({ receiverUsername }: SendMessageFormPro
     submittingRef.current = true;
     setSubmitting(true);
 
-    startTransition(async () => {
-      try {
-        const result = await sendMessageAction(receiverUsername, content);
-        if (result.error) {
-          alert(result.error);
-          setSubmitting(false);
-          submittingRef.current = false;
-        } else {
-          setContent("");
-          router.refresh();
-          setSubmitting(false);
-          submittingRef.current = false;
-        }
-      } catch (err) {
-        alert("Mesaj gönderilirken teknik bir hata oluştu.");
-        setSubmitting(false);
-        submittingRef.current = false;
+    try {
+      const result = await sendMessageAction(receiverUsername, content);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        setContent("");
+        router.refresh();
       }
-    });
+    } catch (err) {
+      alert("Mesaj gönderilirken teknik bir hata oluştu.");
+    } finally {
+      setSubmitting(false);
+      submittingRef.current = false;
+    }
   };
 
   return (

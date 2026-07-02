@@ -1,3 +1,4 @@
+import React from "react";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -232,9 +233,51 @@ export default async function MessagesPage({ searchParams }: PageProps) {
 
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col bg-zinc-950/10">
-              {chatMessages.map((msg) => (
-                <MessageBubble key={msg.id} msg={msg} currentUserId={user.id} />
-              ))}
+              {(() => {
+                let lastDateString = "";
+                return chatMessages.map((msg) => {
+                  const msgDate = new Date(msg.createdAt);
+                  const dateString = msgDate.toLocaleDateString("tr-TR", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  });
+                  
+                  let showDateDivider = false;
+                  if (dateString !== lastDateString) {
+                    showDateDivider = true;
+                    lastDateString = dateString;
+                  }
+
+                  const getRelativeDateLabel = () => {
+                    const today = new Date();
+                    const yesterday = new Date();
+                    yesterday.setDate(today.getDate() - 1);
+                    
+                    const isSameDay = (d1: Date, d2: Date) =>
+                      d1.getDate() === d2.getDate() &&
+                      d1.getMonth() === d2.getMonth() &&
+                      d1.getFullYear() === d2.getFullYear();
+
+                    if (isSameDay(msgDate, today)) return "Bugün";
+                    if (isSameDay(msgDate, yesterday)) return "Dün";
+                    return dateString;
+                  };
+
+                  return (
+                    <React.Fragment key={msg.id}>
+                      {showDateDivider && (
+                        <div className="flex justify-center my-2 select-none shrink-0">
+                          <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900/60 px-3 py-1 rounded-full border border-zinc-900/40">
+                            {getRelativeDateLabel()}
+                          </span>
+                        </div>
+                      )}
+                      <MessageBubble msg={msg} currentUserId={user.id} />
+                    </React.Fragment>
+                  );
+                });
+              })()}
               <ChatScrollAnchor messageCount={chatMessages.length} />
             </div>
 
