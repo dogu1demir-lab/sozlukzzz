@@ -205,15 +205,25 @@ export async function loginAction(prevState: any, formData: FormData) {
   try {
     const user = await prisma.user.findFirst({
       where: {
-        username: {
-          equals: username,
-          mode: 'insensitive'
-        }
+        OR: [
+          {
+            username: {
+              equals: username,
+              mode: 'insensitive'
+            }
+          },
+          {
+            email: {
+              equals: username,
+              mode: 'insensitive'
+            }
+          }
+        ]
       }
     });
 
     if (!user || user.passwordHash !== hashPassword(password)) {
-      return { error: "Kullanıcı adı veya şifre hatalı." };
+      return { error: "Kullanıcı adı/e-posta veya şifre hatalı." };
     }
 
     await setSessionCookie(user.id);

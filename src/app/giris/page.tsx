@@ -60,7 +60,7 @@ export default function Login() {
             {/* Username Input */}
             <div className="relative">
               <label htmlFor="username" className="sr-only">
-                kullanıcı adı
+                kullanıcı adı veya e-posta
               </label>
               <input
                 id="username"
@@ -68,7 +68,7 @@ export default function Login() {
                 type="text"
                 required
                 className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
-                placeholder="kullanıcı adı"
+                placeholder="kullanıcı adı veya e-posta"
               />
               <User className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
             </div>
