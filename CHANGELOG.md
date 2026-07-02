@@ -23,9 +23,12 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
    * **Sayfalama Zekası:** Eğer paylaşılan entry başka bir sayfada ise, sistem otomatik olarak doğru sayfaya (`?p=sayfa#entry-entryID`) yönlendirir ve tarayıcı ekranını o entry'nin üstüne kaydırır.
    * **Kod Referansı:** [ReactionButtons.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ReactionButtons.tsx) & [HashRedirector.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/HashRedirector.tsx)
 
-4. **Kullanıcı Adı veya E-posta ile Giriş Desteği**
-   * **Açıklama:** Yazarların üye olurken Türkçe/İngilizce karakter farklarını unutabilmesi (örn: `tuğce` vs `tuğçe`) ve giriş yaparken zorlanmasını engellemek amacıyla, giriş formuna hem kullanıcı adı hem de e-posta ile giriş desteği eklendi. Arayüz placeholder'ı `"kullanıcı adı veya e-posta"` olarak güncellendi.
-   * **Kod Referansı:** [giris/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/giris/page.tsx) & [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+4. **Kullanıcı Adı veya E-posta ile Giriş Desteği & İki Arayüz Kutulu Kayıt Sistemi**
+   * **Açıklama:** Yazarların üye olurken Türkçe/İngilizce karakter farklarını unutabilmesini engellemek amacıyla hem kullanıcı adı hem de e-posta ile giriş desteği sunuldu. Kayıt olma sayfası (`kaydol/page.tsx`) iki ayrı kutuya ayrıldı:
+     1. **Görünen İsim (Display Name):** Türkçe karakter ve boşluk serbest (Örn: `Şehriban Gaaç`, `Tuğçe`). Sitede yazarın bu şık ismi görünür.
+     2. **Kullanıcı Adı (Handle):** Sadece küçük İngilizce harfler, sayılar ve alt çizgi içerebilir (Örn: `sehribangaaac`, `tugce`). Bu yazarın profil linki ve bahsetme etiketidir.
+   * **Akıllı Giriş:** Eski Türkçe karakterli kullanıcı adına sahip yazarlar, sisteme eski isimleriyle (`tuğçe` gibi) yazarak girseler bile kod arka planda bunu otomatik İngilizce formata (`tugce`) çevirerek sorunsuzca giriş yaptırır.
+   * **Kod Referansı:** [giris/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/giris/page.tsx), [kaydol/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/kaydol/page.tsx) & [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
 
 ### 🐛 Hata Düzeltmeleri
 1. **Tüm Gönderi ve Form Yönlendirme Askılarının Giderilmesi (Standartlaştırma)**
