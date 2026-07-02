@@ -1862,7 +1862,7 @@ export async function forgotPasswordAction(prevState: any, formData: FormData) {
     const resetLink = `${appUrl}/sifre-sifirla?token=${token}`;
 
     // Send reset email
-    await sendPasswordResetEmail(email, user.username, resetLink);
+    await sendPasswordResetEmail(email, user.displayName || user.username, resetLink);
 
     return { success: true, message: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi! zzz" };
   } catch (e) {
