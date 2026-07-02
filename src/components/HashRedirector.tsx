@@ -23,8 +23,16 @@ export default function HashRedirector({ currentEntryIds }: HashRedirectorProps)
 
       const entryId = match[1];
       
-      // If the entry is already visible on the current page, do nothing
-      if (currentEntryIds.includes(entryId)) return;
+      // If the entry is already visible on the current page, scroll to it smoothly
+      if (currentEntryIds.includes(entryId)) {
+        setTimeout(() => {
+          const el = document.getElementById(`entry-${entryId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+        return;
+      }
 
       try {
         const res = await getEntryPageAction(entryId);
