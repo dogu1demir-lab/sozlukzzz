@@ -1113,10 +1113,20 @@ export async function updateProfileAvatarAction(base64Image: string) {
   }
 }
 
-// Action: Update Profile Info (Bio and Avatar Color)
-export async function updateProfileInfoAction(bio: string, avatarColor: string) {
+// Action: Update Profile Info (displayName, Bio and Avatar Color)
+export async function updateProfileInfoAction(displayName: string, bio: string, avatarColor: string) {
   const user = await getSessionUser();
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  const cleanDisplayName = displayName.trim();
+
+  if (cleanDisplayName.length < 3 || cleanDisplayName.length > 20) {
+    return { error: "Görünen isim 3-20 karakter arasında olmalıdır." };
+  }
+
+  if (!/^[a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ\s]+$/.test(cleanDisplayName)) {
+    return { error: "Görünen isim yalnızca harf, sayı, boşluk ve alt çizgi içerebilir." };
+  }
 
   if (bio.trim().length > 160) {
     return { error: "Biyografi en fazla 160 karakter olabilir zzz." };
@@ -1126,6 +1136,7 @@ export async function updateProfileInfoAction(bio: string, avatarColor: string) 
     await prisma.user.update({
       where: { id: user.id },
       data: {
+        displayName: cleanDisplayName,
         bio: bio.trim(),
         avatarColor
       }

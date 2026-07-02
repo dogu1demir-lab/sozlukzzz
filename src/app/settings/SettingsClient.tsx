@@ -13,6 +13,7 @@ interface SettingsClientProps {
   user: {
     id: string;
     username: string;
+    displayName: string | null;
     avatarColor: string;
     avatarUrl: string | null;
     bio: string | null;
@@ -23,6 +24,7 @@ interface SettingsClientProps {
 
 export default function SettingsClient({ user, disableSelfDeletion = false }: SettingsClientProps) {
   const router = useRouter();
+  const [displayName, setDisplayName] = useState(user.displayName || "");
   const [bio, setBio] = useState(user.bio || "");
   const [avatarColor, setAvatarColor] = useState(user.avatarColor);
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
@@ -59,7 +61,7 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
     e.preventDefault();
 
     startTransition(async () => {
-      const result = await updateProfileInfoAction(bio, avatarColor);
+      const result = await updateProfileInfoAction(displayName, bio, avatarColor);
       if (result.error) {
         alert(result.error);
       } else {
@@ -144,6 +146,19 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
             value={`@${user.username}`}
           />
           <p className="text-[10px] text-slate-500 -mt-2">Kullanıcı adı değiştirilemez.</p>
+
+          <label className="form-label" htmlFor="settings-display-name">Görünen İsim (Takma Adınız)</label>
+          <input
+            id="settings-display-name"
+            type="text"
+            required
+            maxLength={20}
+            className="form-input"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Sitede görünecek isminiz"
+          />
+          <p className="text-[10px] text-slate-500 -mt-2">Türkçe karakter ve boşluk bırakabilirsiniz (örn: Şehriban Gaaç).</p>
 
           <label className="form-label" htmlFor="settings-bio">
             Hakkımda
