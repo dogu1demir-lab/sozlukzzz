@@ -428,12 +428,12 @@ export default function ProfileDashboard({
               ) : (
                 <>
                   {textEntries.slice(0, entriesLimit).map((entry) => (
-                    <article key={entry.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
-                      <div className="flex justify-between items-baseline gap-2">
+                    <article key={entry.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2 min-w-0 overflow-hidden">
+                      <div className="flex justify-between items-baseline gap-2 min-w-0">
                         <Link 
                           href={`/baslik/${entry.topic.slug}`} 
                           prefetch={false}
-                          className="text-sm font-bold text-white hover:text-teal-400"
+                          className="text-sm font-bold text-white hover:text-teal-400 break-words min-w-0"
                         >
                           {entry.topic.title}
                         </Link>
@@ -466,13 +466,13 @@ export default function ProfileDashboard({
               ) : (
                 <>
                   {comments.slice(0, commentsLimit).map((comment) => (
-                    <article key={comment.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2">
-                      <div className="flex justify-between items-baseline gap-2">
-                        <div className="text-[11px] text-slate-400">
+                    <article key={comment.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2 min-w-0 overflow-hidden">
+                      <div className="flex justify-between items-baseline gap-2 min-w-0">
+                        <div className="text-[11px] text-slate-400 break-words min-w-0">
                           <Link 
                             href={`/baslik/${comment.entry.topic.slug}#entry-${comment.entry.id}`} 
                             prefetch={false}
-                            className="font-semibold text-slate-300 hover:text-teal-400"
+                            className="font-semibold text-slate-300 hover:text-teal-400 break-words min-w-0"
                           >
                             {comment.entry.topic.title}
                           </Link>{" "}

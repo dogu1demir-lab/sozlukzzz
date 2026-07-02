@@ -544,9 +544,9 @@ export default async function Home({ params }: PageProps) {
                     <Link
                       href={`/baslik/${entry.topic.slug}`}
                       prefetch={false}
-                      className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap"
+                      className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
                     >
-                      <span>{entry.topic.title}</span>
+                      <span className="break-words min-w-0">{entry.topic.title}</span>
                       {entry.topic.poll && (
                         <span className="text-xs shrink-0" title="Anket">📊</span>
                       )}
@@ -643,9 +643,9 @@ export default async function Home({ params }: PageProps) {
                       <Link
                         href={`/baslik/${topic.slug}`}
                         prefetch={false}
-                        className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap"
+                        className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
                       >
-                        <span>{topic.title}</span>
+                        <span className="break-words min-w-0">{topic.title}</span>
                         {topic.poll && (
                           <span className="text-xs shrink-0" title="Anket">📊</span>
                         )}

@@ -326,8 +326,8 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
       <HashRedirector currentEntryIds={formattedEntries.map(e => e.id)} />
       
       {/* Topic Title Header */}
-      <div className="border-b border-zinc-900 pb-3 flex items-center justify-between">
-        <h1 className="text-lg sm:text-xl font-bold text-white hover:text-lime-400 transition-colors inline-block select-all">
+      <div className="border-b border-zinc-900 pb-3 flex items-center justify-between gap-4">
+        <h1 className="text-lg sm:text-xl font-bold text-white hover:text-lime-400 transition-colors break-words min-w-0 select-all">
           {topic.title}
         </h1>
         {topic.poll && (
