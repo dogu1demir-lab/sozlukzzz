@@ -13,6 +13,19 @@ function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
 
+// Helper: Clean username to English handle format
+export function cleanUsernameHandle(input: string): string {
+  let slug = input.trim().toLowerCase();
+  const turkishChars: { [key: string]: string } = {
+    'ı': 'i', 'ş': 's', 'ç': 'c', 'ğ': 'g', 'ü': 'u', 'ö': 'o',
+    'â': 'a', 'î': 'i', 'û': 'u'
+  };
+  for (const char in turkishChars) {
+    slug = slug.replaceAll(char, turkishChars[char]);
+  }
+  return slug.replace(/[^a-z0-9_]/g, '');
+}
+
 // Helper: Calculate user score and check link posting capability (Level 15 / Aerodinamik Sinek -> score >= 930)
 async function userCanPostLinks(userId: string, role: string): Promise<{ allowed: boolean; score: number }> {
   if (role === "ADMIN") return { allowed: true, score: 99999 };
@@ -123,11 +136,11 @@ export async function registerAction(prevState: any, formData: FormData) {
     console.error("Redis signup check error:", err);
   }
 
-  const username = formData.get("username")?.toString().trim();
+  const rawUsername = formData.get("username")?.toString().trim();
   const password = formData.get("password")?.toString();
   const email = formData.get("email")?.toString().trim().toLowerCase();
 
-  if (!username || !password || username.length < 3 || username.length > 14 || password.length < 6) {
+  if (!rawUsername || !password || rawUsername.length < 3 || rawUsername.length > 14 || password.length < 6) {
     return { error: "Kullanıcı adı 3-14 karakter, şifre en az 6 karakter olmalıdır." };
   }
 
@@ -136,18 +149,21 @@ export async function registerAction(prevState: any, formData: FormData) {
   }
 
   // Check alphanumeric username
-  if (!/^[a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+$/.test(username)) {
+  if (!/^[a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+$/.test(rawUsername)) {
     return { error: "Kullanıcı adı yalnızca harf, sayı ve alt çizgi içerebilir." };
   }
 
+  // Generate target displayName and clean English handle
+  const targetDisplayName = rawUsername;
+  const targetHandle = cleanUsernameHandle(rawUsername);
+
+  if (targetHandle.length < 3) {
+    return { error: "Kullanıcı adı en az 3 geçerli karakter içermelidir." };
+  }
+
   try {
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        username: {
-          equals: username,
-          mode: 'insensitive'
-        }
-      }
+    const existingUser = await prisma.user.findUnique({
+      where: { username: targetHandle }
     });
 
     if (existingUser) {
@@ -168,7 +184,8 @@ export async function registerAction(prevState: any, formData: FormData) {
 
     const user = await prisma.user.create({
       data: {
-        username: username,
+        username: targetHandle,
+        displayName: targetDisplayName,
         passwordHash: hashPassword(password),
         email: email,
         avatarColor: randomColor,
@@ -177,7 +194,7 @@ export async function registerAction(prevState: any, formData: FormData) {
 
     // Send a beautifully styled welcome email in the background without blocking registration
     if (email) {
-      sendWelcomeEmail(email, username).catch((mailError) => {
+      sendWelcomeEmail(email, targetDisplayName).catch((mailError) => {
         console.error("Welcome email sending failed in background:", mailError);
       });
     }
@@ -203,12 +220,13 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 
   try {
+    const cleanHandle = cleanUsernameHandle(username);
     const user = await prisma.user.findFirst({
       where: {
         OR: [
           {
             username: {
-              equals: username,
+              equals: cleanHandle,
               mode: 'insensitive'
             }
           },
@@ -919,7 +937,7 @@ export async function createCommentAction(entryId: string, content: string) {
       },
       include: {
         author: {
-          select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+          select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
         }
       }
     });
@@ -1285,7 +1303,7 @@ export async function getPollVotersAction(pollId: string) {
             votes: {
               include: {
                 user: {
-                  select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                  select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
                 }
               }
             }
@@ -1369,7 +1387,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             take: 1,
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             }
@@ -1396,7 +1414,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             take: 1,
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             }
@@ -1445,7 +1463,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             take: 1,
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             }
@@ -1490,7 +1508,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             include: { poll: { select: { id: true } } }
           },
           author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
           },
           likes: true
         },
@@ -1526,7 +1544,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
               take: 1,
               include: {
                 author: {
-                  select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                  select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
                 },
                 likes: true
               }
@@ -1566,7 +1584,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             include: { poll: { select: { id: true } } }
           },
           author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
           },
           likes: true
         },
@@ -1631,13 +1649,13 @@ export async function getMorePozKesAction(offset: number, limit: number = 10) {
       },
       include: {
         author: {
-          select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+          select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
         },
         likes: true,
         comments: {
           include: {
             author: {
-              select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+              select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
             },
             likes: true
           },
@@ -2262,14 +2280,25 @@ export async function searchTopicsAction(query: string) {
 
       const users = await prisma.user.findMany({
         where: {
-          username: {
-            contains: searchUsername,
-            mode: isPostgres ? "insensitive" : undefined,
-          }
+          OR: [
+            {
+              username: {
+                contains: searchUsername,
+                mode: isPostgres ? "insensitive" : undefined,
+              }
+            },
+            {
+              displayName: {
+                contains: searchUsername,
+                mode: isPostgres ? "insensitive" : undefined,
+              }
+            }
+          ]
         },
         select: {
           id: true,
           username: true,
+          displayName: true,
           avatarColor: true,
           avatarUrl: true,
           _count: {
@@ -2281,8 +2310,9 @@ export async function searchTopicsAction(query: string) {
 
       const formattedUsers = users.map(u => ({
         id: u.id,
-        title: `@${u.username}`,
+        title: u.displayName || `@${u.username}`,
         username: u.username,
+        displayName: u.displayName,
         slug: `yazar/${u.username}`,
         url: `/yazar/${u.username}`,
         isUser: true,

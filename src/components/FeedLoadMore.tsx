@@ -10,6 +10,7 @@ import ExpandableMentionText from "./ExpandableMentionText";
 interface Author {
   id: string;
   username: string;
+  displayName?: string | null;
   avatarColor: string;
   avatarUrl: string | null;
 }
@@ -134,10 +135,10 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
                       className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-black border border-white/5"
                       style={{ backgroundColor: entry.author.avatarColor }}
                     >
-                      {entry.author.username.substring(0, 2).toUpperCase()}
+                      {(entry.author.displayName ?? entry.author.username).substring(0, 2).toUpperCase()}
                     </div>
                   )}
-                  <span className="font-semibold">@{entry.author.username}</span>
+                  <span className="font-semibold">{entry.author.displayName ?? entry.author.username}</span>
                 </Link>
                 <span>•</span>
                 <span>{formatClientDate(entry.createdAt)}</span>

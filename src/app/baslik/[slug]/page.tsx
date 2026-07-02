@@ -207,7 +207,7 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
     where: { topicId: topic.id },
     include: {
       author: {
-        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+        select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
       },
       likes: true
     },

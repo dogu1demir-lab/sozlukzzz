@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         mode: "insensitive"
       }
     },
-    select: { username: true, bio: true, avatarUrl: true }
+    select: { username: true, displayName: true, bio: true, avatarUrl: true }
   });
 
   if (!author) {
@@ -80,7 +80,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       gifts: {
         include: {
           givenBy: {
-            select: { username: true }
+            select: { username: true, displayName: true }
           }
         },
         orderBy: {
@@ -99,14 +99,14 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       followers: {
         include: {
           following: {
-            select: { id: true, username: true, avatarColor: true, role: true, avatarUrl: true }
+            select: { id: true, username: true, displayName: true, avatarColor: true, role: true, avatarUrl: true }
           }
         }
       },
       following: {
         include: {
           follower: {
-            select: { id: true, username: true, avatarColor: true, role: true, avatarUrl: true }
+            select: { id: true, username: true, displayName: true, avatarColor: true, role: true, avatarUrl: true }
           }
         }
       }

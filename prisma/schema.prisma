@@ -15,6 +15,7 @@ datasource db {
 model User {
   id           String   @id @default(cuid())
   username     String   @unique
+  displayName  String?
   passwordHash String
   avatarColor  String   @default("#14b8a6") // Default avatar color (e.g. Teal)
   avatarUrl    String?  // Optional Cloudinary avatar URL

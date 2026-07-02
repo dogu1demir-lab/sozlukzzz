@@ -7,6 +7,7 @@ const SESSION_COOKIE_NAME = "sozlukzzz_session";
 export interface SessionUser {
   id: string;
   username: string;
+  displayName?: string | null;
   role: string;
   avatarColor: string;
   avatarUrl: string | null;
@@ -36,7 +37,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     // Fetch user from DB
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, username: true, role: true, avatarColor: true, avatarUrl: true },
+      select: { id: true, username: true, displayName: true, role: true, avatarColor: true, avatarUrl: true },
     });
 
     if (user) {

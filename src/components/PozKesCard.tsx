@@ -23,6 +23,7 @@ interface PozKesCardProps {
     author: {
       id: string;
       username: string;
+      displayName?: string | null;
       avatarColor: string;
       avatarUrl?: string | null;
     };
@@ -35,6 +36,7 @@ interface PozKesCardProps {
       author: {
         id: string;
         username: string;
+        displayName?: string | null;
         avatarColor: string;
         avatarUrl?: string | null;
       };
@@ -201,13 +203,13 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           ) : (
             <div
               className="avatar avatar-sm"
-              aria-label={entry.author.username}
+              aria-label={entry.author.displayName ?? entry.author.username}
               style={{ backgroundColor: entry.author.avatarColor }}
             >
-              {entry.author.username.substring(0, 1).toUpperCase()}
+              {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
             </div>
           )}
-          <span className="kd-card-username">{entry.author.username}</span>
+          <span className="kd-card-username">{entry.author.displayName ?? entry.author.username}</span>
         </Link>
       </div>
 
@@ -268,7 +270,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                 className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0 mt-0.5"
                 style={{ backgroundColor: entry.author.avatarColor }}
               >
-                {entry.author.username.substring(0, 1).toUpperCase()}
+                {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
               </div>
             )}
             <div className="flex-1 min-w-0">
@@ -277,7 +279,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                 prefetch={false}
                 className="font-bold text-white hover:text-teal-400 mr-1.5"
               >
-                {entry.author.username}
+                {entry.author.displayName ?? entry.author.username}
               </Link>
               <span className="text-zinc-200 block mt-1">
                 <ExpandableMentionText content={entry.content} />
@@ -308,7 +310,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                       className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0"
                       style={{ backgroundColor: comment.author.avatarColor }}
                     >
-                      {comment.author.username.substring(0, 1).toUpperCase()}
+                      {(comment.author.displayName ?? comment.author.username).substring(0, 1).toUpperCase()}
                     </div>
                   )}
                 </Link>
@@ -318,7 +320,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                     prefetch={false}
                     className="kd-comment-author"
                   >
-                    {comment.author.username}
+                    {comment.author.displayName ?? comment.author.username}
                   </Link>
                   <span className="kd-comment-text">
                     <MentionText content={comment.content} />

@@ -35,10 +35,10 @@ export default async function MessagesPage({ searchParams }: PageProps) {
     },
     include: {
       sender: {
-        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+        select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
       },
       receiver: {
-        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+        select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
       }
     },
     orderBy: {
@@ -89,7 +89,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
   if (u) {
     activePartner = await prisma.user.findUnique({
       where: { username: u },
-      select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+      select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
     });
 
     if (activePartner && activePartner.id !== user.id) {

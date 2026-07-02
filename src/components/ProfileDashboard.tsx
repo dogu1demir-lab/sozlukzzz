@@ -18,11 +18,13 @@ interface ProfileDashboardProps {
     createdAt: Date;
     givenBy: {
       username: string;
+      displayName?: string | null;
     };
   }>;
   author: {
     id: string;
     username: string;
+    displayName?: string | null;
     avatarColor: string;
     avatarUrl: string | null;
     role: string;
@@ -32,6 +34,7 @@ interface ProfileDashboardProps {
   sessionUser: {
     id: string;
     username: string;
+    displayName?: string | null;
     role: string;
   } | null;
   followersCount: number;
@@ -67,6 +70,7 @@ interface ProfileDashboardProps {
   followers: Array<{
     id: string;
     username: string;
+    displayName?: string | null;
     avatarColor: string;
     avatarUrl: string | null;
     role: string;
@@ -74,6 +78,7 @@ interface ProfileDashboardProps {
   following: Array<{
     id: string;
     username: string;
+    displayName?: string | null;
     avatarColor: string;
     avatarUrl: string | null;
     role: string;
@@ -207,7 +212,7 @@ export default function ProfileDashboard({
                 className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-black border-4 border-slate-800 text-3xl shadow-inner select-none shrink-0"
                 style={{ backgroundColor: author.avatarColor }}
               >
-                {author.username.substring(0, 1).toUpperCase()}
+                {(author.displayName ?? author.username).substring(0, 1).toUpperCase()}
               </div>
             )}
           </div>
@@ -215,14 +220,17 @@ export default function ProfileDashboard({
           <div className="profile-identity">
             <div className="profile-identity-top">
               <div className="profile-name-row">
-                <h1 className="profile-username flex items-center gap-1.5">
-                  <span>@{author.username}</span>
-                  {author.role === "ADMIN" && (
-                    <span title="Yönetici (Admin)">
-                      <Shield className="h-4 w-4 text-teal-400" />
-                    </span>
-                  )}
-                </h1>
+                <div className="flex flex-col gap-0.5">
+                  <h1 className="profile-username flex items-center gap-1.5 text-xl font-bold text-white leading-tight">
+                    <span>{author.displayName ?? author.username}</span>
+                    {author.role === "ADMIN" && (
+                      <span title="Yönetici (Admin)">
+                        <Shield className="h-4.5 w-4.5 text-teal-400" />
+                      </span>
+                    )}
+                  </h1>
+                  <span className="text-xs text-zinc-550 font-normal">@{author.username}</span>
+                </div>
               </div>
               <div className="profile-actions">
                 {isSelf ? (
@@ -557,12 +565,13 @@ export default function ProfileDashboard({
                           <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
-                            {f.username.substring(0, 1).toUpperCase()}
+                            {(f.displayName ?? f.username).substring(0, 1).toUpperCase()}
                           </div>
                         )}
-                        <div className="min-w-0">
-                          <span className="text-xs font-bold text-slate-200 block truncate">@{f.username}</span>
-                          {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold">Admin</span>}
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-bold text-slate-200 block truncate">{f.displayName ?? f.username}</span>
+                          <span className="text-[10px] text-zinc-550 block truncate">@{f.username}</span>
+                          {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold block mt-0.5">Admin</span>}
                         </div>
                       </Link>
                     ))}
@@ -601,12 +610,13 @@ export default function ProfileDashboard({
                           <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
-                            {f.username.substring(0, 1).toUpperCase()}
+                            {(f.displayName ?? f.username).substring(0, 1).toUpperCase()}
                           </div>
                         )}
-                        <div className="min-w-0">
-                          <span className="text-xs font-bold text-slate-200 block truncate">@{f.username}</span>
-                          {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold">Admin</span>}
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-bold text-slate-200 block truncate">{f.displayName ?? f.username}</span>
+                          <span className="text-[10px] text-zinc-550 block truncate">@{f.username}</span>
+                          {f.role === "ADMIN" && <span className="text-[9px] text-teal-400 font-bold block mt-0.5">Admin</span>}
                         </div>
                       </Link>
                     ))}

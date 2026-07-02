@@ -17,6 +17,7 @@ export default async function SettingsPage() {
     select: {
       id: true,
       username: true,
+      displayName: true,
       avatarColor: true,
       avatarUrl: true,
       bio: true,

@@ -27,13 +27,13 @@ export default async function PozKesPage() {
     },
     include: {
       author: {
-        select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+        select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
       },
       likes: true,
       comments: {
         include: {
           author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
           },
           likes: true
         },

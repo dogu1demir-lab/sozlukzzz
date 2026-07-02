@@ -298,12 +298,12 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                                 className="w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-black shrink-0 border border-white/5"
                                 style={{ backgroundColor: topic.avatarColor }}
                               >
-                                {topic.username.substring(0, 2).toUpperCase()}
+                                {(topic.displayName || topic.username).substring(0, 2).toUpperCase()}
                               </div>
                             )}
                             <div className="flex flex-col min-w-0">
-                              <span className="font-bold truncate text-left text-lime-400">@{topic.username}</span>
-                              <span className="text-[9px] text-zinc-550 truncate font-normal text-left">Yazar Profili</span>
+                              <span className="font-bold truncate text-left text-lime-400">{topic.displayName || topic.username}</span>
+                              <span className="text-[9px] text-zinc-550 truncate font-normal text-left">@{topic.username}</span>
                             </div>
                           </>
                         ) : (
@@ -450,15 +450,15 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                       className="w-7.5 h-7.5 rounded-full flex items-center justify-center font-bold text-black border border-white/5 text-xs"
                       style={{ backgroundColor: user.avatarColor }}
                     >
-                      {user.username.substring(0, 2).toUpperCase()}
+                      {(user.displayName || user.username).substring(0, 2).toUpperCase()}
                     </div>
                   )}
                 </button>
 
                 {showUserMenu && (
                   <div className="absolute right-0 mt-2 w-40 rounded-xl border border-zinc-800 bg-zinc-950 p-1 shadow-xl ring-1 ring-black/5 animate-in fade-in slide-in-from-top-2 duration-100 z-50">
-                    <div className="px-2.5 py-1.5 border-b border-zinc-900 text-[10px] text-zinc-500">
-                      Yazar: <span className="font-semibold text-zinc-300">@{user.username}</span>
+                    <div className="px-2.5 py-1.5 border-b border-zinc-900 text-[10px] text-zinc-550">
+                      Yazar: <span className="font-semibold text-lime-400">{user.displayName || user.username}</span>
                     </div>
                     <Link
                       href={`/yazar/${user.username}`}
@@ -637,12 +637,12 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                                   className="w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold text-black shrink-0 border border-white/5"
                                   style={{ backgroundColor: topic.avatarColor }}
                                 >
-                                  {topic.username.substring(0, 2).toUpperCase()}
+                                  {(topic.displayName || topic.username).substring(0, 2).toUpperCase()}
                                 </div>
                               )}
                               <div className="flex flex-col min-w-0">
-                                <span className="font-bold truncate text-left text-lime-400">@{topic.username}</span>
-                                <span className="text-[9px] text-zinc-550 truncate font-normal text-left">Yazar Profili</span>
+                                <span className="font-bold truncate text-left text-lime-400">{topic.displayName || topic.username}</span>
+                                <span className="text-[9px] text-zinc-550 truncate font-normal text-left">@{topic.username}</span>
                               </div>
                             </>
                           ) : (

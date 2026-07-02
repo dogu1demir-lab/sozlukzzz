@@ -95,7 +95,7 @@ export default async function Home({ params }: PageProps) {
             take: 1,
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             }
@@ -122,7 +122,7 @@ export default async function Home({ params }: PageProps) {
             take: 1,
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             }
@@ -195,7 +195,7 @@ export default async function Home({ params }: PageProps) {
             take: 1,
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             }
@@ -268,7 +268,7 @@ export default async function Home({ params }: PageProps) {
             }
           },
           author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
           },
           likes: true
         },
@@ -328,7 +328,7 @@ export default async function Home({ params }: PageProps) {
             take: 1,
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             }
@@ -393,7 +393,7 @@ export default async function Home({ params }: PageProps) {
             }
           },
           author: {
-            select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
           },
           likes: true
         },
@@ -450,7 +450,7 @@ export default async function Home({ params }: PageProps) {
           entries: {
             include: {
               author: {
-                select: { id: true, username: true, avatarColor: true, avatarUrl: true }
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
               },
               likes: true
             },
