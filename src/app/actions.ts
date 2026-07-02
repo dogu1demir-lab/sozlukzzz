@@ -356,7 +356,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
 
     // Publish global update to Redis for real-time sidebar & page updates
     try {
-      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id }));
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }
@@ -1108,6 +1108,16 @@ export async function deleteAccountAction() {
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
 
   try {
+    // Check if account deletion is disabled
+    try {
+      const disableSelfDeletion = await redis.get("settings:disable_self_deletion");
+      if (disableSelfDeletion === "true") {
+        return { error: "Hesap silme işlemi yönetici tarafından geçici olarak devre dışı bırakılmıştır zzz." };
+      }
+    } catch (redisErr) {
+      console.error("Redis get self deletion check error:", redisErr);
+    }
+
     // Delete user (cascade will delete entries, likes, comments, etc.)
     await prisma.user.delete({
       where: { id: user.id }
@@ -1177,6 +1187,13 @@ export async function createPollTopicAction(title: string, question: string, opt
         }
       }
     });
+
+    // Publish global update to Redis for real-time sidebar & page updates
+    try {
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title }));
+    } catch (redisErr) {
+      console.error("Redis global publish error:", redisErr);
+    }
 
     await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
@@ -2461,6 +2478,11 @@ export async function adminRenameTopicAction(topicId: string, newTitle: string) 
 
     const newSlug = await convertToSlug(cleanTitle);
 
+    const oldTopic = await prisma.topic.findUnique({
+      where: { id: topicId },
+      select: { slug: true }
+    });
+
     const updated = await prisma.topic.update({
       where: { id: topicId },
       data: {
@@ -2468,6 +2490,14 @@ export async function adminRenameTopicAction(topicId: string, newTitle: string) 
         slug: newSlug
       }
     });
+
+    if (oldTopic && oldTopic.slug !== newSlug) {
+      try {
+        await redis.set(`redirect:${oldTopic.slug}`, newSlug);
+      } catch (redisErr) {
+        console.error("Failed to save redirect in Redis:", redisErr);
+      }
+    }
 
     await clearAllFeedAndSidebarCaches();
     return { success: true, topic: updated };
@@ -2505,6 +2535,13 @@ export async function adminMergeTopicsAction(sourceTopicId: string, targetTopicI
     await prisma.topic.delete({
       where: { id: sourceTopicId }
     });
+
+    // Save redirect in Redis
+    try {
+      await redis.set(`redirect:${sourceTopic.slug}`, targetTopic.slug);
+    } catch (redisErr) {
+      console.error("Failed to save merge redirect in Redis:", redisErr);
+    }
 
     await clearAllFeedAndSidebarCaches();
     return { success: true };
@@ -2548,6 +2585,7 @@ export async function adminGetSettingsAction() {
   try {
     const disableSignups = await redis.get("settings:disable_signups");
     const disablePozkes = await redis.get("settings:disable_pozkes");
+    const disableSelfDeletion = await redis.get("settings:disable_self_deletion");
     const xPixelId = await redis.get("settings:x_pixel_id");
     const xSignupEventId = await redis.get("settings:x_signup_event_id");
 
@@ -2555,6 +2593,7 @@ export async function adminGetSettingsAction() {
       success: true,
       disableSignups: disableSignups === "true",
       disablePozkes: disablePozkes === "true",
+      disableSelfDeletion: disableSelfDeletion === "true",
       xPixelId: xPixelId || "",
       xSignupEventId: xSignupEventId || ""
     };
@@ -2567,6 +2606,7 @@ export async function adminGetSettingsAction() {
 export async function adminUpdateSettingsAction(
   disableSignups: boolean,
   disablePozkes: boolean,
+  disableSelfDeletion: boolean,
   xPixelId?: string,
   xSignupEventId?: string
 ) {
@@ -2578,6 +2618,7 @@ export async function adminUpdateSettingsAction(
   try {
     await redis.set("settings:disable_signups", disableSignups ? "true" : "false");
     await redis.set("settings:disable_pozkes", disablePozkes ? "true" : "false");
+    await redis.set("settings:disable_self_deletion", disableSelfDeletion ? "true" : "false");
     if (xPixelId !== undefined) {
       await redis.set("settings:x_pixel_id", xPixelId.trim());
     }

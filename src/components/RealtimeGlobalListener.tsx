@@ -15,6 +15,13 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
     let eventSource: EventSource | null = null;
     let reconnectTimeout: NodeJS.Timeout | null = null;
 
+    // Request browser notification permissions on mount
+    if (typeof window !== "undefined" && "Notification" in window) {
+      if (Notification.permission === "default") {
+        Notification.requestPermission().catch(console.error);
+      }
+    }
+
     function connectSSE() {
       if (eventSource) {
         eventSource.close();
@@ -34,6 +41,15 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
             }
             // Play sinek vızıltısı sound for new topic!
             playBuzzSound(false, "/vizildi.mp3");
+
+            // Native notification if backgrounded
+            if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
+              new Notification("Yeni Başlık! 🔥", {
+                body: `"${data.title || "Yeni bir konu açıldı!"}" başlığı vızıldatıldı!`,
+                icon: "/icon.jpg"
+              });
+            }
+
             router.refresh();
           } 
           else if (data.type === "NEW_ENTRY" && data.topicId) {
@@ -46,6 +62,14 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
             // Play Nokia SMS sound for incoming private messages from other users
             if (data.senderUsername && data.senderUsername !== currentUsername) {
               playBuzzSound(false, "/sms_nokia_old.mp3");
+
+              // Native notification if backgrounded
+              if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
+                new Notification(`@${data.senderUsername}`, {
+                  body: "Sana yeni bir vızzz gönderdi! 💬",
+                  icon: "/icon.jpg"
+                });
+              }
             }
             router.refresh();
           }

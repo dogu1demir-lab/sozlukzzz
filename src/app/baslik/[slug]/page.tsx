@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound, redirect, permanentRedirect } from "next/navigation";
 import EntryBlock from "@/components/EntryBlock";
 import AddEntryForm from "@/components/AddEntryForm";
 import MentionText from "@/components/MentionText";
@@ -141,6 +141,16 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
 
   // If topic is not found
   if (!topic) {
+    // Check if we have a registered 301/308 redirect in Redis
+    try {
+      const redirectSlug = await redis.get(`redirect:${slug}`);
+      if (redirectSlug) {
+        permanentRedirect(`/baslik/${redirectSlug}`);
+      }
+    } catch (err) {
+      console.error("Redis redirect fetch error:", err);
+    }
+
     const searchTitle = q || slug.replace(/-/g, " ");
 
     return (
