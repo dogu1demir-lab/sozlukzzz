@@ -197,8 +197,12 @@ function NewThreadContent() {
           submittingRef.current = false;
         } else if (result.success && result.slug) {
           setSubmitStatus("redirecting");
-          triggerConfetti();
-          playBuzzSound(false, "/eylemhareket.mp3");
+          try {
+            triggerConfetti();
+            playBuzzSound(false, "/eylemhareket.mp3");
+          } catch (err) {
+            console.error("Animations/sound blocked:", err);
+          }
           router.push(`/baslik/${result.slug}`);
         }
       } catch (e) {
@@ -229,8 +233,12 @@ function NewThreadContent() {
           submittingRef.current = false;
         } else if (result.success && result.slug) {
           setSubmitStatus("redirecting");
-          triggerConfetti();
-          playBuzzSound(false, "/eylemhareket.mp3");
+          try {
+            triggerConfetti();
+            playBuzzSound(false, "/eylemhareket.mp3");
+          } catch (err) {
+            console.error("Animations/sound blocked:", err);
+          }
           router.push(`/baslik/${result.slug}`);
         }
       } catch (e) {

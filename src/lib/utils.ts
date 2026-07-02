@@ -4,7 +4,12 @@ export function playBuzzSound(force = false, soundPath = "/vizildi.mp3") {
   try {
     const audio = new Audio(soundPath);
     audio.volume = 0.25; // set moderate volume to not annoy the user
-    audio.play();
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Safe fallback for autoplay/policy block
+      });
+    }
   } catch (e) {
     // browser auto-play policy block fallback
   }
