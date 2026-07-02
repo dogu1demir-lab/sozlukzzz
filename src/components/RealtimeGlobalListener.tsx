@@ -39,6 +39,10 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
               const buzzEvent = new CustomEvent("topic-buzz", { detail: { topicId: data.topicId } });
               window.dispatchEvent(buzzEvent);
             }
+            // Trigger sidebar refresh
+            const refreshEvent = new CustomEvent("sidebar-refresh");
+            window.dispatchEvent(refreshEvent);
+
             // Play sinek vızıltısı sound for new topic!
             playBuzzSound(false, "/vizildi.mp3");
 
@@ -56,6 +60,11 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
             // Trigger buzz flame icon (No sound for normal entries by others as requested)
             const buzzEvent = new CustomEvent("topic-buzz", { detail: { topicId: data.topicId } });
             window.dispatchEvent(buzzEvent);
+
+            // Trigger sidebar refresh
+            const refreshEvent = new CustomEvent("sidebar-refresh");
+            window.dispatchEvent(refreshEvent);
+
             router.refresh();
           } 
           else if (data.type === "NEW_MESSAGE") {

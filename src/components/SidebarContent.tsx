@@ -55,6 +55,16 @@ export default function SidebarContent() {
     return () => window.removeEventListener("topic-buzz", handleBuzz);
   }, []);
 
+  // Listen to live sidebar refresh signals to update topics list in real-time
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchTopics(activeTab, true);
+    };
+
+    window.addEventListener("sidebar-refresh", handleRefresh);
+    return () => window.removeEventListener("sidebar-refresh", handleRefresh);
+  }, [activeTab]);
+
   // Check recently updated topics on initial mount / page load
   useEffect(() => {
     const now = Date.now();
