@@ -198,13 +198,10 @@ function NewThreadContent() {
         } else if (result.success && result.slug) {
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
-          router.push(`/baslik/${result.slug}`);
-          router.refresh();
-          // Reset after a 5 second safety timeout
+          // Use hard window redirect to bypass Next.js client router cache conflicts and guarantee navigation
           setTimeout(() => {
-            submittingRef.current = false;
-            setSubmitting(false);
-          }, 5000);
+            window.location.href = `/baslik/${result.slug}`;
+          }, 400);
         }
       } catch (e) {
         setError("Başlık oluşturulurken teknik bir sorun oluştu.");
@@ -235,13 +232,10 @@ function NewThreadContent() {
         } else if (result.success && result.slug) {
           triggerConfetti();
           playBuzzSound(false, "/eylemhareket.mp3");
-          router.push(`/baslik/${result.slug}`);
-          router.refresh();
-          // Reset after a 5 second safety timeout
+          // Use hard window redirect to bypass Next.js client router cache conflicts and guarantee navigation
           setTimeout(() => {
-            submittingRef.current = false;
-            setSubmitting(false);
-          }, 5000);
+            window.location.href = `/baslik/${result.slug}`;
+          }, 400);
         }
       } catch (e) {
         setError("Anket oluşturulurken teknik bir sorun oluştu.");
