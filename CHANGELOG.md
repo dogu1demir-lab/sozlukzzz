@@ -43,13 +43,10 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
    * **Kod Referansı:** [schema.prisma](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/prisma/schema.prisma) & [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts) (deleteAccountAction)
 
 ### 🐛 Hata Düzeltmeleri
-1. **Tüm Gönderi ve Form Yönlendirme Askılarının Giderilmesi (Standartlaştırma)**
-   * **Sorun:** Yeni konu açma sayfasındaki kilitlenme çözülmüştü; ancak benzer şekilde **Yorum/Entry Yazma Formu** ve **PozKes Fotoğraf Yükleme Formu** da asenkron veri gönderme işlemlerini doğrudan `startTransition` içinde yürüttüğü ve peşine `router.refresh()` çakışması yaşadığı için ara sıra `"Gönderiliyor..."` aşamasında takılı kalabiliyordu.
-   * **Çözüm:** Tüm formlar (`AddEntryForm`, `PozKesUploadForm`) yeni kararlı standardımıza geçirildi:
-     * Asenkron API çağrısı `startTransition` dışına alındı.
-     * Sadece yönlendirme (`router.push`) / sayfa güncelleme (`router.refresh`) işlemleri `startTransition` içerisine dahil edildi.
-     * Form gönderildikten sonra oluşan geçici arayüz kilitlenmeleri ve geçiş kesintileri tamamen engellendi.
-   * **Kod Referansı:** [yeni/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx), [AddEntryForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/AddEntryForm.tsx), [PozKesUploadForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesUploadForm.tsx)
+1. **Yeni Başlık Açma Yönlendirme Askılarının Net Çözümü (SPA Yönlendirmesi)**
+   * **Sorun:** Yeni konu açma (`yeni/page.tsx`) formunda gönderim sonrası yönlendirme (`router.push`) işlemi React `startTransition` içerisine dahil edildiğinde, Next.js hedef dynamic sayfa verisini sunucudan çekip derleyene kadar arayüzü geçici donduruyor (transition kilidi) ve kullanıcının sayfada asılı kalmasına yol açıyordu.
+   * **Çözüm:** `yeni/page.tsx` içerisindeki `startTransition` ve `setTimeout` yapıları tamamen kaldırıldı. Form başarıyla gönderildiği anda Next.js'in standart `router.push` yönlendiricisi direkt tetiklendi. Böylece sayfa dondurulmadan konfeti ve ses efekti (`eylemhareket.mp3`) kesintisiz çalıyor ve Next.js arka planda anında yumuşak bir SPA yönlendirmesi yapıyor.
+   * **Kod Referansı:** [yeni/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx)
 
 2. **Gereksiz PM2 Log Dosyası Şişmesinin Engellenmesi**
    * **Sorun:** Her ana sayfa besleme (feed) yüklenmesinde sunucuda `[PERF]` etiketli performans günlük yazıları (`console.log`) çalıştırılıyordu. Bu durum, sunucu diskinin uzun vadede gereksiz log kayıtlarıyla dolma riski taşıyordu.
