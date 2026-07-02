@@ -14,7 +14,7 @@ function hashPassword(password: string): string {
 }
 
 // Helper: Clean username to English handle format
-export function cleanUsernameHandle(input: string): string {
+function cleanUsernameHandle(input: string): string {
   let slug = input.trim().toLowerCase();
   const turkishChars: { [key: string]: string } = {
     'ı': 'i', 'ş': 's', 'ç': 'c', 'ğ': 'g', 'ü': 'u', 'ö': 'o',
