@@ -26,7 +26,7 @@ Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanı
 ### 🐛 Hata Düzeltmeleri
 1. **Yeni Konu/Anket Açma Yönlendirme Askısı Çözüldü**
    * **Sorun:** Yeni konu açıldığında form gönderildikten sonra sayfa yönlenmeyip `"Paylaşılıyor..."` butonunda kilitli kalıyordu.
-   * **Çözüm:** Kilitlenmeye sebep olan React `startTransition` kaldırıldı. İstemci taraflı yönlendirmenin Next.js önbelleğine takılmasını engellemek için `router.push()` sonrasına **`router.refresh()`** entegre edildi. Artık yönlendirmeler anlık tamamlanıyor.
+   * **Çözüm:** Kilitlenmeye sebep olan React `startTransition` kaldırıldı. İstemci tarafı (Next.js) rota önbellek kilitlenmelerini ve tarayıcı bazlı uyuşmazlıkları %100 bypass etmek için yönlendirme mantığı **`window.location.href`** (tarayıcı düzeyinde yönlendirme) olarak güncellendi. Kullanıcının konfeti ve ses efektini deneyimleyebilmesi için 400ms gecikmeli bir yönlendirme yapısı kuruldu. Artık yönlendirmeler tüm tarayıcılarda kayıpsız tamamlanıyor.
    * **Kod Referansı:** [yeni/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx)
 
 2. **Gereksiz PM2 Log Dosyası Şişmesinin Engellenmesi**
