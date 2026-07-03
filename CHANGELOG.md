@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.0] - 2026-07-03
+
+### 🚀 Profil Sayfası Kadraj Görsel Yükleme Modali (`profile-upload-modal`)
+1. **window.prompt Değişimi & Şık Önizleme Arayüzü**
+   * **Açıklama:** Profil sayfasındaki kadraj görseli yükleme alanındaki tarayıcı prompt'u kaldırılarak yerine karanlık glassmorphic tema ile tam uyumlu, görsel önizlemeli ve açıklama yazma alanına sahip özel bir modal bileşeni eklendi.
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.6.0] - 2026-07-03
 
 ### 🚀 Sol Menü Real-Time Kilidi & "Daha Fazla" Akıllı Filtresi
