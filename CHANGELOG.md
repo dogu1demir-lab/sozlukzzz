@@ -2,6 +2,16 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.6.0] - 2026-07-03
+
+### 🚀 Sol Menü Real-Time Kilidi & "Daha Fazla" Akıllı Filtresi
+1. **Sol Menü Kilitlenme Hatası Düzeltildi (`sidebar-realtime-lock-fix`)**
+   * **Açıklama:** Bugün sekmesinde dünün konularının eklenmesiyle listenin ilk yüklemede 30 sınırı aşması (örneğin 45 başlık) sebebiyle, sistemin kullanıcıyı "Daha Fazla"ya tıklamış varsayıp real-time güncellemeleri kilitlemesi sorunu çözüldü.
+   * **Çözüm:** Liste uzunluğu karşılaştırması yerine, sadece kullanıcı "Daha Fazla" butonuna bastığında tetiklenen `hasLoadedMore` durum bayrağı eklendi.
+   * **Kod Referansı:** [SidebarContent.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/SidebarContent.tsx)
+
+---
+
 ## [1.5.1] - 2026-07-03
 
 ### 🚀 Nginx Gzip Compression Tünel Kilidi Çözümü
