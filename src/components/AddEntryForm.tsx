@@ -310,17 +310,26 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
           className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-lime-500 text-black font-semibold text-xs hover:bg-lime-400 transition-colors shadow-lg shadow-lime-500/10 disabled:opacity-50"
         >
           <Send className="h-3 w-3" />
-          <span>
-            {submitStatus === "submitting"
-              ? "vızıldanıyor..."
-              : submitStatus === "redirecting"
-              ? "vızıldatıldı! uçuluyor... 🚀"
-              : isPending
-              ? "gönderiliyor..."
-              : "vızıldat"}
-          </span>
+          <span>{isSubmittingOrPending ? "vızıldanıyor..." : "vızıldat"}</span>
         </button>
       </div>
+
+      {/* Uçuş Portalı Overlay */}
+      {submitStatus === "redirecting" && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="flex flex-col items-center gap-4 text-center p-6 animate-in zoom-in-95 duration-300">
+            <div className="relative flex items-center justify-center w-20 h-20 rounded-full bg-lime-500/10 border border-lime-500/20 shadow-[0_0_40px_rgba(132,204,22,0.2)] animate-pulse">
+              <span className="text-4xl animate-bounce duration-700">🐝</span>
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-wide font-sans">
+              vızıldatıldı! uçuluyor... 🚀
+            </h2>
+            <p className="text-xs text-zinc-500 font-medium">
+              sayfaya yönlendiriliyorsunuz, lütfen bekleyin
+            </p>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
