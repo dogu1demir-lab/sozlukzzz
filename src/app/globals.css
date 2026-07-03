@@ -1281,3 +1281,26 @@ body {
     border-color: color-mix(in oklab, lab(40 4.14 -13.48) 30%, transparent) !important;
   }
 }
+
+/* Targeted Entry Glow Animation */
+@keyframes targeted-entry-glow {
+  0% {
+    border-color: rgba(132, 204, 22, 0.6) !important;
+    background-color: rgba(132, 204, 22, 0.06) !important;
+    box-shadow: 0 0 16px rgba(132, 204, 22, 0.15);
+  }
+  70% {
+    border-color: rgba(132, 204, 22, 0.6) !important;
+    background-color: rgba(132, 204, 22, 0.06) !important;
+    box-shadow: 0 0 16px rgba(132, 204, 22, 0.15);
+  }
+  100% {
+    border-color: rgba(24, 24, 27, 1) !important;
+    background-color: rgba(9, 9, 11, 0.2) !important;
+    box-shadow: none;
+  }
+}
+
+article[id^="entry-"]:target {
+  animation: targeted-entry-glow 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}

@@ -15,9 +15,9 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
   const [content, setContent] = useState("");
   const [base64Image, setBase64Image] = useState("");
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">("idle");
   const [isPending, startTransition] = useTransition();
-  const isSubmittingOrPending = isPending || submitting;
+  const isSubmittingOrPending = isPending || submitStatus !== "idle";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
   const router = useRouter();
@@ -79,12 +79,12 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
     }
 
     submittingRef.current = true;
-    setSubmitting(true);
+    setSubmitStatus("submitting");
     try {
       const result = await createPozKesEntryAction(title, content, base64Image);
       if (result.error) {
         setError(result.error);
-        setSubmitting(false);
+        setSubmitStatus("idle");
         submittingRef.current = false;
       } else {
         // Clear form
@@ -95,14 +95,16 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
         }
         playBuzzSound();
         
+        setSubmitStatus("redirecting");
+        
         const targetUrl = result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes";
         setTimeout(() => {
           window.location.href = targetUrl;
-        }, 940);
+        }, 1300);
       }
     } catch (err) {
       setError("PozKes yüklenirken teknik bir hata oluştu.");
-      setSubmitting(false);
+      setSubmitStatus("idle");
       submittingRef.current = false;
     }
   };
@@ -201,11 +203,19 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isSubmittingOrPending}
           className="flex items-center gap-1.5 px-6 py-2 rounded-full bg-lime-500 text-black font-bold text-xs hover:bg-lime-400 transition-colors shadow-lg shadow-lime-500/10 disabled:opacity-50"
         >
           <Send className="h-3 w-3" />
-          <span>{isPending ? "Paylaşılıyor..." : "PozKes'te Paylaş"}</span>
+          <span>
+            {submitStatus === "submitting"
+              ? "fotoğraf vızıldanıyor..."
+              : submitStatus === "redirecting"
+              ? "poz vızıldatıldı! uçuluyor... 🚀"
+              : isPending
+              ? "Paylaşılıyor..."
+              : "PozKes'te Paylaş"}
+          </span>
         </button>
       </div>
     </form>

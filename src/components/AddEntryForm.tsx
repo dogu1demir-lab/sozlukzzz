@@ -14,9 +14,9 @@ interface AddEntryFormProps {
 export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps) {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">("idle");
   const [isPending, startTransition] = useTransition();
-  const isSubmittingOrPending = isPending || submitting;
+  const isSubmittingOrPending = isPending || submitStatus !== "idle";
   const router = useRouter();
   const searchParams = useSearchParams();
   const submittingRef = useRef(false);
@@ -163,7 +163,7 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
     }
 
     submittingRef.current = true;
-    setSubmitting(true);
+    setSubmitStatus("submitting");
     
     if (typeof window !== "undefined" && document.activeElement) {
       (document.activeElement as HTMLElement).blur();
@@ -173,26 +173,28 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
       const result = await createEntryAction(topicId, content);
       if (result.error) {
         setError(result.error);
-        setSubmitting(false);
+        setSubmitStatus("idle");
         submittingRef.current = false;
       } else {
         setContent("");
         playBuzzSound(false, "/eylemhareket.mp3");
         
+        setSubmitStatus("redirecting");
+        
         if (result.page && result.entryId) {
           const targetUrl = `${window.location.pathname}?p=${result.page}#entry-${result.entryId}`;
           setTimeout(() => {
             window.location.href = targetUrl;
-          }, 940);
+          }, 1300);
         } else {
           setTimeout(() => {
             window.location.reload();
-          }, 940);
+          }, 1300);
         }
       }
     } catch (err) {
       setError("Entry gönderilirken teknik bir hata oluştu.");
-      setSubmitting(false);
+      setSubmitStatus("idle");
       submittingRef.current = false;
     }
   };
@@ -300,7 +302,15 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
           className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-lime-500 text-black font-semibold text-xs hover:bg-lime-400 transition-colors shadow-lg shadow-lime-500/10 disabled:opacity-50"
         >
           <Send className="h-3 w-3" />
-          <span>{isSubmittingOrPending ? "gönderiliyor..." : "vızıldat"}</span>
+          <span>
+            {submitStatus === "submitting"
+              ? "vızıldanıyor..."
+              : submitStatus === "redirecting"
+              ? "vızıldatıldı! uçuluyor... 🚀"
+              : isPending
+              ? "gönderiliyor..."
+              : "vızıldat"}
+          </span>
         </button>
       </div>
     </form>

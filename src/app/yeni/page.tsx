@@ -206,7 +206,7 @@ function NewThreadContent() {
           const targetUrl = `/baslik/${result.slug}`;
           setTimeout(() => {
             window.location.href = targetUrl;
-          }, 940);
+          }, 1300);
         }
       } catch (e) {
         setError("Başlık oluşturulurken teknik bir sorun oluştu.");
@@ -245,7 +245,7 @@ function NewThreadContent() {
           const targetUrl = `/baslik/${result.slug}`;
           setTimeout(() => {
             window.location.href = targetUrl;
-          }, 940);
+          }, 1300);
         }
       } catch (e) {
         setError("Anket oluşturulurken teknik bir sorun oluştu.");
@@ -497,9 +497,9 @@ function NewThreadContent() {
             className="px-6 py-2 rounded-lg bg-teal-500 text-white text-xs font-bold hover:bg-teal-400 transition-colors disabled:opacity-50"
           >
             {submitStatus === "submitting"
-              ? "Gönderiliyor..."
+              ? (type === "normal" ? "başlık vızıldanıyor..." : "anket vızıldanıyor...")
               : submitStatus === "redirecting"
-              ? "Başlık Açıldı! Gidiliyor..."
+              ? (type === "normal" ? "başlık açıldı! uçuluyor... 🚀" : "anket açıldı! uçuluyor... 🚀")
               : type === "normal"
               ? "Konuyu Paylaş"
               : "Anketi Paylaş"}
