@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.5.0] - 2026-07-03
+
+### 🚀 Nginx Real-time SSE Buffering Çözümü
+1. **Nginx SSE Akışı Tam Eşzamanlılaştırma (`nginx-sse-unbuffering`)**
+   * **Açıklama:** Yeni açılan başlıkların ve entry'lerin arkadaş/diğer kullanıcıların ekranına sayfayı yenilemeden anında (real-time) düşmesini engelleyen Nginx proxy buffering problemi kökten çözüldü. Nginx yapılandırma dosyasına `/api/messages/stream` SSE adresi için `proxy_buffering off`, `proxy_cache off` ve `chunked_transfer_encoding on` kuralları eklendi.
+   * **Kod/Sunucu Referansı:** Nginx sites-available/sozlukzzz konfigürasyonu güncellendi ve yeniden yüklendi.
+
+---
+
 ## [1.4.0] - 2026-07-03
 
 ### 🚀 Full-Screen Uçuş Portalı & Acil Çıkış Kapısı (Escape Hatch)
