@@ -383,14 +383,14 @@ export async function createTopicAndEntryAction(title: string, content: string, 
       }
     }
 
+    await clearAllFeedAndSidebarCaches(user.id);
+
     // Publish global update to Redis for real-time sidebar & page updates
     try {
       await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title, slug: newTopic.slug }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }
-
-    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, slug, entryId };
@@ -490,13 +490,6 @@ export async function createEntryAction(topicId: string, content: string) {
       });
     }
 
-    // Publish global update to Redis for real-time sidebar & page updates
-    try {
-      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY", topicId }));
-    } catch (redisErr) {
-      console.error("Redis global publish error:", redisErr);
-    }
-
     // Calculate target page for this new entry
     const totalEntries = await prisma.entry.count({
       where: { topicId }
@@ -504,6 +497,13 @@ export async function createEntryAction(topicId: string, content: string) {
     const page = Math.ceil(totalEntries / 10) || 1;
 
     await clearAllFeedAndSidebarCaches(user.id);
+
+    // Publish global update to Redis for real-time sidebar & page updates
+    try {
+      await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY", topicId }));
+    } catch (redisErr) {
+      console.error("Redis global publish error:", redisErr);
+    }
     revalidatePath(`/baslik/${topic.slug}`);
     return { success: true, entryId: entry.id, page };
   } catch (e) {
@@ -897,14 +897,14 @@ export async function createPozKesEntryAction(title: string, content: string, ba
       }
     }
 
+    await clearAllFeedAndSidebarCaches(user.id);
+
     // Publish global update to Redis for real-time sidebar & page updates
     try {
       await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY", topicId: topic.id }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }
-
-    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     revalidatePath(`/yazar/${user.username}`);
@@ -1233,14 +1233,14 @@ export async function createPollTopicAction(title: string, question: string, opt
       }
     });
 
+    await clearAllFeedAndSidebarCaches(user.id);
+
     // Publish global update to Redis for real-time sidebar & page updates
     try {
       await redis.publish("global:updates", JSON.stringify({ type: "NEW_TOPIC", topicId: newTopic.id, title: newTopic.title, slug: newTopic.slug }));
     } catch (redisErr) {
       console.error("Redis global publish error:", redisErr);
     }
-
-    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, slug };
