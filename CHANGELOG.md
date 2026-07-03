@@ -2,6 +2,22 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.4.0] - 2026-07-03
+
+### 🚀 Full-Screen Uçuş Portalı & Acil Çıkış Kapısı (Escape Hatch)
+1. **Şık Full-Screen Geçiş Ekranları (`flying-portal-overlay`)**
+   * **Açıklama:** Yorum gönderme ve PozKes yükleme sonrasında 1600ms'lik yönlendirme gecikmesi esnasında ekrandaki buton deformasyonunu önlemek ve şık bir geçiş hissi vermek amacıyla full-screen koyu cam (backdrop-blur) portal katmanı eklendi. Yorumlar için `🐝` (arı), PozKes için `📸` (kamera) animasyonlu simgeleri ve özelleştirilmiş başlıklar eklendi.
+   * **Kod Referansı:** [AddEntryForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/AddEntryForm.tsx), [PozKesUploadForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesUploadForm.tsx)
+
+2. **3 Saniyelik Acil Kurtarma Sistemi (`escape-hatch`)**
+   * **Açıklama:** Geçiş esnasında bağlantının kopması veya yönlendirmenin kilitlenmesi riskine karşı, 3 saniye sonra portalın altında "zorla yenile" veya "iptal et" (formu sıfırlayıp geri dönme) seçenekleri sunan acil çıkış kapısı entegre edildi.
+   * **Kod Referansı:** [AddEntryForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/AddEntryForm.tsx), [PozKesUploadForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesUploadForm.tsx)
+
+3. **Next.js Revalidation Bellek Koruması (`window-is-uculuyor`)**
+   * **Açıklama:** Yorum yapıldığında Next.js'in sayfayı sunucu tarafında tazeleyip (`revalidatePath`) Suspense bileşenini unmount etmesi nedeniyle silinen yönlendirme durumları, `window.isUculuyor` küresel bayrağı ile korunarak formun sıfırlanması engellendi.
+
+---
+
 ## [1.3.0] - 2026-07-03
 
 ### 🚀 Mobil Uyumlu Yönlendirme & Ses Güvencesi (Kurşun Geçirmez Model)
