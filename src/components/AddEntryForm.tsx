@@ -183,11 +183,11 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
           const targetUrl = `${window.location.pathname}?p=${result.page}#entry-${result.entryId}`;
           setTimeout(() => {
             window.location.href = targetUrl;
-          }, 900);
+          }, 940);
         } else {
           setTimeout(() => {
             window.location.reload();
-          }, 900);
+          }, 940);
         }
       }
     } catch (err) {

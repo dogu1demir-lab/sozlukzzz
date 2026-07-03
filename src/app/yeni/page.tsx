@@ -206,7 +206,7 @@ function NewThreadContent() {
           const targetUrl = `/baslik/${result.slug}`;
           setTimeout(() => {
             window.location.href = targetUrl;
-          }, 900);
+          }, 940);
         }
       } catch (e) {
         setError("Başlık oluşturulurken teknik bir sorun oluştu.");
@@ -245,7 +245,7 @@ function NewThreadContent() {
           const targetUrl = `/baslik/${result.slug}`;
           setTimeout(() => {
             window.location.href = targetUrl;
-          }, 900);
+          }, 940);
         }
       } catch (e) {
         setError("Anket oluşturulurken teknik bir sorun oluştu.");
