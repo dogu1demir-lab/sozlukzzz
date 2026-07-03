@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.5.1] - 2026-07-03
+
+### 🚀 Nginx Gzip Compression Tünel Kilidi Çözümü
+1. **SSE Tüneli İçin Gzip Devre Dışı Bırakıldı (`gzip-off-realtime`)**
+   * **Açıklama:** Nginx'in veri sıkıştırma (`gzip on`) filtresinin, SSE anlık mesajlarını sıkıştırmak için ara belleğe alarak geciktirmesi engellendi. `/api/messages/stream` Nginx konum bloğuna `gzip off;` kuralı eklenerek tüm ara bellek sıkıştırma gecikmeleri kaldırıldı.
+   * **Kod/Sunucu Referansı:** Nginx sites-available/sozlukzzz konfigürasyonu güncellendi ve yeniden yüklendi.
+
+---
+
 ## [1.5.0] - 2026-07-03
 
 ### 🚀 Nginx Real-time SSE Buffering Çözümü
