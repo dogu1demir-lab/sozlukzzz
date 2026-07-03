@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, Calendar, Shield, MessageSquare, BookOpen, ThumbsUp, Users, ArrowRight } from "lucide-react";
+import { Sparkles, Calendar, Shield, MessageSquare, BookOpen, ThumbsUp, Users, ArrowRight, X, Send, AlertCircle } from "lucide-react";
 import { playBuzzSound } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import FollowButton from "@/components/FollowButton";
@@ -132,6 +132,12 @@ export default function ProfileDashboard({
   const [followersLimit, setFollowersLimit] = useState(10);
   const [followingLimit, setFollowingLimit] = useState(10);
   const [photosLimit, setPhotosLimit] = useState(10);
+  
+  const [uploadPhotoBase64, setUploadPhotoBase64] = useState<string>("");
+  const [uploadPhotoDesc, setUploadPhotoDesc] = useState<string>("");
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string>("");
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -167,27 +173,49 @@ export default function ProfileDashboard({
       return;
     }
 
-    const desc = window.prompt("Fotoğraf açıklaması girin (en az 5 karakter):");
-    if (!desc || desc.trim().length < 5) {
-      alert("Açıklama geçersiz veya çok kısa.");
-      return;
-    }
-
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
-      startTransition(async () => {
-        const result = await createPozKesEntryAction("pozkes galeri", desc, base64);
-        if (result.error) {
-          alert(result.error);
-        } else {
-          playBuzzSound();
-          router.refresh();
-          window.location.reload();
-        }
-      });
+      setUploadPhotoBase64(base64);
+      setUploadPhotoDesc("");
+      setUploadError("");
+      setIsUploadModalOpen(true);
+      
+      // Clear input to allow uploading same file again
+      e.target.value = "";
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleConfirmUpload = async () => {
+    const cleanDesc = uploadPhotoDesc.trim();
+    if (!cleanDesc) {
+      setUploadError("Açıklama boş olamaz zzz.");
+      return;
+    }
+    if (cleanDesc.length < 5) {
+      setUploadError("Açıklama en az 5 karakter olmalıdır zzz.");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError("");
+
+    try {
+      const result = await createPozKesEntryAction("pozkes galeri", cleanDesc, uploadPhotoBase64);
+      if (result.error) {
+        setUploadError(result.error);
+        setIsUploading(false);
+      } else {
+        playBuzzSound();
+        setIsUploadModalOpen(false);
+        router.refresh();
+        window.location.reload();
+      }
+    } catch (err) {
+      setUploadError("Fotoğraf yüklenirken teknik bir hata oluştu zzz.");
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -638,6 +666,95 @@ export default function ProfileDashboard({
         </div>
       </div>
       
+      {/* Photo Showcase Upload Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="relative w-full max-w-md flex flex-col rounded-2xl border border-zinc-850 bg-zinc-950 p-5 md:p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden animate-in zoom-in-95 duration-300">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => { playBuzzSound(); setIsUploadModalOpen(false); }}
+              className="absolute top-4 right-4 p-1.5 rounded-full text-zinc-500 hover:text-white hover:bg-zinc-900 transition-all active:scale-95 cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Modal Title */}
+            <div className="flex items-center gap-2 border-b border-zinc-900 pb-3 mb-4 shrink-0">
+              <span className="text-xl select-none">📸</span>
+              <h2 className="text-sm md:text-base font-black text-white uppercase tracking-wider">
+                Kadraja <span className="text-lime-400">Fotoğraf Ekle</span>
+              </h2>
+            </div>
+
+            {/* Image Preview */}
+            {uploadPhotoBase64 && (
+              <div className="relative w-full max-h-56 bg-zinc-900/40 rounded-xl overflow-hidden mb-4 border border-zinc-900 flex items-center justify-center">
+                <img
+                  src={uploadPhotoBase64}
+                  alt="Kadraj Önizleme"
+                  className="max-h-56 w-auto object-contain"
+                />
+              </div>
+            )}
+
+            {/* Description Textarea */}
+            <div className="flex flex-col gap-1.5 mb-4">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                Fotoğraf Açıklaması (en az 5 karakter)
+              </label>
+              <textarea
+                value={uploadPhotoDesc}
+                onChange={(e) => {
+                  setUploadPhotoDesc(e.target.value);
+                  if (uploadError) setUploadError("");
+                }}
+                placeholder="Fotoğrafını anlat, çatlasınlar zzz..."
+                disabled={isUploading}
+                className="w-full bg-zinc-900/50 border border-zinc-850 rounded-xl p-3 text-xs md:text-sm text-zinc-150 focus:outline-none focus:border-lime-500/50 min-h-[90px] resize-none leading-relaxed transition-all placeholder:text-zinc-600"
+              />
+            </div>
+
+            {/* Error Message */}
+            {uploadError && (
+              <div className="mb-4 flex items-center gap-1.5 p-2.5 rounded-xl bg-red-950/20 border border-red-900/30 text-red-400 text-xs">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                <span>{uploadError}</span>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-zinc-900">
+              <button
+                type="button"
+                onClick={() => { playBuzzSound(); setIsUploadModalOpen(false); }}
+                disabled={isUploading}
+                className="px-4 py-2 border border-zinc-850 hover:border-zinc-800 text-zinc-400 hover:text-white text-xs font-bold rounded-xl transition-all cursor-pointer active:scale-95"
+              >
+                vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmUpload}
+                disabled={isUploading}
+                className="px-5 py-2 bg-lime-500 hover:bg-lime-400 disabled:bg-zinc-800 disabled:text-zinc-500 text-black text-xs font-extrabold rounded-xl transition-all cursor-pointer active:scale-95 shadow-md shadow-lime-500/10 flex items-center gap-1.5"
+              >
+                {isUploading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+                    <span>yükleniyor...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-3 w-3" />
+                    <span>kadraja fırlat 🚀</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
