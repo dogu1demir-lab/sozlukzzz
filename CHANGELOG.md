@@ -2,6 +2,18 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.3.0] - 2026-07-03
+
+### 🚀 Mobil Uyumlu Yönlendirme & Ses Güvencesi (Kurşun Geçirmez Model)
+1. **Geleneksel Tarayıcı Yönlendirmesine Geçiş (`window-location-href`)**
+   * **Açıklama:** Yorum gönderme (`AddEntryForm`), yeni konu açma (`yeni/page.tsx`) ve PozKes yükleme (`PozKesUploadForm`) sonrasındaki yönlendirmeler, Next.js SPA yönlendiricisinin mobil cihazlarda (iOS Safari / Android Chrome) yaptığı sayfa kilitlemelerini kökten çözmek için `window.location.href` yapısına geçirildi.
+   * **Kod Referansı:** [AddEntryForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/AddEntryForm.tsx), [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx), [PozKesUploadForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesUploadForm.tsx)
+
+2. **Ses ve Konfeti Gecikmesi (`audio-confetti-delay`)**
+   * **Açıklama:** Yönlendirme tam sayfa yenilemeyle yapıldığı için bildirim sesi (`/eylemhareket.mp3`) ve konfeti efektlerinin yarıda kesilmesini engellemek amacıyla, sayfa geçişleri tetiklenmeden önce 350ms'lik bir yapay gecikme (`setTimeout`) tanımlandı. Sesler ve görsel efektler artık kesintisiz çalmaktadır.
+
+---
+
 ## [1.2.0] - 2026-07-03
 
 ### 🚀 UX & Yönlendirme İyileştirmeleri
