@@ -203,7 +203,10 @@ function NewThreadContent() {
           } catch (err) {
             console.error("Animations/sound blocked:", err);
           }
-          router.push(`/baslik/${result.slug}`);
+          const targetUrl = `/baslik/${result.slug}`;
+          setTimeout(() => {
+            window.location.href = targetUrl;
+          }, 350);
         }
       } catch (e) {
         setError("Başlık oluşturulurken teknik bir sorun oluştu.");
@@ -239,7 +242,10 @@ function NewThreadContent() {
           } catch (err) {
             console.error("Animations/sound blocked:", err);
           }
-          router.push(`/baslik/${result.slug}`);
+          const targetUrl = `/baslik/${result.slug}`;
+          setTimeout(() => {
+            window.location.href = targetUrl;
+          }, 350);
         }
       } catch (e) {
         setError("Anket oluşturulurken teknik bir sorun oluştu.");

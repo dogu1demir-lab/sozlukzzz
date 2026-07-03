@@ -95,11 +95,10 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
         }
         playBuzzSound();
         
-        router.push(result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes");
-
-        // Safe status reset outside the transition tick
-        setSubmitting(false);
-        submittingRef.current = false;
+        const targetUrl = result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes";
+        setTimeout(() => {
+          window.location.href = targetUrl;
+        }, 350);
       }
     } catch (err) {
       setError("PozKes yüklenirken teknik bir hata oluştu.");

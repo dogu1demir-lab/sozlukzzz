@@ -180,20 +180,15 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
         playBuzzSound(false, "/eylemhareket.mp3");
         
         if (result.page && result.entryId) {
-          router.push(`${window.location.pathname}?p=${result.page}#entry-${result.entryId}`);
+          const targetUrl = `${window.location.pathname}?p=${result.page}#entry-${result.entryId}`;
           setTimeout(() => {
-            const el = document.getElementById(`entry-${result.entryId}`);
-            if (el) {
-              el.scrollIntoView({ behavior: "smooth" });
-            }
-          }, 300);
+            window.location.href = targetUrl;
+          }, 350);
         } else {
-          router.refresh();
+          setTimeout(() => {
+            window.location.reload();
+          }, 350);
         }
-
-        // Safe status reset outside the transition tick
-        setSubmitting(false);
-        submittingRef.current = false;
       }
     } catch (err) {
       setError("Entry gönderilirken teknik bir hata oluştu.");
