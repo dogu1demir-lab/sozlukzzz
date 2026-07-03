@@ -14,7 +14,12 @@ interface AddEntryFormProps {
 export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps) {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">("idle");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">(() => {
+    if (typeof window !== "undefined" && (window as any).isUculuyor) {
+      return "redirecting";
+    }
+    return "idle";
+  });
   const [isPending, startTransition] = useTransition();
   const isSubmittingOrPending = isPending || submitStatus !== "idle";
   const router = useRouter();
@@ -180,6 +185,9 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
         playBuzzSound(false, "/eylemhareket.mp3");
         
         setSubmitStatus("redirecting");
+        if (typeof window !== "undefined") {
+          (window as any).isUculuyor = true;
+        }
         
         if (result.page && result.entryId) {
           const targetUrl = `${window.location.pathname}?p=${result.page}#entry-${result.entryId}`;
