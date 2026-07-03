@@ -100,7 +100,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
         const targetUrl = result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes";
         setTimeout(() => {
           window.location.href = targetUrl;
-        }, 1300);
+        }, 1600);
       }
     } catch (err) {
       setError("PozKes yüklenirken teknik bir hata oluştu.");
