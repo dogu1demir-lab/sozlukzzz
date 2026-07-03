@@ -28,6 +28,7 @@ export default function SidebarContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
+  const [hasLoadedMore, setHasLoadedMore] = useState(false);
 
   // Ref to track topics length in background interval to avoid stale closures
   const topicsLengthRef = useRef(0);
@@ -58,16 +59,15 @@ export default function SidebarContent() {
   // Listen to live sidebar refresh signals to update topics list in real-time
   useEffect(() => {
     const handleRefresh = () => {
-      const initialLimit = activeTab === "bugun" ? 30 : 12;
       // Skip real-time refresh if the user has loaded more topics (page 2+) to prevent resetting list state
-      if (topicsLengthRef.current > initialLimit) return;
+      if (hasLoadedMore) return;
 
       fetchTopics(activeTab, true);
     };
 
     window.addEventListener("sidebar-refresh", handleRefresh);
     return () => window.removeEventListener("sidebar-refresh", handleRefresh);
-  }, [activeTab]);
+  }, [activeTab, hasLoadedMore]);
 
   // Check recently updated topics on initial mount / page load
   useEffect(() => {
@@ -172,6 +172,7 @@ export default function SidebarContent() {
     setTopics([]);
     setOffset(0);
     setHasMore(true);
+    setHasLoadedMore(false); // Reset load more flag when changing tabs
     
     startTransition(() => {
       fetchTopics(activeTab);
@@ -193,7 +194,7 @@ export default function SidebarContent() {
 
     const interval = setInterval(() => {
       if (document.hidden) return;
-      if (topicsLengthRef.current > 30) return; // Skip background poller refresh if user has loaded page 2+
+      if (hasLoadedMore) return; // Skip background poller refresh if user has loaded page 2+
 
       const idleTime = Date.now() - lastActivity;
       if (idleTime > 3 * 60 * 1000) return;
@@ -208,10 +209,11 @@ export default function SidebarContent() {
       window.removeEventListener("scroll", handleActivity);
       window.removeEventListener("click", handleActivity);
     };
-  }, [activeTab]);
+  }, [activeTab, hasLoadedMore]);
 
   const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
+    setHasLoadedMore(true); // Flag that user has loaded more topics
     
     const maxLimit = getMaxTopicsLimit(activeTab);
     const remainingAllowed = maxLimit - offset;
