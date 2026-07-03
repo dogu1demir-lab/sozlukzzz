@@ -26,6 +26,20 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
   const searchParams = useSearchParams();
   const submittingRef = useRef(false);
 
+  const [redirectUrl, setRedirectUrl] = useState("");
+  const [showEscape, setShowEscape] = useState(false);
+
+  useEffect(() => {
+    if (submitStatus === "redirecting") {
+      const timer = setTimeout(() => {
+        setShowEscape(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowEscape(false);
+    }
+  }, [submitStatus]);
+
   // Mentions Autocomplete States
   const [allUsernames, setAllUsernames] = useState<string[]>([]);
   const [filteredUsernames, setFilteredUsernames] = useState<string[]>([]);
@@ -184,21 +198,22 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
         setContent("");
         playBuzzSound(false, "/eylemhareket.mp3");
         
+        const targetUrl = (result.page && result.entryId)
+          ? `${window.location.pathname}?p=${result.page}#entry-${result.entryId}`
+          : "";
+        setRedirectUrl(targetUrl);
         setSubmitStatus("redirecting");
         if (typeof window !== "undefined") {
           (window as any).isUculuyor = true;
         }
         
-        if (result.page && result.entryId) {
-          const targetUrl = `${window.location.pathname}?p=${result.page}#entry-${result.entryId}`;
-          setTimeout(() => {
+        setTimeout(() => {
+          if (targetUrl) {
             window.location.href = targetUrl;
-          }, 1600);
-        } else {
-          setTimeout(() => {
+          } else {
             window.location.reload();
-          }, 1600);
-        }
+          }
+        }, 1600);
       }
     } catch (err) {
       setError("Entry gönderilirken teknik bir hata oluştu.");
@@ -327,6 +342,44 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
             <p className="text-xs text-zinc-500 font-medium">
               sayfaya yönlendiriliyorsunuz, lütfen bekleyin
             </p>
+
+            {/* Escape Hatch */}
+            {showEscape && (
+              <div className="mt-4 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <p className="text-[11px] text-zinc-500">
+                  bağlantı yavaş mı kaldı?
+                </p>
+                <div className="flex items-center gap-4 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                      } else {
+                        window.location.reload();
+                      }
+                    }}
+                    className="text-lime-400 hover:text-lime-300 transition-colors underline cursor-pointer"
+                  >
+                    zorla yenile
+                  </button>
+                  <span className="text-zinc-650">|</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmitStatus("idle");
+                      if (typeof window !== "undefined") {
+                        (window as any).isUculuyor = false;
+                      }
+                      submittingRef.current = false;
+                    }}
+                    className="text-red-400 hover:text-red-300 transition-colors underline cursor-pointer"
+                  >
+                    iptal et
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createPozKesEntryAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
@@ -21,6 +21,20 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
   const router = useRouter();
+
+  const [redirectUrl, setRedirectUrl] = useState("");
+  const [showEscape, setShowEscape] = useState(false);
+
+  useEffect(() => {
+    if (submitStatus === "redirecting") {
+      const timer = setTimeout(() => {
+        setShowEscape(true);
+      }, 3000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowEscape(false);
+    }
+  }, [submitStatus]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError("");
@@ -95,9 +109,10 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
         }
         playBuzzSound();
         
+        const targetUrl = result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes";
+        setRedirectUrl(targetUrl);
         setSubmitStatus("redirecting");
         
-        const targetUrl = result.slug ? `/baslik/${result.slug}` : "/?tab=pozkes";
         setTimeout(() => {
           window.location.href = targetUrl;
         }, 1600);
@@ -224,6 +239,41 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
             <p className="text-xs text-zinc-500 font-medium">
               galeriye yönlendiriliyorsunuz, lütfen bekleyin
             </p>
+
+            {/* Escape Hatch */}
+            {showEscape && (
+              <div className="mt-4 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <p className="text-[11px] text-zinc-500">
+                  bağlantı yavaş mı kaldı?
+                </p>
+                <div className="flex items-center gap-4 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                      } else {
+                        window.location.reload();
+                      }
+                    }}
+                    className="text-lime-400 hover:text-lime-300 transition-colors underline cursor-pointer"
+                  >
+                    zorla yenile
+                  </button>
+                  <span className="text-zinc-650">|</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubmitStatus("idle");
+                      submittingRef.current = false;
+                    }}
+                    className="text-red-400 hover:text-red-300 transition-colors underline cursor-pointer"
+                  >
+                    iptal et
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
