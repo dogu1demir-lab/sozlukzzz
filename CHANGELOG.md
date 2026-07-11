@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.3] - 2026-07-11
+
+### 🚀 Google Arama SEO Sadeleştirmesi & Küresel Marka Başlığı Güncellemesi
+1. **Küresel Marka Adı "sözlükzzz" Olarak Güncellendi (`seo-brand-title-cleanup`)**
+   * **Açıklama:** Google'ın marka adını ana sayfa başlığından belirlemesi ve tüm arama sonuçlarında (başlıklarda da) "vızzz!" ekini göstermesi nedeniyle, `layout.tsx` üzerindeki varsayılan başlık "sözlükzzz" olarak sadeleştirildi. Böylece arama motorlarındaki başlıklar "sahte satılık ev ilanıyla kapora dolandırıcılığı - sözlükzzz" şeklinde son derece temiz ve kurumsal görünecek.
+   * **Kod Referansı:** [layout.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/layout.tsx)
+
+---
+
 ## [1.7.2] - 2026-07-11
 
 ### 🚀 Yeni Başlık & Çakışan Yönlendirme Düzeltmesi & Sol Menü Aktif Başlık Vurgusu
