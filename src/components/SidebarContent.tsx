@@ -299,7 +299,6 @@ export default function SidebarContent() {
                   )}
                   <Link
                     href={`/baslik/${topic.slug}`}
-                    prefetch={false}
                     className={`sidebar-topic-item flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border ${
                       isActiveTopic
                         ? "text-lime-400 bg-lime-950/15 border-lime-500/20 font-semibold shadow-[inset_3px_0_0_0_#84cc16]"

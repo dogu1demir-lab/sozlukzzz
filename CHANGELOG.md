@@ -2,6 +2,18 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.5] - 2026-07-12
+
+### 🚀 Next.js Önbellek & İskelet Yükleyici Yönlendirme Düzeltmeleri (`loading-boundary-routing-fix`)
+1. **Yükleyici İskelet Kodlarının Ön Yükleme (Prefetch) Özelliği Etkinleştirildi**
+   * **Açıklama:** Sitedeki tüm önemli başlık ve yazar yönlendirme linklerindeki `prefetch={false}` özellikleri kaldırıldı. Next.js artık arka planda statik iskelet bileşeni kodlarını (`loading.tsx`) önden yüklüyor. Böylece bir linke tıklandığı an iskelet ekran **0. milisaniyede anında** ekrana geliyor.
+   * **Kod Referansı:** [SidebarContent.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/SidebarContent.tsx), [[tab]/page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/[tab]/page.tsx)
+2. **Yükleyici Dizin Mimarisi Düzeltildi**
+   * **Açıklama:** Dinamik alt dizinlerdeki (`[slug]` ve `[username]`) yükleyiciler, yan yönlendirmeler sırasında tetiklenmediği için üst dizinlere taşındı (`src/app/baslik/loading.tsx` ve `src/app/yazar/loading.tsx`). Genel dönen sinek animasyonu ise sadece ana sayfa tabları için `src/app/[tab]/loading.tsx` konumuna taşındı.
+   * **Kod Referansı:** `src/app/baslik/loading.tsx`, `src/app/yazar/loading.tsx`, `src/app/[tab]/loading.tsx`
+
+---
+
 ## [1.7.3] - 2026-07-11
 
 ### 🚀 Google Arama SEO Sadeleştirmesi & Küresel Marka Başlığı Güncellemesi

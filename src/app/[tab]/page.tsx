@@ -543,7 +543,6 @@ export default async function Home({ params }: PageProps) {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-1">
                     <Link
                       href={`/baslik/${entry.topic.slug}`}
-                      prefetch={false}
                       className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
                     >
                       <span className="break-words block min-w-0">{entry.topic.title}</span>
@@ -556,7 +555,6 @@ export default async function Home({ params }: PageProps) {
                     <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-400 shrink-0">
                       <Link
                         href={`/yazar/${entry.author.username}`}
-                        prefetch={false}
                         className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
                       >
                         {entry.author.avatarUrl ? (
@@ -642,7 +640,6 @@ export default async function Home({ params }: PageProps) {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-1">
                       <Link
                         href={`/baslik/${topic.slug}`}
-                        prefetch={false}
                         className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
                       >
                         <span className="break-words block min-w-0">{topic.title}</span>
@@ -660,7 +657,6 @@ export default async function Home({ params }: PageProps) {
                         <span>•</span>
                         <Link
                           href={`/yazar/${firstEntry.author.username}`}
-                          prefetch={false}
                           className="flex items-center gap-1 hover:text-zinc-300"
                         >
                           <span className="font-semibold">@{firstEntry.author.username}</span>
