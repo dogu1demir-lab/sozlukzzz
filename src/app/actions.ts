@@ -459,6 +459,12 @@ export async function createEntryAction(topicId: string, content: string) {
     // Touch topic lastEntryAt to bubble it up in sidebars and feeds (using raw SQL to prevent Prisma's automatic updatedAt trigger)
     await prisma.$executeRaw`UPDATE "Topic" SET "lastEntryAt" = ${new Date()} WHERE "id" = ${topicId}`;
 
+    // Calculate target page for this new entry
+    const totalEntries = await prisma.entry.count({
+      where: { topicId }
+    });
+    const page = Math.ceil(totalEntries / 10) || 1;
+
     // Parse mentions and create notifications
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
@@ -476,7 +482,7 @@ export async function createEntryAction(topicId: string, content: string) {
             type: "REPLY",
             content: `@${user.username} bir entry'de sizden bahsetti! vızzz!`,
             userId: targetUser.id,
-            relatedUrl: `/baslik/${topic.slug}#entry-${entry.id}`
+            relatedUrl: `/baslik/${topic.slug}?p=${page}#entry-${entry.id}`
           }
         });
       }
@@ -503,16 +509,10 @@ export async function createEntryAction(topicId: string, content: string) {
           type: "REPLY",
           content: `@${user.username} "${topic.title}" başlığına yeni bir vızzz girdi!`,
           userId: other.authorId,
-          relatedUrl: `/baslik/${topic.slug}#entry-${entry.id}`
+          relatedUrl: `/baslik/${topic.slug}?p=${page}#entry-${entry.id}`
         }
       });
     }
-
-    // Calculate target page for this new entry
-    const totalEntries = await prisma.entry.count({
-      where: { topicId }
-    });
-    const page = Math.ceil(totalEntries / 10) || 1;
 
     await clearAllFeedAndSidebarCaches(user.id);
 
@@ -574,12 +574,21 @@ export async function likeEntryAction(entryId: string, isLike: boolean) {
 
       // Send notification to entry author (if it's not the user themselves)
       if (entry.authorId !== user.id && isLike) {
+        // Calculate page of the liked entry
+        const entryCountBefore = await prisma.entry.count({
+          where: {
+            topicId: entry.topicId,
+            createdAt: { lte: entry.createdAt }
+          }
+        });
+        const page = Math.ceil(entryCountBefore / 10) || 1;
+
         await prisma.notification.create({
           data: {
             type: "LIKE",
             content: `@${user.username} bir entry'nizi beğendi! vızzz!`,
             userId: entry.authorId,
-            relatedUrl: `/baslik/${entry.topic.slug}#entry-${entry.id}`
+            relatedUrl: `/baslik/${entry.topic.slug}?p=${page}#entry-${entry.id}`
           }
         });
       }
@@ -893,6 +902,15 @@ export async function createPozKesEntryAction(title: string, content: string, ba
       }
     });
 
+    // Calculate page for PozKes entry inside its topic
+    const entryCountBefore = await prisma.entry.count({
+      where: {
+        topicId: topic.id,
+        createdAt: { lte: entry.createdAt }
+      }
+    });
+    const page = Math.ceil(entryCountBefore / 10) || 1;
+
     // Parse mentions and create notifications
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
@@ -909,7 +927,7 @@ export async function createPozKesEntryAction(title: string, content: string, ba
             type: "REPLY",
             content: `@${user.username} PozKes'te sizden bahsetti! vızzz!`,
             userId: targetUser.id,
-            relatedUrl: `/baslik/${slug}#entry-${entry.id}`
+            relatedUrl: `/baslik/${slug}?p=${page}#entry-${entry.id}`
           }
         });
       }

@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.7] - 2026-07-12
+
+### 🔔 Bildirim Nokta Atışı Yönlendirme Düzeltmesi (`notification-page-anchoring-fix`)
+1. **Beğeni, Bahsedilme ve Yorum Bildirimlerinde Sayfa Parametresi Entegre Edildi**
+   * **Açıklama:** Kullanıcıların aldığı bildirimlere tıklandığında, ilgili entry eğer konunun 2. veya daha sonraki sayfalarında ise doğrudan doğru sayfaya (`?p=X#entry-Y`) nokta atışı gitmesini engelleyen hata giderildi. Bildirimler oluşturulurken entry'nin konudaki sırasına (createdAt rank) göre sayfa sayısı hesaplanıp linke otomatik olarak eklendi.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts) (`createEntryAction`, `likeEntryAction`, `createPozKesAction`)
+
+---
+
 ## [1.7.6] - 2026-07-12
 
 ### 💀 Eğlenceli Yükleme İkonları: İskelet Kafalı Dönen Yükleyiciler (`skull-loading-spinners`)
