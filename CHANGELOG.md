@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.1] - 2026-07-11
+
+### 🚀 Çakışan Başlık Açma Talebi Real-Time Düzeltmesi (`duplicate-topic-realtime-fix`)
+1. **Mevcut Başlığa Entry Dönüşümü İçin Real-Time Tetikleme Eklendi**
+   * **Açıklama:** Kullanıcı var olan bir başlığı fark etmeden yeniden açmaya çalıştığında, sistem bu başlığın altına yeni bir yorum (entry) ekler. Ancak bu işlem esnasında başlığın `lastEntryAt` tarihi güncellenmediği ve Redis'e `NEW_ENTRY` sinyali gönderilmediği için başlık sekmelerde yukarı fırlamıyordu ve anlık alev efekti tetiklenmiyordu. Bu iki hayati adım `if (topic)` çakışma bloğuna eklenerek sorun çözüldü.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts) (createTopicAndEntryAction)
+
+---
+
 ## [1.7.0] - 2026-07-03
 
 ### 🚀 Profil Sayfası Kadraj Görsel Yükleme Modali (`profile-upload-modal`)

@@ -314,6 +314,9 @@ export async function createTopicAndEntryAction(title: string, content: string, 
         }
       });
 
+      // Touch topic lastEntryAt to bubble it up in sidebars and feeds
+      await prisma.$executeRaw`UPDATE "Topic" SET "lastEntryAt" = ${new Date()} WHERE "id" = ${topic.id}`;
+
       // Parse mentions and create notifications
       const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
       const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
@@ -337,6 +340,15 @@ export async function createTopicAndEntryAction(title: string, content: string, 
       }
       
       await clearAllFeedAndSidebarCaches(user.id);
+
+      // Publish global update to Redis for real-time sidebar & page updates
+      try {
+        await redis.publish("global:updates", JSON.stringify({ type: "NEW_ENTRY", topicId: topic.id }));
+      } catch (redisErr) {
+        console.error("Redis global publish error:", redisErr);
+      }
+
+      revalidatePath("/");
       revalidatePath(`/baslik/${slug}`);
       return { success: true, slug, entryId: entry.id };
     }
