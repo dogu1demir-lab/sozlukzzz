@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
   return {
     alternates: {
-      canonical: `${appUrl}/${activeTab}`,
+      canonical: activeTab === "bugun" ? appUrl : `${appUrl}/${activeTab}`,
     }
   };
 }
