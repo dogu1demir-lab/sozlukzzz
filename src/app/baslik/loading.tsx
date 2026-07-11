@@ -1,9 +1,16 @@
 export default function TopicLoading() {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Topic Title Header Skeleton */}
+      {/* Topic Title Header Skeleton with spinning skull */}
       <div className="border-b border-zinc-900 pb-3 flex items-center justify-between gap-4">
-        <div className="h-7 w-[45%] min-w-[150px] bg-zinc-900 rounded-sm animate-pulse"></div>
+        <div className="flex items-center gap-3">
+          {/* Spinning skull loader */}
+          <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+            <div className="absolute inset-0 rounded-full border-2 border-zinc-900/80 border-t-lime-500 animate-spin" style={{ animationDuration: "0.8s" }}></div>
+            <span className="text-xs select-none" role="img" aria-label="skull">💀</span>
+          </div>
+          <div className="h-6 w-48 bg-zinc-900 rounded-sm animate-pulse"></div>
+        </div>
         <div className="h-5 w-12 bg-zinc-900/60 rounded-sm animate-pulse"></div>
       </div>
 

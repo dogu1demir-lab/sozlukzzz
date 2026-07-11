@@ -4,8 +4,15 @@ export default function AuthorLoading() {
       {/* Profile Header Card Skeleton */}
       <div className="border border-zinc-900 bg-zinc-900/10 p-5 space-y-4 rounded-sm relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-          {/* Large Avatar Circle */}
-          <div className="h-16 w-16 rounded-full bg-zinc-900 animate-pulse shrink-0"></div>
+          {/* Large Avatar with spinning skull */}
+          <div className="relative h-16 w-16 flex items-center justify-center shrink-0">
+            {/* Spinning neon outer ring */}
+            <div className="absolute inset-0 rounded-full border-2 border-zinc-900/80 border-t-lime-500 animate-spin" style={{ animationDuration: "0.8s" }}></div>
+            {/* Pulsing avatar background */}
+            <div className="absolute inset-1 rounded-full bg-zinc-900 animate-pulse"></div>
+            {/* Skull icon */}
+            <span className="text-xl select-none z-10 animate-pulse" role="img" aria-label="skull">💀</span>
+          </div>
           
           <div className="flex-1 space-y-2 text-center sm:text-left min-w-0">
             {/* Display name */}

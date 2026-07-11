@@ -26,8 +26,11 @@ export default function PozKesLoading() {
 
             {/* Photo Area Box (Aspect Ratio Square) */}
             <div className="w-full aspect-square bg-zinc-900/80 animate-pulse relative flex items-center justify-center">
-              {/* Photo symbol placeholder */}
-              <div className="text-zinc-800 text-3xl font-bold select-none">📸</div>
+              {/* Spinning skull loader */}
+              <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                <div className="absolute inset-0 rounded-full border-2 border-zinc-900/80 border-t-lime-500 animate-spin" style={{ animationDuration: "0.8s" }}></div>
+                <span className="text-base select-none" role="img" aria-label="skull">💀</span>
+              </div>
             </div>
 
             {/* Bottom Actions and Bio */}

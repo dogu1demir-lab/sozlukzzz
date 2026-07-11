@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.6] - 2026-07-12
+
+### 💀 Eğlenceli Yükleme İkonları: İskelet Kafalı Dönen Yükleyiciler (`skull-loading-spinners`)
+1. **İskelet Ekranlara Dönen Kurukafa İkonları Eklendi**
+   * **Açıklama:** Kullanıcının talebi doğrultusunda, sayfa iskeletlerinin (yer tutucuların) uygun noktalarına neon yeşil dönen halka ortasında kurukafa (`💀`) loading animasyonları yerleştirildi.
+   * **Kod Referansı:** [loading.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/baslik/loading.tsx) (Başlık), [loading.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yazar/loading.tsx) (Yazar), [loading.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/pozkes/loading.tsx) (PozKes)
+
+---
+
 ## [1.7.5] - 2026-07-12
 
 ### 🚀 Next.js Önbellek & İskelet Yükleyici Yönlendirme Düzeltmeleri (`loading-boundary-routing-fix`)
