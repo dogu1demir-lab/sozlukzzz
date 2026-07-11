@@ -203,7 +203,9 @@ function NewThreadContent() {
           } catch (err) {
             console.error("Animations/sound blocked:", err);
           }
-          const targetUrl = `/baslik/${result.slug}`;
+          const targetUrl = result.page && result.page > 1
+            ? `/baslik/${result.slug}?p=${result.page}#entry-${result.entryId}`
+            : `/baslik/${result.slug}#entry-${result.entryId}`;
           setTimeout(() => {
             window.location.href = targetUrl;
           }, 1600);

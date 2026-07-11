@@ -2,6 +2,18 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.2] - 2026-07-11
+
+### 🚀 Yeni Başlık & Çakışan Yönlendirme Düzeltmesi & Sol Menü Aktif Başlık Vurgusu
+1. **Yeni Başlık Açınca & Çakışan Yönlendirmelerde Nokta Atışı Uçma (`create-topic-target-redirect`)**
+   * **Açıklama:** `/yeni` kısmından başlık açıldığında (veya zaten var olan bir başlığa çakışma nedeniyle yorum eklendiğinde) kullanıcı artık doğrudan kendi yazdığı yorumun sayfasına (`?p=X`) uçuyor, sayfada o konuma kayıyor ve yeşil parlama efekti (`#entry-Y`) tetikleniyor.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts), [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/yeni/page.tsx)
+2. **Sol Menü Aktif Başlık Vurgusu (`sidebar-active-topic-highlight`)**
+   * **Açıklama:** Yazarın şu an okumakta olduğu başlık sol menü listesinde göz yormayan hafif yeşilimsi şeffaf bir arka plan (`bg-lime-950/15`), yeşil neon kenarlık ve sol tarafta şık yeşil bir çizgi vurgusuyla parlatıldı.
+   * **Kod Referansı:** [SidebarContent.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/SidebarContent.tsx)
+
+---
+
 ## [1.7.1] - 2026-07-11
 
 ### 🚀 Çakışan Başlık Açma Talebi Real-Time Düzeltmesi (`duplicate-topic-realtime-fix`)

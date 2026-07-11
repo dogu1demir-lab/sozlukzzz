@@ -339,6 +339,12 @@ export async function createTopicAndEntryAction(title: string, content: string, 
         }
       }
       
+      // Calculate target page for this new entry in the existing topic
+      const totalEntries = await prisma.entry.count({
+        where: { topicId: topic.id }
+      });
+      const page = Math.ceil(totalEntries / 10) || 1;
+
       await clearAllFeedAndSidebarCaches(user.id);
 
       // Publish global update to Redis for real-time sidebar & page updates
@@ -350,7 +356,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
 
       revalidatePath("/");
       revalidatePath(`/baslik/${slug}`);
-      return { success: true, slug, entryId: entry.id };
+      return { success: true, slug, entryId: entry.id, page };
     }
 
     // Create new topic and entry
@@ -405,7 +411,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
     }
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
-    return { success: true, slug, entryId };
+    return { success: true, slug, entryId, page: 1 };
   } catch (e) {
     return { error: "Başlık oluşturulurken bir hata oluştu." };
   }

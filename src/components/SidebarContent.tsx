@@ -285,6 +285,7 @@ export default function SidebarContent() {
           <>
             {topics.map((topic, index) => {
               const showYesterdayDivider = activeTab === "bugun" && topic.isYesterday && (index === 0 || !topics[index - 1].isYesterday);
+              const isActiveTopic = pathname === `/baslik/${topic.slug}`;
               return (
                 <div key={topic.id}>
                   {showYesterdayDivider && (
@@ -299,7 +300,11 @@ export default function SidebarContent() {
                   <Link
                     href={`/baslik/${topic.slug}`}
                     prefetch={false}
-                    className="sidebar-topic-item flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border text-zinc-300 hover:text-white bg-zinc-900/10 hover:bg-zinc-900/30 hover:border-zinc-800/80"
+                    className={`sidebar-topic-item flex items-center justify-between px-3 py-2 rounded-none text-xs sm:text-sm transition-all group active:scale-[0.99] mb-1.5 border ${
+                      isActiveTopic
+                        ? "text-lime-400 bg-lime-950/15 border-lime-500/20 font-semibold shadow-[inset_3px_0_0_0_#84cc16]"
+                        : "text-zinc-300 hover:text-white bg-zinc-900/10 hover:bg-zinc-900/30 border-transparent hover:border-zinc-800/80"
+                    }`}
                   >
                     <span className="pr-1.5 flex-1 min-w-0 group-hover:translate-x-0.5 transition-transform duration-100 flex items-center gap-1.5 flex-wrap">
                       <span className="break-words block whitespace-normal min-w-0">{topic.title}</span>
