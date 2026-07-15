@@ -27,6 +27,33 @@ function convertToSlugClient(text: string): string {
   return slug;
 }
 
+// Helper to truncate long URLs into clean domain-first representations
+function truncateUrl(url: string, maxLength = 50): string {
+  try {
+    const parsed = new URL(url);
+    const domain = parsed.hostname.replace("www.", "");
+    const pathAndQuery = parsed.pathname + parsed.search + parsed.hash;
+    
+    const cleanRepresentation = domain + pathAndQuery;
+    if (cleanRepresentation.length <= maxLength) {
+      return cleanRepresentation;
+    }
+    
+    if (domain.length >= maxLength) {
+      return domain.substring(0, maxLength - 3) + "...";
+    }
+    
+    const remaining = maxLength - domain.length - 3;
+    if (remaining > 10) {
+      return domain + pathAndQuery.substring(0, remaining) + "...";
+    }
+    return domain + "...";
+  } catch (e) {
+    if (url.length <= maxLength) return url;
+    return url.substring(0, maxLength - 3) + "...";
+  }
+}
+
 // Subcomponent: Click-to-reveal lazy loader for videos/tweets
 function EmbedWrapper({ type, children }: { type: "twitter" | "video"; children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -166,9 +193,9 @@ export default function MentionText({ content }: MentionTextProps) {
               href={normalUrl}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="text-lime-400 font-semibold hover:underline break-all"
+              className="text-lime-400 font-semibold hover:underline break-words"
             >
-              {normalUrl}
+              {truncateUrl(normalUrl)}
             </a>
           );
         }

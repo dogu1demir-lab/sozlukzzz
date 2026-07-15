@@ -2,6 +2,18 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.8] - 2026-07-15
+
+### 🔗 Entry İçi Link Kısaltma ve Kelime Bölme Düzeltmesi (`link-truncation-and-wrapping-fix`)
+1. **Çirkin Harf Bölünmeleri Engellendi ve break-words CSS Yapısına Geçildi**
+   * **Açıklama:** Entry içerisine eklenen normal bağlantıların (URL) satır sonlarında harf harf bölünerek (break-all) çirkin şekilde tek karakterlerin alt satıra düşmesi engellendi. CSS yapısı `break-words` olarak güncellendi.
+   * **Kod Referansı:** [MentionText.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/MentionText.tsx)
+2. **Uzun Linkler İçin Otomatik Şık Kısaltma (Truncation) Eklendi**
+   * **Açıklama:** `truncateUrl` adında yeni bir istemci tarafı yardımcısı eklendi. Gözü yoran uzun URL'lerin şema (`https://`) ve `www.` bölümleri temizlendi ve 50 karakterden uzun linkler `alanadi.com/yol-baslangici...` şeklinde estetik olarak kısaltıldı.
+   * **Kod Referansı:** [MentionText.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/MentionText.tsx)
+
+---
+
 ## [1.7.7] - 2026-07-12
 
 ### 🔔 Bildirim Nokta Atışı Yönlendirme Düzeltmesi (`notification-page-anchoring-fix`)
