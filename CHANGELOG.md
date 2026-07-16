@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.0] - 2026-07-16
+
+### 💬 Yorum/Entry Giriş Uyarısı Güncellemesi (`add-entry-login-notice-update`)
+1. **Misafir Kullanıcı Giriş Paneli Metni ve Buton Yönlendirmeleri Güncellendi**
+   * **Açıklama:** Yorum girmek isteyen misafir kullanıcılara gösterilen giriş/kayıt uyarısındaki "vızıldamak" ifadesi "entry girmek" olarak sadeleştirildi ve yazar alımlarının başladığına dair aciliyet uyarısı eklendi.
+   * **Kod Referansı:** [AddEntryForm.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/AddEntryForm.tsx)
+
+---
+
 ## [1.7.9] - 2026-07-16
 
 ### 📢 Giriş Bannerı Tanıtım Metni Güncellemesi (`intro-banner-text-update`)

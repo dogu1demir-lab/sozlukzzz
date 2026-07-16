@@ -226,10 +226,11 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
     return (
       <div className="rounded-xl border border-dashed border-zinc-800 p-6 text-center bg-zinc-900/10">
         <p className="text-sm text-zinc-400">
-          Bu başlığa vızıldamak için lütfen{" "}
+          Bu başlığa entry girmek için lütfen{" "}
           <a href="/giris" className="text-lime-400 font-bold hover:underline">giriş yapın</a>{" "}
           veya{" "}
-          <a href="/kaydol" className="text-lime-400 font-bold hover:underline">kaydolun</a>.
+          <a href="/kaydol" className="text-lime-400 font-bold hover:underline">kaydolun</a>.{" "}
+          (Yazar alımları başladı, acele et!)
         </p>
       </div>
     );
