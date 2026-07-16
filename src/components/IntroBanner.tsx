@@ -52,7 +52,7 @@ export default function IntroBanner({ isLoggedIn }: IntroBannerProps) {
             hoş geldin, <span className="text-lime-400">vızzz!</span>
           </h1>
           <p className="mt-2 text-xs md:text-sm text-zinc-400 leading-relaxed">
-            sözlükzzz, kütük gibi takılmayan yeni nesil sözlük platformu! Hemen aramıza katılarak yazar ol; entry'lerini özgürce paylaş, fikirlerini tartış ve hatta belki aradığın aşkı bul! vızzz!
+            Yeni nesil sözlük platformu! Yazar alımları başladı, kapılar kapanmadan hemen yerini kap; entry'lerini özgürce paylaş, fikirlerini tartış ve hatta belki aradığın aşkı bul!
           </p>
           <div className="mt-3.5 flex flex-wrap gap-2.5 items-center">
             {!isLoggedIn && (

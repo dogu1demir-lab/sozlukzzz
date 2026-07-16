@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.7.9] - 2026-07-16
+
+### 📢 Giriş Bannerı Tanıtım Metni Güncellemesi (`intro-banner-text-update`)
+1. **Kaydolmaya Yönlendiren Acil Tanıtım Metni Entegre Edildi**
+   * **Açıklama:** Ana sayfadaki karşılama bannerı metni, kullanıcıyı daha hızlı kayıt olmaya teşvik edecek, yazar alımlarının başladığı ve kapıların kapanmak üzere olduğu hissini uyandıracak bir Call-to-Action metni ile güncellendi.
+   * **Kod Referansı:** [IntroBanner.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/IntroBanner.tsx)
+
+---
+
 ## [1.7.8] - 2026-07-15
 
 ### 🔗 Entry İçi Link Kısaltma ve Kelime Bölme Düzeltmesi (`link-truncation-and-wrapping-fix`)
