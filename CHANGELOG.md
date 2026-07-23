@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.4] - 2026-07-23
+
+### 🎨 PozKes Kart Başlığı Hizalama ve Tarih Hizalama Düzeltmesi (`pozkes-header-flex-alignment`)
+1. **PozKes Başlığında Tarih Etiketinin Yazar Adının Yanına Hizalanması Sağlandı**
+   * **Açıklama:** `.kd-card-header` sınıfına `display: flex`, `justify-content: space-between` ve `whitespace-nowrap` kuralları eklenerek tarihin yazar adının sağ tarafında tam hizalı durması sağlandı, alt satıra kayma problemi giderildi.
+   * **Kod Referansı:** [globals.css](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/globals.css), [PozKesCard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesCard.tsx)
+
+---
+
 ## [1.8.3] - 2026-07-23
 
 ### 📅 Akıllı Göreli Tarih Biçimlendirmesi ("Bugün", "Dün" Etiketleri) (`smart-relative-date-labels`)

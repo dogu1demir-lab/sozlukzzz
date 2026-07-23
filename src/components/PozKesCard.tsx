@@ -211,7 +211,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           )}
           <span className="kd-card-username">{entry.author.displayName ?? entry.author.username}</span>
         </Link>
-        <span className="text-[11px] text-zinc-500 ml-auto">{formatDate(entry.createdAt)}</span>
+        <span className="text-[11px] text-zinc-500 whitespace-nowrap shrink-0">{formatDate(entry.createdAt)}</span>
       </div>
 
       {/* Image body */}
