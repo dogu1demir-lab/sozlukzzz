@@ -90,7 +90,7 @@ export default async function Home({ params }: PageProps) {
         include: {
           entries: {
             orderBy: {
-              createdAt: "asc"
+              createdAt: "desc"
             },
             take: 1,
             include: {
@@ -117,7 +117,7 @@ export default async function Home({ params }: PageProps) {
         include: {
           entries: {
             orderBy: {
-              createdAt: "asc"
+              createdAt: "desc"
             },
             take: 1,
             include: {

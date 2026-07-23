@@ -1435,7 +1435,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         include: {
           entries: {
             orderBy: {
-              createdAt: "asc"
+              createdAt: "desc"
             },
             take: 1,
             include: {
@@ -1462,7 +1462,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         include: {
           entries: {
             orderBy: {
-              createdAt: "asc"
+              createdAt: "desc"
             },
             take: 1,
             include: {

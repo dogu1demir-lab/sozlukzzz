@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.1] - 2026-07-23
+
+### ⚡ Bugün Akışı Canlı En Yeni Yorum Sıralaması (`today-feed-latest-entry-ordering`)
+1. **Bugün Sekmesinde En Son Yazılan Yorumun ve Yazarın Gösterilmesi Sağlandı**
+   * **Açıklama:** Ana sayfadaki `Bugün` sekmesi akışının canlı bir sohbet akışı hissi vermesi için, her konu kartının altında konunun ilk yazısı yerine en son yazılan taze entry ve en son yazan yazarın bilgisi gösterilecek şekilde `createdAt: "desc"` güncellemesi yapıldı. Diğer sekmeler (`Gündem`, `Beğenilenler` vb.) ve konu detay sayfaları konu bütünlüğünü korumak adına aynı bırakıldı.
+   * **Kod Referansı:** [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/[tab]/page.tsx), [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+
+---
+
 ## [1.8.0] - 2026-07-16
 
 ### 💬 Yorum/Entry Giriş Uyarısı Güncellemesi (`add-entry-login-notice-update`)
