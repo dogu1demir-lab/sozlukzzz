@@ -18,5 +18,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Kurukafa ve Sinek Yükleyici Tasarımları:** Başlıklar, yazar profilleri ve PozKes yükleyicileri için gri iskelet çizgileriyle birlikte dönen neon halkalı Kurukafa (`💀`) animasyonu kullanılmalıdır. Ana sayfa sekmeleri (`[tab]`) için dönen sinek (`🪰`) animasyonu kullanılmalıdır.
 - **Yazı İçi Link Tasarımı (MentionText):** Entry ve yorumların içine eklenen normal linklerde harf bölünmesi (single-character wrap) olmaması için `break-words` CSS sınıfı kullanılmalıdır. 50 karakterden uzun link metinleri `truncateUrl` fonksiyonu ile `alanadi.com/yol-baslangici...` şeklinde otomatik olarak kısaltılmalı, asıl `href` ise eksiksiz bırakılmalıdır.
 - **Bildirim Nokta Atışı Yönlendirmeleri:** Beğeni, bahsedilme ve yorum bildirimleri oluşturulurken, ilgili entry'nin konudaki oluşturulma sırasına (createdAt rank) göre sayfa numarası hesaplanmalı ve `relatedUrl` değeri mutlaka `/baslik/slug?p=SAYFA#entry-ID` formatında kaydedilmelidir.
+- **Ana Sayfa Akış Sekmeleri Sıralama Kuralı:** Ana sayfa sekmelerinde `Bugün` (`/bugun`) sekmesi canlı sohbet hissi için en son yazılan entry ve yazar bilgisini (`createdAt: "desc"`) gösterir. `Gündem`, `Beğenilenler`, `Görüntülenenler` ve `Takip` sekmeleri ile konu detay sayfaları ise konu bütünlüğünü korumak adına ilk yazılan entry'yi (`createdAt: "asc"`) gösterir.
+- **Tarih Biçimlendirme Standardı:** Tüm sitede (feed akışı, konu detayları, PozKes) tarih gösterimi `formatDate` yardımcısı üzerinden yapılmalıdır. Bugün yazılan içerikler için `Bugün HH:mm`, dün yazılanlar için `Dün HH:mm`, daha eski içerikler için `d MMMM yyyy HH:mm` formatı kullanılır.
+- **İletişim ve Anlatım Tarzı:** Yanıtlarda "vız", "vızzz", "zzz" gibi ses taklitleri veya dolgu kelimeleri kesinlikle kullanılmayacaktır. İletişim doğrudan, sade ve net olacaktır.
+
 
 
