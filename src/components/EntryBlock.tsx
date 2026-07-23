@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { deleteEntryAction, editEntryAction } from "@/app/actions";
-import { playBuzzSound } from "@/lib/utils";
+import { playBuzzSound, formatDate } from "@/lib/utils";
 import ReactionButtons from "./ReactionButtons";
 import MentionText from "./MentionText";
 import { Edit3, Trash2, X, Check } from "lucide-react";
@@ -128,19 +128,7 @@ export default function EntryBlock({
   };
 
   const formatClientDate = (dateVal: any) => {
-    try {
-      const date = new Date(dateVal);
-      return date.toLocaleDateString("tr-TR", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Europe/Istanbul"
-      });
-    } catch {
-      return "";
-    }
+    return formatDate(dateVal);
   };
 
   return (

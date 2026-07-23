@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getMoreEntriesAction } from "@/app/actions";
-import { playBuzzSound } from "@/lib/utils";
+import { playBuzzSound, formatDate } from "@/lib/utils";
 import ReactionButtons from "./ReactionButtons";
 import ExpandableMentionText from "./ExpandableMentionText";
 
@@ -82,19 +82,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
 
   // Date format helper for client rendering
   const formatClientDate = (dateVal: any) => {
-    try {
-      const date = new Date(dateVal);
-      return date.toLocaleDateString("tr-TR", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Europe/Istanbul"
-      });
-    } catch {
-      return "";
-    }
+    return formatDate(dateVal);
   };
 
   return (

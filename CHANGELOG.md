@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.3] - 2026-07-23
+
+### 📅 Akıllı Göreli Tarih Biçimlendirmesi ("Bugün", "Dün" Etiketleri) (`smart-relative-date-labels`)
+1. **Tüm Sitede ve PozKes Kartlarında Akıllı Tarih Etiketleri Entegre Edildi**
+   * **Açıklama:** `formatDate` yardımcısı geliştirilerek bugün yazılan içerikler için `Bugün 12:39`, dün yazılan içerikler için `Dün 14:20`, daha eski içerikler için ise `23 Temmuz 2026 12:39` yapısı aktifleştirildi. Ayrıca PozKes kartlarının üst başlıklarına da bu akıllı tarih etiketi eklendi.
+   * **Kod Referansı:** [utils.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/lib/utils.ts), [EntryBlock.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/EntryBlock.tsx), [FeedLoadMore.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/FeedLoadMore.tsx), [PozKesCard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesCard.tsx)
+
+---
+
 ## [1.8.2] - 2026-07-23
 
 ### 📅 Tarih Biçimlendirme Standardı Güncellemesi (`turkish-named-date-formatting`)
