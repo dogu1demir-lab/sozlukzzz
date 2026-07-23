@@ -19,8 +19,8 @@ export function playBuzzSound(force = false, soundPath = "/vizildi.mp3") {
 export function formatDate(date: Date | string): string {
   const d = new Date(date);
   return d.toLocaleDateString("tr-TR", {
-    day: "2-digit",
-    month: "2-digit",
+    day: "numeric",
+    month: "long",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",

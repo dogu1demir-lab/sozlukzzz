@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.2] - 2026-07-23
+
+### 📅 Tarih Biçimlendirme Standardı Güncellemesi (`turkish-named-date-formatting`)
+1. **Feed ve Genel Tarih Biçimi "23 Temmuz 2026 12:39" Formatına Geçirildi**
+   * **Açıklama:** Sitenin genelinde ve ana sayfa akışında kullanılan `formatDate` yardımcısı, rakamsal format yerine konu sayfalarındaki gibi estetik Türkçe ay adlarını içeren `23 Temmuz 2026 12:39` yapısına dönüştürüldü.
+   * **Kod Referansı:** [utils.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/lib/utils.ts)
+
+---
+
 ## [1.8.1] - 2026-07-23
 
 ### ⚡ Bugün Akışı Canlı En Yeni Yorum Sıralaması (`today-feed-latest-entry-ordering`)
