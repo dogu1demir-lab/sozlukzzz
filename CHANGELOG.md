@@ -2,6 +2,17 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [2.0.4] - 2026-07-24
+
+### 📱 Mobil Dokunmatik UX & Tam Ekran Lightbox Güncellemesi (`mobile-touch-lightbox-ux`)
+1. **Mobil Dokunmatik Ekranlarda Kartın Tamamına Tıklama ve Kalıcı Başlık/Buton Görünürlüğü**
+   * **Açıklama:** Dokunmatik mobil cihazlarda mouse hover olmadığı için hidden kalan overlay kaldırıldı. Stalksss -> PozKes kartlarının tamamı tıklanabilir `<Link>` yapıldı. Görselin neresine dokunulursa dokunulsun anında ilgili konuya yönlendirir.
+2. **Profil Fotoğraflarına Tam Ekran Büyütme (Lightbox Modal) Entegrasyonu**
+   * **Açıklama:** Profildeki büyük vitrin fotoğrafına dokunulduğunda görseli tam ekranda kristal netliğinde açan siyah cam efektli Lightbox pencereli modal eklendi.
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [2.0.2] - 2026-07-24
 
 ### 📸 Profil Stalksss PozKes Sekmesi İsimlendirme Güncellemesi (`stalksss-tab-rename-pozkes`)

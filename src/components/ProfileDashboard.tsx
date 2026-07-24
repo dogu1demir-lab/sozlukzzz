@@ -140,6 +140,7 @@ export default function ProfileDashboard({
   const [followingLimit, setFollowingLimit] = useState(10);
   const [photosLimit, setPhotosLimit] = useState(10);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const handleSetAsAvatar = (photoUrl: string) => {
     startTransition(async () => {
@@ -408,7 +409,9 @@ export default function ProfileDashboard({
               <img
                 src={displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0]}
                 alt="Profil Resmi"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                onClick={() => setLightboxUrl(displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0])}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+                title="Fotoğrafı Tam Ekran Büyüt 🔍"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3 sm:p-4">
                 <div className="flex items-center justify-between gap-2">
@@ -665,22 +668,30 @@ export default function ProfileDashboard({
                         : `/baslik/${photo.topic.slug}#entry-${photo.id}`;
 
                       return (
-                        <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30">
-                          <img src={photo.imageUrl!} alt={photo.topic.title} width={150} height={150} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                          <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-2.5 transition-all">
-                            <div className="text-[10px] font-bold text-zinc-300 line-clamp-1 mb-1" title={photo.topic.title}>
+                        <Link
+                          key={photo.id}
+                          href={targetUrl}
+                          prefetch={false}
+                          onClick={() => playBuzzSound()}
+                          className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30 block cursor-pointer transition-all hover:border-lime-500/50"
+                        >
+                          <img
+                            src={photo.imageUrl!}
+                            alt={photo.topic.title}
+                            width={150}
+                            height={150}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-2.5 transition-all">
+                            <div className="text-[10px] font-bold text-zinc-200 line-clamp-1 mb-0.5" title={photo.topic.title}>
                               {photo.topic.title}
                             </div>
-                            <Link 
-                              href={targetUrl} 
-                              prefetch={false}
-                              className="text-[10px] font-black text-lime-400 hover:underline flex items-center gap-1 justify-between"
-                            >
-                              <span>{isPozKes ? "PozKes'te Gör" : "Konuda Gör"}</span>
+                            <div className="text-[10px] font-black text-lime-400 flex items-center gap-1 justify-between">
+                              <span>{isPozKes ? "PozKes'te Gör ↗" : "Konuda Gör ↗"}</span>
                               <ArrowRight className="h-3 w-3" />
-                            </Link>
+                            </div>
                           </div>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>
@@ -878,6 +889,26 @@ export default function ProfileDashboard({
               </button>
             </div>
           </div>
+        </div>
+      {/* Fullscreen Lightbox Modal */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 p-2.5 bg-zinc-900/80 hover:bg-rose-600 text-white rounded-full transition-colors cursor-pointer z-10"
+            title="Kapat"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Profil Resmi Tam Ekran"
+            className="max-w-full max-h-[90vh] object-contain rounded-2xl border border-zinc-800 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>
