@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.8] - 2026-07-24
+
+### 🧹 Otomatik Bildirim Temizliği & Cron Job Entegrasyonu (`automatic-notification-cron-cleanup`)
+1. **30 Günden Eski Okunmuş Bildirimleri Gece Otomatik Temizleyen Cron Endpoint'i Kuruldu**
+   * **Açıklama:** `/api/cron` servisi güncellenerek güvenli gizli anahtar (CRON_SECRET) ile korundu. Her gece 03:00'te veritabanındaki 30 günü geçmiş bildirimleri otomatik silen sistem ve Hetzner Linux crontab görevi aktifleştirildi.
+   * **Kod Referansı:** [route.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/api/cron/route.ts)
+
+---
+
 ## [1.8.7] - 2026-07-24
 
 ### 🔔 Bildirim Kutusu Akıllı Tarih Entegrasyonu (`notification-popover-smart-date`)

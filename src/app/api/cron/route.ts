@@ -2,14 +2,21 @@ import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  // Simple check for safety: we can allow Vercel crons without secret if not configured
+  const { searchParams } = new URL(request.url);
+  const secret = searchParams.get('secret');
   const authHeader = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+
+  const expectedSecret = process.env.CRON_SECRET || "sozlukzzzCronSecret2026";
+  const isAuthorized = 
+    secret === expectedSecret || 
+    authHeader === `Bearer ${expectedSecret}`;
+
+  if (!isAuthorized) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
   try {
-    // 1. Keep-alive query to prevent Supabase from pausing the free tier
+    // 1. Keep-alive query
     await prisma.user.count();
 
     // 2. Automatic cleanup: Delete notifications older than 30 days to save database space
@@ -23,7 +30,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ 
       ok: true, 
-      message: "vızzz! Database is kept awake.",
+      message: "Veritabanı canlı tutuldu ve 30 günden eski bildirimler temizlendi.",
       cleanedNotificationsCount: deleteResult.count 
     });
   } catch (error: any) {
