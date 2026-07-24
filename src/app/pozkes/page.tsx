@@ -179,12 +179,6 @@ export default async function PozKesPage() {
 
   return (
     <div className="kd-page">
-      {/* Page Header */}
-      <div className="kd-header">
-        <h1 className="kd-title">PozKes 📸</h1>
-        <p className="kd-subtitle">Kullanıcıların paylaştığı fotoğraflar</p>
-      </div>
-
       {/* Direct Upload Box */}
       <PozKesUploadBox isLoggedIn={!!user} />
 
