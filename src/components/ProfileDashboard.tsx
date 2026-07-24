@@ -441,9 +441,9 @@ export default function ProfileDashboard({
           </div>
         ) : (
           <div className="mb-3 p-6 text-center border border-dashed border-zinc-850 rounded-xl bg-zinc-950/30">
-            <p className="text-xs text-zinc-500 italic">
+            <p className="text-xs text-zinc-400 font-medium italic">
               {isSelf 
-                ? "Henüz profil fotoğrafları alanına resim yüklemediniz. Aşağıdaki + butonundan hemen 5 adet profil resmi ekleyebilirsiniz!" 
+                ? "Henüz profil fotoğrafı yüklemediniz. Aşağıdaki + butonundan hemen 5 adet profil resmini ekle, çatlasınlar! 📸" 
                 : "Bu yazar henüz profil fotoğrafı eklememiş."}
             </p>
           </div>

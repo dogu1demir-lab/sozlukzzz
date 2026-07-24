@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.8] - 2026-07-24
+
+### 📸 Profil Vitrin Tanıtım Sloganı Güncellemesi (`profile-showcase-slogan-update`)
+1. **Profil Sayfası Fotoğraf Vitrinine Enerjik Davet Metni Eklendi**
+   * **Açıklama:** Kullanıcının kendi profilinde fotoğrafları boşken gösterilen boş durum mesajı *"Henüz profil fotoğrafı yüklemediniz. Aşağıdaki + butonundan hemen 5 adet profil resmini ekle, çatlasınlar! 📸"* olarak güncellendi.
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.9.7] - 2026-07-24
 
 ### 📸 PozKes Sayfası Doğrudan Fotoğraf Paylaşım Kutusu (`pozkes-direct-upload-box`)
