@@ -212,6 +212,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                       alt={conv.username}
                       width={36}
                       height={36}
+                      unoptimized
                       className="w-9 h-9 rounded-full object-cover border border-white/5 shrink-0"
                     />
                   ) : (
@@ -270,6 +271,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                   alt={activePartner.username}
                   width={34}
                   height={34}
+                  unoptimized
                   className="w-8.5 h-8.5 rounded-full object-cover border border-white/5 shrink-0"
                 />
               ) : (

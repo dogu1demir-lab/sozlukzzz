@@ -206,6 +206,7 @@ export default function PollBlock({
                                 alt={voter.username}
                                 width={16}
                                 height={16}
+                                unoptimized
                                 className="w-4 h-4 rounded-full object-cover shrink-0"
                               />
                             ) : (

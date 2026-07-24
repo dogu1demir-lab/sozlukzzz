@@ -174,7 +174,7 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
                 alt={user.username}
                 width={80}
                 height={80}
-                unoptimized={avatarUrl.startsWith("data:")}
+                unoptimized
                 className="w-20 h-20 rounded-full object-cover border-2 border-lime-500/40 shadow-lg ring-4 ring-lime-500/10 shrink-0"
               />
             ) : (

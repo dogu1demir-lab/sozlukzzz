@@ -483,7 +483,7 @@ export default function ProfileDashboard({
                 alt="Profil Resmi"
                 fill
                 sizes="(max-width: 768px) 100vw, 640px"
-                unoptimized={(displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0]).startsWith("/api/")}
+                unoptimized
                 priority
                 onClick={() => setLightboxUrl(displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0])}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
@@ -558,7 +558,7 @@ export default function ProfileDashboard({
                     alt={`Profil Resmi ${idx + 1}`}
                     fill
                     sizes="(max-width: 640px) 20vw, 128px"
-                    unoptimized={photoUrl.startsWith("/api/")}
+                    unoptimized
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute bottom-1 left-1 bg-black/80 text-zinc-300 text-[8px] font-extrabold px-1 py-0.5 rounded backdrop-blur-sm pointer-events-none border border-white/10">
@@ -910,7 +910,7 @@ export default function ProfileDashboard({
             alt="Profil Resmi Tam Ekran"
             width={1920}
             height={1920}
-            unoptimized={lightboxUrl.startsWith("/api/")}
+            unoptimized
             style={{ width: "auto", height: "auto" }}
             className="max-w-full max-h-[90vh] object-contain rounded-2xl border border-zinc-800 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -934,7 +934,7 @@ export default function ProfileDashboard({
             </div>
 
             <div className="relative aspect-video rounded-xl overflow-hidden border border-zinc-800 bg-black/40 max-h-32 flex items-center justify-center">
-              <Image src={photoToDelete} alt="Silinecek fotoğraf" fill sizes="384px" unoptimized={photoToDelete.startsWith("/api/")} className="w-full h-full object-cover" />
+              <Image src={photoToDelete} alt="Silinecek fotoğraf" fill sizes="384px" unoptimized className="w-full h-full object-cover" />
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-2">
