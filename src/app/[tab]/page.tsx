@@ -112,6 +112,8 @@ interface FeedEntry {
   topic: FeedTopic;
   author: FeedAuthor;
   likes: FeedLike[];
+  topEntryUrl?: string | null;
+  topLikeCount?: number;
 }
 
 interface PopularTopicEntry {
@@ -486,6 +488,37 @@ export default async function Home({ params }: PageProps) {
           imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : null
         }));
 
+      // 🔥 rozeti: her konu için en çok beğenilen entry + nokta atışı URL'si
+      const topInfos = await Promise.all(
+        entries.map(async (entry) => {
+          const topicEntries = await prisma.entry.findMany({
+            where: { topicId: entry.topic.id },
+            select: {
+              id: true,
+              createdAt: true,
+              _count: { select: { likes: { where: { isLike: true } } } }
+            },
+            orderBy: { createdAt: "asc" }
+          });
+          let top: (typeof topicEntries)[number] | null = null;
+          for (const e of topicEntries) {
+            if (!top || e._count.likes > top._count.likes) top = e;
+          }
+          if (!top || top._count.likes === 0) return { url: null, count: 0 };
+          const rank = topicEntries.findIndex((e) => e.id === top!.id) + 1;
+          const page = Math.ceil(rank / 10) || 1;
+          return {
+            url: `/baslik/${entry.topic.slug}?p=${page}#entry-${top.id}`,
+            count: top._count.likes
+          };
+        })
+      );
+      entries = entries.map((entry, i) => ({
+        ...entry,
+        topEntryUrl: topInfos[i].url,
+        topLikeCount: topInfos[i].count
+      }));
+
       try {
         await redis.set(cacheKey, JSON.stringify(entries), "EX", 60);
       } catch (redisErr) {
@@ -565,6 +598,8 @@ export default async function Home({ params }: PageProps) {
       likesCount,
       dislikesCount,
       userReaction,
+      topEntryUrl: entry.topEntryUrl ?? null,
+      topLikeCount: entry.topLikeCount ?? 0,
     };
   });
 
@@ -610,15 +645,26 @@ export default async function Home({ params }: PageProps) {
                 >
                   {/* Entry Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-1">
-                    <Link
-                      href={`/baslik/${entry.topic.slug}`}
-                      className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
-                    >
-                      <span className="break-words block min-w-0">{entry.topic.title}</span>
-                      {entry.topic.poll && (
-                        <span className="text-xs shrink-0" title="Anket">📊</span>
+                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                      <Link
+                        href={`/baslik/${entry.topic.slug}`}
+                        className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap min-w-0"
+                      >
+                        <span className="break-words block min-w-0">{entry.topic.title}</span>
+                        {entry.topic.poll && (
+                          <span className="text-xs shrink-0" title="Anket">📊</span>
+                        )}
+                      </Link>
+                      {activeTab === "begenilen" && entry.topEntryUrl && entry.topLikeCount > 0 && (
+                        <Link
+                          href={entry.topEntryUrl}
+                          title={`En çok beğenilen entry'ye git (${entry.topLikeCount} beğeni)`}
+                          className="shrink-0 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-colors"
+                        >
+                          🔥 {entry.topLikeCount}
+                        </Link>
                       )}
-                    </Link>
+                    </div>
 
                     {/* Author / Date */}
                     <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-400 shrink-0">

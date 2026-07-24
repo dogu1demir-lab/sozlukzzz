@@ -33,6 +33,8 @@ interface EntryItem {
   likesCount: number;
   dislikesCount: number;
   userReaction: "LIKE" | "DISLIKE" | null;
+  topEntryUrl?: string | null;
+  topLikeCount?: number;
 }
 
 interface FeedLoadMoreProps {
@@ -104,15 +106,26 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
           >
             {/* Entry Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-1">
-              <Link
-                href={`/baslik/${entry.topic.slug}`}
-                className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap"
-              >
-                <span>{entry.topic.title}</span>
-                {entry.topic.poll && (
-                  <span className="text-xs shrink-0" title="Anket">📊</span>
+              <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                <Link
+                  href={`/baslik/${entry.topic.slug}`}
+                  className="text-sm sm:text-base font-bold text-white hover:text-lime-400 transition-colors flex items-center gap-1.5 flex-wrap"
+                >
+                  <span>{entry.topic.title}</span>
+                  {entry.topic.poll && (
+                    <span className="text-xs shrink-0" title="Anket">📊</span>
+                  )}
+                </Link>
+                {tab === "begenilen" && entry.topEntryUrl && (entry.topLikeCount ?? 0) > 0 && (
+                  <Link
+                    href={entry.topEntryUrl}
+                    title={`En çok beğenilen entry'ye git (${entry.topLikeCount} beğeni)`}
+                    className="shrink-0 text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-colors"
+                  >
+                    🔥 {entry.topLikeCount}
+                  </Link>
                 )}
-              </Link>
+              </div>
 
               {/* Author / Date */}
               <div className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-400 shrink-0">

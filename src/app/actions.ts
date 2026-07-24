@@ -1584,6 +1584,7 @@ export async function getMoreTopicsAction(offset: number, limit: number = 35) {
 export async function getMoreEntriesAction(tab: string, offset: number, limit: number = 20, cursorId?: string | null) {
   const user = await getSessionUser();
   let entries: FeedEntry[] = [];
+  let topInfoByEntryId = new Map<string, { url: string | null; count: number }>();
 
   try {
     if (tab === "bugun") {
@@ -1706,7 +1707,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             }
           },
           {
-            updatedAt: "desc"
+            lastEntryAt: "desc"
           },
           {
             id: "desc"
@@ -1865,7 +1866,35 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         )
       );
 
-      entries = firstEntries.filter((entry) => entry !== null);
+      const nonNullEntries = firstEntries.filter((entry) => entry !== null);
+      entries = nonNullEntries;
+
+      // 🔥 rozeti: her konu için en çok beğenilen entry + nokta atışı URL'si
+      const topInfos = await Promise.all(
+        nonNullEntries.map(async (entry) => {
+          const topicEntries = await prisma.entry.findMany({
+            where: { topicId: entry.topicId },
+            select: {
+              id: true,
+              createdAt: true,
+              _count: { select: { likes: { where: { isLike: true } } } }
+            },
+            orderBy: { createdAt: "asc" }
+          });
+          let top: (typeof topicEntries)[number] | null = null;
+          for (const e of topicEntries) {
+            if (!top || e._count.likes > top._count.likes) top = e;
+          }
+          if (!top || top._count.likes === 0) return { url: null as string | null, count: 0 };
+          const rank = topicEntries.findIndex((e) => e.id === top!.id) + 1;
+          const page = Math.ceil(rank / 10) || 1;
+          return {
+            url: `/baslik/${entry.topic.slug}?p=${page}#entry-${top.id}`,
+            count: top._count.likes
+          };
+        })
+      );
+      topInfoByEntryId = new Map(nonNullEntries.map((entry, i) => [entry.id, topInfos[i]]));
     }
 
     const formatted = entries.map((entry) => {
@@ -1873,6 +1902,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
       const dislikesCount = entry.likes.filter((l) => !l.isLike).length;
       const userLike = user ? entry.likes.find((l) => l.userId === user.id) : null;
       const userReaction = userLike ? (userLike.isLike ? ("LIKE" as const) : ("DISLIKE" as const)) : null;
+      const topInfo = topInfoByEntryId.get(entry.id);
 
       return {
         id: entry.id,
@@ -1889,6 +1919,8 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         likesCount,
         dislikesCount,
         userReaction,
+        topEntryUrl: topInfo?.url ?? null,
+        topLikeCount: topInfo?.count ?? 0,
       };
     });
 
