@@ -1132,9 +1132,19 @@ export async function updateProfileAvatarAction(base64Image: string) {
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
 
   try {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { avatarUrl: true }
+    });
+
     const savedAvatarUrl = await saveBase64Image(base64Image, "avatars");
     if (!savedAvatarUrl) {
       return { error: "Profil fotoğrafı kaydedilemedi, geçersiz veri." };
+    }
+
+    // Physically delete previous custom avatar file if replaced
+    if (dbUser?.avatarUrl && dbUser.avatarUrl !== savedAvatarUrl && dbUser.avatarUrl.startsWith("/uploads/")) {
+      await deleteImageFile(dbUser.avatarUrl);
     }
 
     await prisma.user.update({
@@ -1203,6 +1213,34 @@ export async function deleteAccountAction() {
       }
     } catch (redisErr) {
       console.error("Redis get self deletion check error:", redisErr);
+    }
+
+    // Clean up physical image files from disk (avatar, showcase photos, entry images)
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          avatarUrl: true,
+          profilePhotos: true,
+          entries: { select: { imageUrl: true } }
+        }
+      });
+
+      if (dbUser) {
+        if (dbUser.avatarUrl) await deleteImageFile(dbUser.avatarUrl);
+        if (dbUser.profilePhotos) {
+          for (const photo of dbUser.profilePhotos) {
+            await deleteImageFile(photo);
+          }
+        }
+        if (dbUser.entries) {
+          for (const entry of dbUser.entries) {
+            if (entry.imageUrl) await deleteImageFile(entry.imageUrl);
+          }
+        }
+      }
+    } catch (cleanupErr) {
+      console.error("Account image files cleanup error:", cleanupErr);
     }
 
     // Delete user (cascade will delete entries, likes, comments, etc.)
@@ -3133,6 +3171,9 @@ export async function removeProfilePhotoAction(photoUrl: string) {
         profilePhotos: updatedPhotos
       }
     });
+
+    // Physically delete file from disk (/public/uploads/...)
+    await deleteImageFile(photoUrl);
 
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/");
