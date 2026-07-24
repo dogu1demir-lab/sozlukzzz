@@ -902,6 +902,12 @@ export async function createPozKesEntryAction(title: string, content: string, ba
       }
     });
 
+    // Update topic lastEntryAt timestamp for Bugün and Gündem tabs
+    await prisma.topic.update({
+      where: { id: topic.id },
+      data: { lastEntryAt: new Date() }
+    });
+
     // Calculate page for PozKes entry inside its topic
     const entryCountBefore = await prisma.entry.count({
       where: {
