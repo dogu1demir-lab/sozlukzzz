@@ -2939,7 +2939,10 @@ export async function adminDeleteTopicAction(topicId: string) {
   }
 
   try {
-    const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+    const topic = await prisma.topic.findUnique({
+      where: { id: topicId },
+      include: { entries: { select: { imageUrl: true } } }
+    });
     if (!topic) {
       return { error: "Başlık bulunamadı." };
     }
@@ -2948,6 +2951,13 @@ export async function adminDeleteTopicAction(topicId: string) {
     await prisma.topic.delete({
       where: { id: topicId }
     });
+
+    // Kalıntısız silme: başlığa ait entry resimlerini diskten de temizle
+    for (const entry of topic.entries) {
+      if (entry.imageUrl) {
+        await deleteImageFile(entry.imageUrl);
+      }
+    }
 
     await clearAllFeedAndSidebarCaches();
     return { success: true };
