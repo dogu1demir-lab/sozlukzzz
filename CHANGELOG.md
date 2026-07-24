@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [2.0.0] - 2026-07-24
+
+### 🗑️ Admin & Yazar PozKes Kalıntısız Silme Butonu (`pozkes-admin-author-delete-button`)
+1. **PozKes Kartlarına Yönetici ve Yazar Çöp Kutusu Simgesi Eklendi**
+   * **Açıklama:** Yöneticilerin (Admin) ve fotoğrafı paylaşan yazarın PozKes gönderisini kalıntısız bir şekilde sistemden silebilmesi için kart başlığına onay mekanizmalı kırmızı `Trash2` (🗑️) çöp kutusu ikonu eklendi. Gönderi silindiğinde yorumları, beğenileri, şikayetleri ve ilgili veri bağları temizlenir.
+   * **Kod Referansı:** [PozKesCard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesCard.tsx), [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+
+---
+
 ## [1.9.8] - 2026-07-24
 
 ### 📸 Profil Vitrin Tanıtım Sloganı Güncellemesi (`profile-showcase-slogan-update`)

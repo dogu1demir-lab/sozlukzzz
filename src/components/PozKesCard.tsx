@@ -8,11 +8,13 @@ import {
   createCommentAction, 
   likeCommentAction, 
   deleteCommentAction,
+  deleteEntryAction,
   reportAction
 } from "@/app/actions";
 import { playBuzzSound, formatDate } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
+import { Trash2 } from "lucide-react";
 
 interface PozKesCardProps {
   entry: {
@@ -134,6 +136,18 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       } else {
         router.refresh();
       }
+  const handleDeleteEntry = () => {
+    if (!confirm("Bu PozKes gönderisini ve tüm yorumlarını kalıcı olarak silmek istediğinize emin misiniz?")) return;
+
+    playBuzzSound();
+
+    startTransition(async () => {
+      const result = await deleteEntryAction(entry.id);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        router.refresh();
+      }
     });
   };
 
@@ -228,7 +242,19 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
             </Link>
           )}
         </div>
-        <span className="text-[11px] text-zinc-500 whitespace-nowrap shrink-0">{formatDate(entry.createdAt)}</span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[11px] text-zinc-500 whitespace-nowrap">{formatDate(entry.createdAt)}</span>
+          {(isAdmin || currentUserId === entry.author.id) && (
+            <button
+              onClick={handleDeleteEntry}
+              disabled={isPending}
+              className="p-1 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+              title="PozKes Gönderisini Kalıcı Olarak Sil 🗑️"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Image body */}
