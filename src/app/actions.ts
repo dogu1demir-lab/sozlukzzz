@@ -3273,6 +3273,7 @@ export async function setAvatarFromPozKesAction(photoUrl: string) {
 
     await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/yazar/${user.username}`);
+    revalidatePath(`/api/yazar-image/${user.username}`);
     revalidatePath("/");
     return { success: true };
   } catch (err) {

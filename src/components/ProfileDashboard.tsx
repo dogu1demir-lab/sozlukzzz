@@ -131,7 +131,11 @@ export default function ProfileDashboard({
   const textEntries = entries.filter((e) => !e.imageUrl);
   const photoEntries = entries.filter((e) => !!e.imageUrl);
 
-  const avatarImgUrl = author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(author.username)}` : null;
+  // Avatar değişikliğinde tarayıcı cache'ini (max-age=300) aşmak için versiyon damgası
+  const [avatarVersion, setAvatarVersion] = useState<number>(0);
+  const avatarImgUrl = author.avatarUrl
+    ? `/api/yazar-image/${encodeURIComponent(author.username)}${avatarVersion ? `?v=${avatarVersion}` : ""}`
+    : null;
 
   // Helper to normalize photo URLs for strict deduplication
   const getPhotoKey = (url: string | null | undefined): string => {
@@ -166,6 +170,7 @@ export default function ProfileDashboard({
     startTransition(async () => {
       const res = await setAvatarFromPozKesAction(photoUrl);
       if (res.success) {
+        setAvatarVersion(Date.now());
         setSelectedPhotoIndex(0);
         router.refresh();
       } else if (res.error) {
@@ -309,7 +314,7 @@ export default function ProfileDashboard({
           <div className="profile-avatar-wrap">
             {author.avatarUrl ? (
               <Image
-                src={`/api/yazar-image/${encodeURIComponent(author.username)}`}
+                src={avatarImgUrl!}
                 alt={author.username}
                 width={80}
                 height={80}
