@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.7] - 2026-07-24
+
+### 🔔 Bildirim Kutusu Akıllı Tarih Entegrasyonu (`notification-popover-smart-date`)
+1. **Bildirim Zili Açılır Penceresine Akıllı Tarih Gösterimi Eklendi**
+   * **Açıklama:** Bildirim popover listesindeki ham tarih gösterimi `formatDate` yardımcısı ile değiştirilerek `Bugün 13:28`, `Dün 14:20` ve `24 Temmuz 2026 13:28` yapısına kavuşturuldu.
+   * **Kod Referansı:** [Header.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/Header.tsx)
+
+---
+
 ## [1.8.6] - 2026-07-24
 
 ### 📌 Konu Başlığı Görünürlük ve Hizalama Düzeltmesi (`topic-title-scroll-margin-visibility`)

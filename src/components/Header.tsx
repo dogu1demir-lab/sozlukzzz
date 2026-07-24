@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { SessionUser } from "@/lib/auth";
 import { logoutAction, markNotificationsAsReadAction, searchTopicsAction } from "@/app/actions";
-import { playBuzzSound } from "@/lib/utils";
+import { playBuzzSound, formatDate } from "@/lib/utils";
 import { 
   Bell, 
   Mail, 
@@ -421,7 +421,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                           >
                             <span className="text-[11px] text-zinc-200">{notif.content}</span>
                             <span className="text-[9px] text-zinc-500">
-                              {new Date(notif.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}
+                              {formatDate(notif.createdAt)}
                             </span>
                           </Link>
                         ))
