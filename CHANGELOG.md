@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.5] - 2026-07-24
+
+### 🎯 Stalksss Girdiler Sekmesi Nokta Atışı Entry Linki (`stalksss-entries-tab-anchor-fix`)
+1. **Profildeki Girdiler Listesindeki Başlık Linkleri İlgili Entry'ye Bağlandı**
+   * **Açıklama:** Stalksss -> Girdiler sekmesindeki başlık linkleri önceden sadece genel `/baslik/slug` sayfasına yönlendiği için yazarın yazdığı spesifik entry konumuna uçmuyordu. Linkler `/baslik/slug#entry-ID` formatına geçirildi ve tarihler `formatDate` akıllı formatına bağlandı.
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.9.4] - 2026-07-24
 
 ### 📌 PozKes Kartlarına Konu Etiketi Entegrasyonu (`pozkes-card-topic-tag-badge`)

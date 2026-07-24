@@ -565,13 +565,15 @@ export default function ProfileDashboard({
                     <article key={entry.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2 min-w-0 overflow-hidden">
                       <div className="flex justify-between items-baseline gap-2 min-w-0">
                         <Link 
-                          href={`/baslik/${entry.topic.slug}`} 
+                          href={`/baslik/${entry.topic.slug}#entry-${entry.id}`} 
                           prefetch={false}
                           className="text-sm font-bold text-white hover:text-teal-400 break-words min-w-0"
                         >
                           {entry.topic.title}
                         </Link>
-                         <span className="text-[10px] text-slate-500">{new Date(entry.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
+                        <span className="text-[10px] text-slate-500">
+                          {formatDate(entry.createdAt)}
+                        </span>
                       </div>
                       <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                         <MentionText content={entry.content} />
