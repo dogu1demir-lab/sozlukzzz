@@ -106,19 +106,21 @@ export default function EntryBlock({
     });
   };
 
-  const handleDelete = () => {
-    if (!confirm("Bu entry'yi silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) {
-      return;
-    }
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  const handleDelete = () => {
+    playBuzzSound();
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteEntry = () => {
+    setShowDeleteModal(false);
     startTransition(async () => {
       const result = await deleteEntryAction(entry.id);
       if (result.error) {
         alert(result.error);
       } else {
         if (result.topicDeleted) {
-          // If the topic was deleted because this was the only entry, redirect to homepage
-          alert("Başlıktaki tek entry silindiği için başlık kaldırıldı zzz.");
           router.push("/bugun");
         } else {
           router.refresh();
@@ -247,9 +249,50 @@ export default function EntryBlock({
           onEdit={!isEditing ? handleEditToggle : undefined}
           onDelete={handleDelete}
           isOwner={canEdit}
-          canDelete={canDelete}
         />
       </div>
+
+      {/* Modern Custom Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg shrink-0">
+                🗑️
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white">Entry Silinsin mi?</h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Bu entry kalıcı olarak silinecektir. İşlemi onaylıyor musunuz?</p>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl border border-zinc-900 bg-zinc-900/40 text-xs text-zinc-300 line-clamp-3 italic">
+              &ldquo;{entry.content}&rdquo;
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => { playBuzzSound(); setShowDeleteModal(false); }}
+                disabled={isPending}
+                className="px-4 py-2 text-xs font-extrabold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-all active:scale-95 cursor-pointer"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteEntry}
+                disabled={isPending}
+                className="px-4 py-2 text-xs font-black text-white bg-rose-600 hover:bg-rose-500 rounded-xl transition-all active:scale-95 shadow-lg shadow-rose-600/20 flex items-center gap-1.5 cursor-pointer"
+              >
+                {isPending ? "Siliniyor..." : "Evet, Sil 🗑️"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </article>
   );
 }

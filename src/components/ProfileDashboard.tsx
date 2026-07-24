@@ -162,10 +162,19 @@ export default function ProfileDashboard({
     });
   };
 
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
+
   const handleRemoveProfilePhoto = (photoUrl: string) => {
-    if (!confirm("Bu profil fotoğrafını silmek istediğinize emin misiniz?")) return;
+    playBuzzSound();
+    setPhotoToDelete(photoUrl);
+  };
+
+  const confirmDeletePhoto = () => {
+    if (!photoToDelete) return;
+    const targetUrl = photoToDelete;
+    setPhotoToDelete(null);
     startTransition(async () => {
-      const res = await removeProfilePhotoAction(photoUrl);
+      const res = await removeProfilePhotoAction(targetUrl);
       if (res.success) {
         playBuzzSound();
         router.refresh();
@@ -862,6 +871,48 @@ export default function ProfileDashboard({
             className="max-w-full max-h-[90vh] object-contain rounded-2xl border border-zinc-800 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
+        </div>
+      )}
+
+      {/* Modern Custom Delete Photo Confirmation Modal */}
+      {photoToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg shrink-0">
+                🗑️
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white">Profil Fotoğrafı Silinsin mi?</h3>
+                <p className="text-xs text-zinc-400 mt-0.5">Bu fotoğraf vitrininden ve profilinden kalıcı olarak kaldırılacaktır.</p>
+              </div>
+            </div>
+
+            <div className="relative aspect-video rounded-xl overflow-hidden border border-zinc-800 bg-black/40 max-h-32 flex items-center justify-center">
+              <img src={photoToDelete} alt="Silinecek fotoğraf" className="w-full h-full object-cover" />
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => { playBuzzSound(); setPhotoToDelete(null); }}
+                disabled={isPending}
+                className="px-4 py-2 text-xs font-extrabold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-all active:scale-95 cursor-pointer"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePhoto}
+                disabled={isPending}
+                className="px-4 py-2 text-xs font-black text-white bg-rose-600 hover:bg-rose-500 rounded-xl transition-all active:scale-95 shadow-lg shadow-rose-600/20 flex items-center gap-1.5 cursor-pointer"
+              >
+                {isPending ? "Siliniyor..." : "Evet, Sil 🗑️"}
+              </button>
+            </div>
+
+          </div>
         </div>
       )}
     </div>
