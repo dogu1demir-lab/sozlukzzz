@@ -370,7 +370,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                     {comment.author.displayName ?? comment.author.username}
                   </Link>
                   <span className="kd-comment-text">
-                    <MentionText content={comment.content} />
+                    <ExpandableMentionText content={comment.content} limit={150} />
                   </span>
                 </div>
 

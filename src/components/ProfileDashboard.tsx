@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Sparkles, Calendar, Shield, MessageSquare, BookOpen, ThumbsUp, Users, ArrowRight, X, Send, AlertCircle } from "lucide-react";
 import { playBuzzSound, formatDate } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
+import ExpandableMentionText from "@/components/ExpandableMentionText";
 import FollowButton from "@/components/FollowButton";
 import FlyRankBadge, { getRankByScore } from "@/components/FlyRankBadge";
 import { createPozKesEntryAction, setAvatarFromPozKesAction, addProfilePhotoAction, removeProfilePhotoAction } from "@/app/actions";
@@ -664,7 +665,7 @@ export default function ProfileDashboard({
                         </span>
                       </div>
                       <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                        <MentionText content={entry.content} />
+                        <ExpandableMentionText content={entry.content} limit={220} />
                       </div>
                     </article>
                   ))}
@@ -713,7 +714,7 @@ export default function ProfileDashboard({
                           </span>
                         </div>
                         <div className="text-xs text-slate-200">
-                          <MentionText content={comment.content} />
+                          <ExpandableMentionText content={comment.content} limit={180} />
                         </div>
                       </article>
                     );
