@@ -49,6 +49,7 @@ export default function SidebarContent() {
   const [activeTab, setActiveTab] = useState<string>("bugun");
   const [topics, setTopics] = useState<TopicItem[]>([]);
   const [offset, setOffset] = useState(0);
+  const [cursorId, setCursorId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [, startTransition] = useTransition();
@@ -59,7 +60,7 @@ export default function SidebarContent() {
   const fetchTopics = useCallback(async (tabName: string, isRefresh = false) => {
     try {
       const initialLimit = tabName === "bugun" ? 30 : 12;
-      const result = await getDynamicSidebarTopicsAction(tabName, 0, initialLimit);
+      const result = await getDynamicSidebarTopicsAction(tabName, 0, initialLimit, null);
       if (result.success && result.topics) {
         let formatted = result.topics as TopicItem[];
         const maxLimit = getMaxTopicsLimit(tabName);
@@ -74,6 +75,8 @@ export default function SidebarContent() {
           setOffset(formatted.length);
           setHasMore(formatted.length >= initialLimit);
         }
+        // Cursor follows the last visible topic so "load more" stays stable
+        setCursorId(formatted.length > 0 ? formatted[formatted.length - 1].id : null);
       }
     } catch (err) {
       console.error("Sidebar fetch error:", err);
@@ -179,6 +182,7 @@ export default function SidebarContent() {
     setIsLoading(true);
     setTopics([]);
     setOffset(0);
+    setCursorId(null);
     setHasMore(true);
     setHasLoadedMore(false); // Reset load more flag when changing tabs
   }
@@ -237,7 +241,7 @@ export default function SidebarContent() {
     const fetchLimit = Math.min(12, remainingAllowed);
 
     try {
-      const result = await getDynamicSidebarTopicsAction(activeTab, offset, fetchLimit);
+      const result = await getDynamicSidebarTopicsAction(activeTab, offset, fetchLimit, cursorId);
       if (result.success && result.topics) {
         const newTopics = result.topics as TopicItem[];
         if (newTopics.length === 0) {
@@ -249,10 +253,12 @@ export default function SidebarContent() {
             const truncated = combinedTopics.slice(0, maxLimit);
             setTopics(truncated);
             setOffset(truncated.length);
+            setCursorId(truncated[truncated.length - 1].id);
             setHasMore(false);
           } else {
             setTopics(combinedTopics);
             setOffset(combinedTopics.length);
+            setCursorId(combinedTopics[combinedTopics.length - 1].id);
             if (newTopics.length < fetchLimit) {
               setHasMore(false);
             }

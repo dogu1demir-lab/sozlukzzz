@@ -43,6 +43,7 @@ interface FeedLoadMoreProps {
 export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoadMoreProps) {
   const [entries, setEntries] = useState<EntryItem[]>([]);
   const [offset, setOffset] = useState(initialOffset);
+  const [cursorId, setCursorId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,6 +54,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
     setPrevTabKey(tabKey);
     setEntries([]);
     setOffset(initialOffset);
+    setCursorId(null);
     setHasMore(true);
   }
 
@@ -61,7 +63,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
     setIsLoading(true);
 
     try {
-      const result = await getMoreEntriesAction(tab, offset, 7);
+      const result = await getMoreEntriesAction(tab, offset, 7, cursorId);
       if (result.success && result.entries) {
         const newEntries = result.entries as unknown as EntryItem[];
         if (newEntries.length === 0) {
@@ -69,6 +71,8 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
         } else {
           setEntries((prev) => [...prev, ...newEntries]);
           setOffset((prev) => prev + newEntries.length);
+          // Continue after the last shown topic so rows inserted meanwhile are not repeated
+          setCursorId(newEntries[newEntries.length - 1].topic.id);
           if (newEntries.length < 7) {
             setHasMore(false);
           }

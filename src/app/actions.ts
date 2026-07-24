@@ -59,6 +59,27 @@ type SidebarTopic = {
   isYesterday?: boolean;
 };
 
+// Helper: Cursor-based pagination over an already ordered list.
+// When a cursorId is given and found in the list, returns the next `limit`
+// items after it (stable against newly inserted rows). If the cursor is
+// missing or no longer exists in the list (deleted/moved), falls back to
+// classic offset slicing.
+function paginateWithCursor<T>(
+  items: T[],
+  getKey: (item: T) => string,
+  cursorId: string | null | undefined,
+  offset: number,
+  limit: number
+): T[] {
+  if (cursorId) {
+    const cursorIndex = items.findIndex((item) => getKey(item) === cursorId);
+    if (cursorIndex !== -1) {
+      return items.slice(cursorIndex + 1, cursorIndex + 1 + limit);
+    }
+  }
+  return items.slice(offset, offset + limit);
+}
+
 import { cleanUsernameHandle } from "@/lib/utils";
 
 // Helper: Calculate user score and check link posting capability (Level 15 / Aerodinamik Sinek -> score >= 930)
@@ -1514,7 +1535,10 @@ export async function getMoreTopicsAction(offset: number, limit: number = 35) {
 }
 
 // Action: Fetch More Entries for Homepage Feed
-export async function getMoreEntriesAction(tab: string, offset: number, limit: number = 20) {
+// cursorId: id of the last topic shown on the client; when provided, pagination
+// continues right after that topic in the ordered list so rows inserted in the
+// meantime are not shown twice. Falls back to offset when the cursor is not found.
+export async function getMoreEntriesAction(tab: string, offset: number, limit: number = 20, cursorId?: string | null) {
   const user = await getSessionUser();
   let entries: FeedEntry[] = [];
 
@@ -1590,11 +1614,11 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
 
       const combined = [...todayTopics, ...yesterdayTopics];
       let pageLimit = limit;
-      if (offset === 0 && todayTopics.length > 0 && todayTopics.length < limit) {
+      if (!cursorId && offset === 0 && todayTopics.length > 0 && todayTopics.length < limit) {
         // Expand the first page limit to show at least 10 yesterday topics on home feed
         pageLimit = Math.max(limit, todayTopics.length + 10);
       }
-      const paginatedTopics = combined.slice(offset, offset + pageLimit);
+      const paginatedTopics = paginateWithCursor(combined, (t) => t.id, cursorId, offset, pageLimit);
 
       entries = paginatedTopics
         .filter(t => t.entries.length > 0)
@@ -1645,11 +1669,16 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
             id: "desc"
           }
         ],
-        skip: offset,
-        take: limit
+        // With a cursor, fetch the full ordered list and slice in JS so the
+        // cursor position can be located; otherwise paginate in the DB.
+        ...(cursorId ? {} : { skip: offset, take: limit })
       });
 
-      entries = topics
+      const pageTopics = cursorId
+        ? paginateWithCursor(topics, (t) => t.id, cursorId, offset, limit)
+        : topics;
+
+      entries = pageTopics
         .filter(t => t.entries.length > 0)
         .map(t => ({
           ...t.entries[0],
@@ -1661,7 +1690,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           }
         }));
     } else if (tab === "pozkes") {
-      entries = await prisma.entry.findMany({
+      const rawEntries = await prisma.entry.findMany({
         where: { topic: { slug: "pozkes-galeri" }, imageUrl: { not: null } },
         include: {
           topic: {
@@ -1673,9 +1702,14 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           likes: true
         },
         orderBy: { createdAt: "desc" },
-        skip: offset,
-        take: limit
+        // With a cursor, fetch the full ordered list and slice in JS
+        ...(cursorId ? {} : { skip: offset, take: limit })
       });
+      // All PozKes entries share one topic, so the topic-id cursor will not
+      // match here and the lookup safely falls back to offset slicing.
+      entries = cursorId
+        ? paginateWithCursor(rawEntries, (e) => e.id, cursorId, offset, limit)
+        : rawEntries;
     } else if (tab === "takip") {
       if (user) {
         const follows = await prisma.follow.findMany({
@@ -1716,11 +1750,15 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           orderBy: {
             lastEntryAt: "desc"
           },
-          skip: offset,
-          take: limit
+          // With a cursor, fetch the full ordered list and slice in JS
+          ...(cursorId ? {} : { skip: offset, take: limit })
         });
 
-        entries = topics
+        const pageTopics = cursorId
+          ? paginateWithCursor(topics, (t) => t.id, cursorId, offset, limit)
+          : topics;
+
+        entries = pageTopics
           .filter(t => t.entries.length > 0)
           .map(t => ({
             ...t.entries[0],
@@ -1767,7 +1805,8 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         // Deterministic tiebreak on topic id so pagination stays stable
         return bLikes - aLikes || a.topicId.localeCompare(b.topicId);
       });
-      entries = sorted.slice(offset, offset + limit);
+      // Cursor matches the client-sent topic id; each topic appears once here
+      entries = paginateWithCursor(sorted, (e) => e.topicId, cursorId, offset, limit);
     }
 
     const formatted = entries.map((entry) => {
@@ -2263,15 +2302,19 @@ export async function resolveReportAction(reportId: string, actionType: "DISMISS
 }
 
 // Action: Fetch topics dynamically for Sidebar based on active tab
-export async function getDynamicSidebarTopicsAction(tab: string, offset: number = 0, limit: number = 35) {
+// cursorId: id of the last topic shown on the client; when provided, pagination
+// continues right after that topic in the ordered list. Falls back to offset
+// when the cursor is not found.
+export async function getDynamicSidebarTopicsAction(tab: string, offset: number = 0, limit: number = 35, cursorId?: string | null) {
   try {
     const user = await getSessionUser();
     const activeTab = tab || "bugun";
 
     // 1. Check Redis cache first (except for following tab, or cache with user id)
+    const cursorPart = cursorId ?? "start";
     const cacheKey = activeTab === "takip"
-      ? (user ? `sidebar:takip:${user.id}:${offset}:${limit}` : "sidebar:takip:guest")
-      : `sidebar:${activeTab}:${offset}:${limit}`;
+      ? (user ? `sidebar:takip:${user.id}:${offset}:${limit}:${cursorPart}` : "sidebar:takip:guest")
+      : `sidebar:${activeTab}:${offset}:${limit}:${cursorPart}`;
 
     try {
       const cached = await redis.get(cacheKey);
@@ -2360,11 +2403,11 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
 
        const combined = [...mappedToday, ...mappedYesterday];
       let pageLimit = limit;
-      if (offset === 0 && mappedToday.length > 0 && mappedToday.length < limit) {
+      if (!cursorId && offset === 0 && mappedToday.length > 0 && mappedToday.length < limit) {
         // Expand the first page limit to show at least 15 yesterday topics
         pageLimit = Math.max(limit, mappedToday.length + 15);
       }
-      formattedTopics = combined.slice(offset, offset + pageLimit);
+      formattedTopics = paginateWithCursor(combined, (t) => t.id, cursorId, offset, pageLimit);
       
     } else if (activeTab === "gundem") {
       const topics = await prisma.topic.findMany({
@@ -2388,11 +2431,15 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
             id: "desc"
           }
         ],
-        skip: offset,
-        take: limit
+        // With a cursor, fetch the full ordered list and slice in JS
+        ...(cursorId ? {} : { skip: offset, take: limit })
       });
-      
-      formattedTopics = topics.map(t => ({
+
+      const pageTopics = cursorId
+        ? paginateWithCursor(topics, (t) => t.id, cursorId, offset, limit)
+        : topics;
+
+      formattedTopics = pageTopics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
@@ -2427,11 +2474,15 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         orderBy: {
           lastEntryAt: "desc"
         },
-        skip: offset,
-        take: limit
+        // With a cursor, fetch the full ordered list and slice in JS
+        ...(cursorId ? {} : { skip: offset, take: limit })
       });
-      
-      formattedTopics = topics.map(t => ({
+
+      const pageTopics = cursorId
+        ? paginateWithCursor(topics, (t) => t.id, cursorId, offset, limit)
+        : topics;
+
+      formattedTopics = pageTopics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
@@ -2468,7 +2519,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         return bMaxLikes - aMaxLikes;
       });
       
-      const paginatedTopics = sortedTopics.slice(offset, offset + limit);
+      const paginatedTopics = paginateWithCursor(sortedTopics, (t) => t.id, cursorId, offset, limit);
       
       formattedTopics = paginatedTopics.map(t => ({
         id: t.id,
@@ -2491,11 +2542,15 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         orderBy: {
           viewCount: "desc"
         },
-        skip: offset,
-        take: limit
+        // With a cursor, fetch the full ordered list and slice in JS
+        ...(cursorId ? {} : { skip: offset, take: limit })
       });
-      
-      formattedTopics = topics.map(t => ({
+
+      const pageTopics = cursorId
+        ? paginateWithCursor(topics, (t) => t.id, cursorId, offset, limit)
+        : topics;
+
+      formattedTopics = pageTopics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
@@ -2516,11 +2571,15 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
         orderBy: {
           lastEntryAt: "desc"
         },
-        skip: offset,
-        take: limit
+        // With a cursor, fetch the full ordered list and slice in JS
+        ...(cursorId ? {} : { skip: offset, take: limit })
       });
-      
-      formattedTopics = topics.map(t => ({
+
+      const pageTopics = cursorId
+        ? paginateWithCursor(topics, (t) => t.id, cursorId, offset, limit)
+        : topics;
+
+      formattedTopics = pageTopics.map(t => ({
         id: t.id,
         title: t.title,
         slug: t.slug,
