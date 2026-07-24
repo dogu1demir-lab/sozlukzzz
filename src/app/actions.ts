@@ -3082,11 +3082,22 @@ export async function setAvatarFromPozKesAction(photoUrl: string) {
   try {
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { profilePhotos: true }
+      select: { avatarUrl: true, profilePhotos: true }
     });
 
-    const currentPhotos = dbUser?.profilePhotos || [];
-    const updatedPhotos = currentPhotos.filter((p) => p !== photoUrl);
+    const oldAvatar = dbUser?.avatarUrl;
+    let currentPhotos = dbUser?.profilePhotos || [];
+
+    // 1. Remove the new avatarUrl (photoUrl) from profilePhotos so it doesn't duplicate
+    currentPhotos = currentPhotos.filter((p) => p !== photoUrl);
+
+    // 2. If there was a previous avatarUrl, and it's different from the new one, add oldAvatar to profilePhotos so it isn't lost!
+    if (oldAvatar && oldAvatar !== photoUrl && !currentPhotos.includes(oldAvatar)) {
+      currentPhotos = [oldAvatar, ...currentPhotos];
+    }
+
+    // Keep at most 4 showcase photos (since avatar is #1 slot)
+    const updatedPhotos = currentPhotos.slice(0, 4);
 
     await prisma.user.update({
       where: { id: user.id },
