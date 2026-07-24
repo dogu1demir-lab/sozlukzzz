@@ -129,7 +129,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
                   <span className="font-semibold">{entry.author.displayName ?? entry.author.username}</span>
                 </Link>
                 <span>•</span>
-                <span>{formatClientDate(entry.createdAt)}</span>
+                <span suppressHydrationWarning>{formatClientDate(entry.createdAt)}</span>
               </div>
             </div>
 

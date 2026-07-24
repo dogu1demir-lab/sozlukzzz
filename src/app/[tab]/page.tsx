@@ -576,7 +576,7 @@ export default async function Home({ params }: PageProps) {
                         <span className="font-semibold">@{entry.author.username}</span>
                       </Link>
                       <span>•</span>
-                      <span>{formatDate(entry.createdAt)}</span>
+                      <span suppressHydrationWarning>{formatDate(entry.createdAt)}</span>
                     </div>
                   </div>
 

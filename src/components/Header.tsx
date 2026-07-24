@@ -420,7 +420,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                             className={`flex flex-col gap-0.5 px-2.5 py-2 hover:bg-zinc-900 transition-colors ${!notif.isRead ? 'bg-zinc-900/30 font-medium' : ''}`}
                           >
                             <span className="text-[11px] text-zinc-200">{notif.content}</span>
-                            <span className="text-[9px] text-zinc-500">
+                            <span className="text-[9px] text-zinc-500" suppressHydrationWarning>
                               {formatDate(notif.createdAt)}
                             </span>
                           </Link>
