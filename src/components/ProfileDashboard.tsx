@@ -276,6 +276,7 @@ export default function ProfileDashboard({
         setIsUploadModalOpen(false);
         setUploadPhotoBase64("");
         setIsUploading(false);
+        setSelectedPhotoIndex(displayProfilePhotos.length > 0 ? displayProfilePhotos.length : 1);
         router.refresh();
       }
     } catch (err) {
@@ -529,6 +530,9 @@ export default function ProfileDashboard({
                     alt={`Profil Resmi ${idx + 1}`}
                     className="w-full h-full object-cover"
                   />
+                  <span className="absolute bottom-1 left-1 bg-black/80 text-zinc-300 text-[8px] font-extrabold px-1 py-0.5 rounded backdrop-blur-sm pointer-events-none border border-white/10">
+                    #{idx + 1}
+                  </span>
                   {isSelected && (
                     <div className="absolute top-1 right-1 bg-lime-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">
                       ✓
