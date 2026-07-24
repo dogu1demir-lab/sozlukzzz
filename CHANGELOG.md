@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.3] - 2026-07-24
+
+### 🔗 Profil Fotoğraflar Sekmesi Dinamik Yönlendirme Düzeltmesi (`stalksss-photos-tab-dynamic-routing-fix`)
+1. **Profil Fotoğraflar Sekmesindeki Normal Konu Görselleri İlgili Başlığına Bağlandı**
+   * **Açıklama:** Stalksss -> Fotoğraflar sekmesinde daha önce tüm görseller sabit `/pozkes#entry-ID` adresine yönlendiği için normal başlıklara (örn: "fatih Altaylı'nın haluk levent yazısı") ait fotoğraflar yanlış yere gidiyordu. Görselin ait olduğu konunun slug'ına göre dinamik rota hesaplaması eklendi (`/baslik/slug#entry-ID`).
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.9.2] - 2026-07-24
 
 ### 🎯 Profil Yorumları ve PozKes Link Temizliği (`stalksss-comments-link-and-text-cleanup`)

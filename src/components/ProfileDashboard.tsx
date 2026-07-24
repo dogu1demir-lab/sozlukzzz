@@ -650,21 +650,31 @@ export default function ProfileDashboard({
               ) : (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {photoEntries.slice(0, photosLimit).map((photo) => (
-                      <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30">
-                        <img src={photo.imageUrl!} alt="Poz" width={150} height={150} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-2.5 transition-all">
-                          <Link 
-                            href={`/pozkes#entry-${photo.id}`} 
-                            prefetch={false}
-                            className="text-[10px] font-bold text-white hover:underline flex items-center gap-1 justify-between"
-                          >
-                            <span>Akışta Gör</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
+                    {photoEntries.slice(0, photosLimit).map((photo) => {
+                      const isPozKes = photo.topic.slug === "pozkes-galeri";
+                      const targetUrl = isPozKes
+                        ? `/pozkes#entry-${photo.id}`
+                        : `/baslik/${photo.topic.slug}#entry-${photo.id}`;
+
+                      return (
+                        <div key={photo.id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30">
+                          <img src={photo.imageUrl!} alt={photo.topic.title} width={150} height={150} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                          <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-2.5 transition-all">
+                            <div className="text-[10px] font-bold text-zinc-300 line-clamp-1 mb-1" title={photo.topic.title}>
+                              {photo.topic.title}
+                            </div>
+                            <Link 
+                              href={targetUrl} 
+                              prefetch={false}
+                              className="text-[10px] font-black text-lime-400 hover:underline flex items-center gap-1 justify-between"
+                            >
+                              <span>{isPozKes ? "PozKes'te Gör" : "Konuda Gör"}</span>
+                              <ArrowRight className="h-3 w-3" />
+                            </Link>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   {photoEntries.length > photosLimit && (
                     <div className="flex justify-center pt-2">
