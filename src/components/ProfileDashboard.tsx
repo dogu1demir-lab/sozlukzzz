@@ -130,9 +130,17 @@ export default function ProfileDashboard({
 
   const displayAvatarUrl = author.avatarUrl || (photoEntries.length > 0 ? photoEntries[0].imageUrl : null);
 
-  const displayProfilePhotos = (author.profilePhotos && author.profilePhotos.length > 0)
-    ? author.profilePhotos
-    : (author.avatarUrl ? [`/api/yazar-image/${encodeURIComponent(author.username)}`] : []);
+  const avatarImgUrl = author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(author.username)}` : null;
+
+  let displayProfilePhotos: string[] = [];
+  if (author.profilePhotos && author.profilePhotos.length > 0) {
+    displayProfilePhotos = [...author.profilePhotos];
+    if (avatarImgUrl && author.avatarUrl && !author.profilePhotos.includes(author.avatarUrl) && !author.profilePhotos.includes(avatarImgUrl)) {
+      displayProfilePhotos = [avatarImgUrl, ...author.profilePhotos].slice(0, 5);
+    }
+  } else if (avatarImgUrl) {
+    displayProfilePhotos = [avatarImgUrl];
+  }
 
   const [entriesLimit, setEntriesLimit] = useState(10);
   const [commentsLimit, setCommentsLimit] = useState(10);
