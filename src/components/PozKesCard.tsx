@@ -584,14 +584,14 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                   </span>
                 </div>
 
-                {/* Reply / Vızılda Button */}
+                {/* Reply Button */}
                 <button
                   type="button"
                   onClick={() => handleReplyComment(comment.author.username)}
                   className="px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 hover:text-teal-400 hover:bg-teal-500/10 rounded transition-colors cursor-pointer opacity-80 group-hover:opacity-100"
                   title={`@${comment.author.username} yazarını yanıtla`}
                 >
-                  vızılda
+                  yanıtla
                 </button>
 
                 <button
