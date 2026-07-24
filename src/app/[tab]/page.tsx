@@ -423,7 +423,8 @@ export default async function Home({ params }: PageProps) {
     }
 
     if (entries.length === 0) {
-      // Fetch recent 100 entries, group by topic, then sort topics by likes count
+      // Konuları, konudaki herhangi bir entry'nin aldığı MAKSİMUM beğeni sayısına
+      // göre sırala (sidebar ile aynı metrik). Tiebreak: topicId (deterministik).
       const rawEntries = await prisma.entry.findMany({
         where: {
           topic: {
@@ -432,31 +433,26 @@ export default async function Home({ params }: PageProps) {
         },
         select: {
           topicId: true,
-          likes: true
-        },
-        orderBy: {
-          likes: {
-            _count: "desc"
+          _count: {
+            select: {
+              likes: { where: { isLike: true } }
+            }
           }
-        },
-        take: 100
+        }
       });
 
-      const uniqueMap = new Map<string, { topicId: string; likes: FeedLike[] }>();
+      const maxLikesByTopic = new Map<string, number>();
       for (const entry of rawEntries) {
-        if (!uniqueMap.has(entry.topicId)) {
-          uniqueMap.set(entry.topicId, entry);
+        const count = entry._count.likes;
+        if (count > (maxLikesByTopic.get(entry.topicId) ?? -1)) {
+          maxLikesByTopic.set(entry.topicId, count);
         }
       }
 
-      const rankedTopicIds = Array.from(uniqueMap.values())
-        .sort((a, b) => {
-          const aLikes = a.likes.filter((l) => l.isLike).length;
-          const bLikes = b.likes.filter((l) => !l.isLike).length;
-          return bLikes - aLikes;
-        })
+      const rankedTopicIds = Array.from(maxLikesByTopic.entries())
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
         .slice(0, 7)
-        .map((entry) => entry.topicId);
+        .map(([topicId]) => topicId);
 
       // Konu sıralaması beğeniye göre kalır ama gösterilen entry konunun ilk entry'sidir (createdAt asc)
       const firstEntries = await Promise.all(

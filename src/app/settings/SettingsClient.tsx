@@ -84,7 +84,8 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
             } else {
               playBuzzSound();
               setStatusMessage({ type: "success", text: "Profil fotoğrafınız başarıyla güncellendi ve vitrine entegre edildi! 📸" });
-              router.refresh();
+              // Yeni avatar tüm siteye anında yayılsın diye tam sayfa yenileme
+              window.location.reload();
             }
           });
         }

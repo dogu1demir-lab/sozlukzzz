@@ -1814,42 +1814,58 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
           }));
       }
     } else if (tab === "begenilen") {
+      // Konuları, konudaki herhangi bir entry'nin aldığı MAKSİMUM beğeni sayısına
+      // göre sırala (sidebar ve ilk sayfa ile aynı metrik). Tiebreak: topicId.
       const rawEntries = await prisma.entry.findMany({
         where: {
           topic: {
             slug: { not: "pozkes-galeri" }
           }
         },
-        include: {
-          topic: {
-            include: { poll: { select: { id: true } } }
-          },
-          author: {
-            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
-          },
-          likes: true
-        },
-        orderBy: {
-          likes: {
-            _count: "desc"
+        select: {
+          topicId: true,
+          _count: {
+            select: {
+              likes: { where: { isLike: true } }
+            }
           }
-        },
-        take: 150
+        }
       });
-      const uniqueMap = new Map<string, (typeof rawEntries)[number]>();
+
+      const maxLikesByTopic = new Map<string, number>();
       for (const entry of rawEntries) {
-        if (!uniqueMap.has(entry.topicId)) {
-          uniqueMap.set(entry.topicId, entry);
+        const count = entry._count.likes;
+        if (count > (maxLikesByTopic.get(entry.topicId) ?? -1)) {
+          maxLikesByTopic.set(entry.topicId, count);
         }
       }
-      const sorted = Array.from(uniqueMap.values()).sort((a, b) => {
-        const aLikes = a.likes.filter((l) => l.isLike).length;
-        const bLikes = b.likes.filter((l) => l.isLike).length;
-        // Deterministic tiebreak on topic id so pagination stays stable
-        return bLikes - aLikes || a.topicId.localeCompare(b.topicId);
-      });
-      // Cursor matches the client-sent topic id; each topic appears once here
-      entries = paginateWithCursor(sorted, (e) => e.topicId, cursorId, offset, limit);
+
+      const rankedTopics = Array.from(maxLikesByTopic.entries())
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([topicId]) => ({ topicId }));
+
+      const pageTopics = paginateWithCursor(rankedTopics, (t) => t.topicId, cursorId, offset, limit);
+
+      // Gösterilen entry, AGENTS.md kuralı gereği konunun İLK entry'si (createdAt asc)
+      const firstEntries = await Promise.all(
+        pageTopics.map(({ topicId }) =>
+          prisma.entry.findFirst({
+            where: { topicId },
+            orderBy: { createdAt: "asc" },
+            include: {
+              topic: {
+                include: { poll: { select: { id: true } } }
+              },
+              author: {
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
+              },
+              likes: true
+            }
+          })
+        )
+      );
+
+      entries = firstEntries.filter((entry) => entry !== null);
     }
 
     const formatted = entries.map((entry) => {
@@ -2569,7 +2585,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
           const likes = entry.likes.filter(l => l.isLike).length;
           return likes > max ? likes : max;
         }, 0);
-        return bMaxLikes - aMaxLikes;
+        return bMaxLikes - aMaxLikes || a.id.localeCompare(b.id);
       });
       
       const paginatedTopics = paginateWithCursor(sortedTopics, (t) => t.id, cursorId, offset, limit);

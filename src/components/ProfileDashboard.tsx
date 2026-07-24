@@ -172,7 +172,10 @@ export default function ProfileDashboard({
       if (res.success) {
         setAvatarVersion(Date.now());
         setSelectedPhotoIndex(0);
-        router.refresh();
+        // Yeni avatar tüm siteye (header, entry'ler, mesajlar) anında yayılsın
+        // diye tam sayfa yenileme yapılır; /api/yazar-image must-revalidate
+        // olduğu için her yerde taze resim gelir.
+        window.location.reload();
       } else if (res.error) {
         await showAlert(res.error);
       }

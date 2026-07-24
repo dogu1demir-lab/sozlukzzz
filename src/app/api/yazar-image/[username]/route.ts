@@ -76,7 +76,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       headers: {
         "Content-Type": contentType,
         "Content-Length": buffer.length.toString(),
-        "Cache-Control": "public, max-age=300" // Avatar can change, keep cache short
+        "Cache-Control": "public, max-age=0, must-revalidate" // Avatar anlık değişebilir; tarayıcı her yüklenmede yeniden doğrulasın
       }
     });
   } catch (error) {
