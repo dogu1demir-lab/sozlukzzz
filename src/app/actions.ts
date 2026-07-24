@@ -856,14 +856,21 @@ export async function createPozKesEntryAction(title: string, content: string, ba
     console.error("Redis pozkes check error:", err);
   }
 
-  const cleanTitle = title.trim() || "pozkes galeri";
-  const cleanContent = content.trim();
+  const customTitle = title.trim();
+  const cleanTitle = "pozkes galeri";
+  const slug = "pozkes-galeri";
 
+  let cleanContent = content.trim();
   if (!cleanContent) {
     return { error: "Açıklama boş olamaz." };
   }
   if (cleanContent.length > 5000) {
     return { error: "Açıklama en fazla 5000 karakter olabilir zzz." };
+  }
+
+  // If user provided a custom title, prepend it to content
+  if (customTitle && customTitle.toLowerCase() !== "pozkes galeri") {
+    cleanContent = `**${customTitle}**\n\n${cleanContent}`;
   }
 
   if (!base64Image) {
