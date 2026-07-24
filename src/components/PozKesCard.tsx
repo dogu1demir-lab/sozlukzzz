@@ -14,7 +14,7 @@ import {
 import { playBuzzSound, formatDate } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
-import { Trash2 } from "lucide-react";
+import { Trash2, Share2 } from "lucide-react";
 
 interface PozKesCardProps {
   entry: {
@@ -63,6 +63,37 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   const [comments, setComments] = useState(entry.comments);
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+
+  const getShareUrl = () => {
+    if (typeof window === "undefined") return "";
+    return `${window.location.origin}/pozkes#entry-${entry.id}`;
+  };
+
+  const handleCopyLink = () => {
+    playBuzzSound();
+    const url = getShareUrl();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+    }
+    setShowShareMenu(false);
+  };
+
+  const handleShareWhatsApp = () => {
+    playBuzzSound();
+    const url = getShareUrl();
+    const text = `PozKes'te harika bir kare! 📸\n${url}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    setShowShareMenu(false);
+  };
+
+  const handleShareX = () => {
+    playBuzzSound();
+    const url = getShareUrl();
+    const text = `PozKes'te harika bir kare! 📸 @sozlukzzz\n${url}`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+    setShowShareMenu(false);
+  };
 
   const handleLikePost = () => {
     if (!isLoggedIn) {
@@ -287,6 +318,48 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
         <span className="kd-comment-count">
           💬 {comments.length}
         </span>
+
+        {/* Share Button & Popup Menu */}
+        <div className="relative inline-block">
+          <button
+            type="button"
+            onClick={() => { playBuzzSound(); setShowShareMenu(!showShareMenu); }}
+            className="flex items-center gap-1 text-xs text-zinc-400 hover:text-teal-400 px-2 py-1 rounded-lg hover:bg-zinc-900 transition-colors cursor-pointer select-none"
+            title="Fotoğrafı Paylaş"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+            <span className="font-bold text-[11px]">paylaş</span>
+          </button>
+
+          {showShareMenu && (
+            <>
+              <div className="fixed inset-0 z-20" onClick={() => setShowShareMenu(false)} />
+              <div className="absolute left-0 bottom-full mb-2 z-30 w-36 rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl ring-1 ring-black/5 animate-in fade-in slide-in-from-bottom-2 duration-100 flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-zinc-300 hover:bg-zinc-900 transition-colors text-left font-bold cursor-pointer"
+                >
+                  <span>🔗 Linki Kopyala</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShareWhatsApp}
+                  className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-zinc-300 hover:bg-zinc-900 transition-colors text-left font-bold cursor-pointer"
+                >
+                  <span className="text-emerald-500">🟢 WhatsApp</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShareX}
+                  className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] text-zinc-300 hover:bg-zinc-900 transition-colors text-left font-bold cursor-pointer"
+                >
+                  <span>🐦 X (Twitter)</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         {currentUserId !== entry.author.id && (
           <button
