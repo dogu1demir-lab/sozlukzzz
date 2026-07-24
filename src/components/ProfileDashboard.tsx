@@ -136,16 +136,7 @@ export default function ProfileDashboard({
   const rawProfilePhotos = author.profilePhotos || [];
 
   if (rawProfilePhotos.length > 0) {
-    const containsAvatar = avatarImgUrl && (
-      rawProfilePhotos.includes(author.avatarUrl || "") ||
-      rawProfilePhotos.includes(avatarImgUrl)
-    );
-
-    if (avatarImgUrl && !containsAvatar) {
-      displayProfilePhotos = [avatarImgUrl, ...rawProfilePhotos].slice(0, 5);
-    } else {
-      displayProfilePhotos = rawProfilePhotos.slice(0, 5);
-    }
+    displayProfilePhotos = rawProfilePhotos.slice(0, 5);
   } else if (avatarImgUrl) {
     displayProfilePhotos = [avatarImgUrl];
   }
@@ -523,7 +514,7 @@ export default function ProfileDashboard({
                       ✓
                     </div>
                   )}
-                  {isSelf && idx > 0 && (
+                  {isSelf && (
                     <button
                       type="button"
                       onClick={(e) => {
