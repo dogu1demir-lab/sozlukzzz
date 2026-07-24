@@ -729,7 +729,7 @@ export default function ProfileDashboard({
                         className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                       >
                         {f.avatarUrl ? (
-                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} loading="lazy" className="w-8 h-8 rounded-full object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
                             {(f.displayName ?? f.username).substring(0, 1).toUpperCase()}
@@ -774,7 +774,7 @@ export default function ProfileDashboard({
                         className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                       >
                         {f.avatarUrl ? (
-                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} loading="lazy" className="w-8 h-8 rounded-full object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
                             {(f.displayName ?? f.username).substring(0, 1).toUpperCase()}
