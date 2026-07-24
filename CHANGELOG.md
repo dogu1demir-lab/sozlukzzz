@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [2.0.1] - 2026-07-24
+
+### 🗑️ Fiziksel Görsel Dosyası Kalıntısız Silme Sistemi (`image-file-unlink-cleanup`)
+1. **Silinen PozKes Gönderilerinin Sunucu Diskindeki Görsel Dosyaları Otomatik Siliniyor**
+   * **Açıklama:** PozKes gönderisi veya fotoğraflı entry silindiğinde veritabanı kayıtlarının temizlenmesine ek olarak `deleteImageFile` fonksiyonu ile sunucu diskinde (`public/uploads/entries/...`) biriken fiziksel `.webp` görsel dosyaları da kalıntısız silinir.
+   * **Kod Referansı:** [upload.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/lib/upload.ts), [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+
+---
+
 ## [2.0.0] - 2026-07-24
 
 ### 🗑️ Admin & Yazar PozKes Kalıntısız Silme Butonu (`pozkes-admin-author-delete-button`)

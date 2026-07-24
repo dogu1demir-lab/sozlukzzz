@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { saveBase64Image } from "@/lib/upload";
+import { saveBase64Image, deleteImageFile } from "@/lib/upload";
 import { redis } from "@/lib/redis";
 import { getSessionUser, setSessionCookie, clearSessionCookie } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -1866,6 +1866,11 @@ export async function deleteEntryAction(entryId: string) {
 
     const topicId = entry.topicId;
     const slug = entry.topic.slug;
+
+    // Delete physical image file from disk if entry has an uploaded photo
+    if (entry.imageUrl) {
+      await deleteImageFile(entry.imageUrl);
+    }
 
     // Delete the entry
     await prisma.entry.delete({

@@ -55,3 +55,24 @@ export async function saveBase64Image(
     return null;
   }
 }
+
+/**
+ * Deletes a saved image file from the local filesystem if it exists in public/uploads.
+ */
+export async function deleteImageFile(imageUrl: string | undefined | null): Promise<void> {
+  if (!imageUrl) return;
+
+  try {
+    // Only delete files under /uploads/
+    if (imageUrl.startsWith("/uploads/")) {
+      const relativePath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
+      const absolutePath = path.join(process.cwd(), "public", relativePath);
+      if (fs.existsSync(absolutePath)) {
+        fs.unlinkSync(absolutePath);
+        console.log(`Deleted image file on disk: ${absolutePath}`);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to delete image file from disk:", error);
+  }
+}
