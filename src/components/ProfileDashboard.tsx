@@ -599,26 +599,35 @@ export default function ProfileDashboard({
                 <div className="text-center py-6 text-xs text-slate-500 italic">Henüz yorum yapılmamış.</div>
               ) : (
                 <>
-                  {comments.slice(0, commentsLimit).map((comment) => (
-                    <article key={comment.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2 min-w-0 overflow-hidden">
-                      <div className="flex justify-between items-baseline gap-2 min-w-0">
-                        <div className="text-[11px] text-slate-400 break-words min-w-0">
-                          <Link 
-                            href={`/baslik/${comment.entry.topic.slug}#entry-${comment.entry.id}`} 
-                            prefetch={false}
-                            className="font-semibold text-slate-300 hover:text-teal-400 break-words min-w-0"
-                          >
-                            {comment.entry.topic.title}
-                          </Link>{" "}
-                          başlığındaki gönderiye vızıldadı
+                  {comments.slice(0, commentsLimit).map((comment) => {
+                    const isPozKes = comment.entry.topic.slug === "pozkes-galeri";
+                    const targetUrl = isPozKes
+                      ? `/pozkes#entry-${comment.entry.id}`
+                      : `/baslik/${comment.entry.topic.slug}#entry-${comment.entry.id}`;
+
+                    return (
+                      <article key={comment.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/20 space-y-2 min-w-0 overflow-hidden">
+                        <div className="flex justify-between items-baseline gap-2 min-w-0">
+                          <div className="text-[11px] text-slate-400 break-words min-w-0">
+                            <Link 
+                              href={targetUrl} 
+                              prefetch={false}
+                              className="font-semibold text-slate-300 hover:text-teal-400 break-words min-w-0"
+                            >
+                              {isPozKes ? "PozKes Fotoğrafı" : comment.entry.topic.title}
+                            </Link>{" "}
+                            {isPozKes ? "için yorum yaptı" : "konusundaki gönderiye yorum yaptı"}
+                          </div>
+                          <span className="text-[10px] text-slate-500">
+                            {formatDate(comment.createdAt)}
+                          </span>
                         </div>
-                         <span className="text-[10px] text-slate-500">{new Date(comment.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
-                      </div>
-                      <div className="text-xs text-slate-200">
-                        <MentionText content={comment.content} />
-                      </div>
-                    </article>
-                  ))}
+                        <div className="text-xs text-slate-200">
+                          <MentionText content={comment.content} />
+                        </div>
+                      </article>
+                    );
+                  })}
                   {comments.length > commentsLimit && (
                     <div className="flex justify-center pt-2">
                       <button

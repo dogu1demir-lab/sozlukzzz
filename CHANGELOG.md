@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.2] - 2026-07-24
+
+### 🎯 Profil Yorumları ve PozKes Link Temizliği (`stalksss-comments-link-and-text-cleanup`)
+1. **Profil Yorumlar Sekmesindeki Metin ve PozKes Yönlendirmeleri Netleştirildi**
+   * **Açıklama:** Stalksss altındaki yorumlar listesinde yer alan karmaşık `"pozkes galeri başlığındaki gönderiye vızıldadı"` metni, PozKes fotoğrafları için `"PozKes Fotoğrafı için yorum yaptı"` olarak sadeleştirildi. Linkler doğrudan PozKes akışına (`/pozkes#entry-ID`) bağlandı. Tarihler `formatDate` yapısına alındı.
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.9.1] - 2026-07-24
 
 ### 🖼️ Dedicated Profil Fotoğrafları Vitrini (`dedicated-5-profile-photos-showcase`)
