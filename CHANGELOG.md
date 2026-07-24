@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.9] - 2026-07-24
+
+### 📸 Profil PozKes Kadrajı (5 Fotoğraflı İnteraktif Vitrin Galerisi) (`profile-pozkes-5-photo-showcase`)
+1. **Yazar Profillerine 5 Fotoğraflı İnteraktif Kadraj Vitrini Entegre Edildi**
+   * **Açıklama:** Yazar profillerindeki (`/yazar/username`) PozKes kadrajı, üstte büyük canlı hero fotoğrafı ve altında 5'li interaktif mini thumbnail şeridi olarak yeniden tasarlandı. Ziyaretçiler 5 mini fotoğrafa tıklayarak ana kadraj fotoğrafını değiştirebilir. Yazar profil sahibi için ise boş slotlar doğrudan "+ Foto Ekle" butonuna dönüşür.
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.8.8] - 2026-07-24
 
 ### 🧹 Otomatik Bildirim Temizliği & Cron Job Entegrasyonu (`automatic-notification-cron-cleanup`)

@@ -132,6 +132,7 @@ export default function ProfileDashboard({
   const [followersLimit, setFollowersLimit] = useState(10);
   const [followingLimit, setFollowingLimit] = useState(10);
   const [photosLimit, setPhotosLimit] = useState(10);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
   
   const [uploadPhotoBase64, setUploadPhotoBase64] = useState<string>("");
   const [uploadPhotoDesc, setUploadPhotoDesc] = useState<string>("");
@@ -366,54 +367,121 @@ export default function ProfileDashboard({
         </div>
       </div>
 
-      {/* Photo Showcase (Kadraj) */}
+      {/* Photo Showcase (Kadraj - 5 Fotoğraf Vitrini) */}
       <div className="photo-showcase">
         <div className="photo-showcase-header">
-          <h3>Kadraj</h3>
+          <div className="flex items-center gap-2">
+            <h3>Kadraj</h3>
+            <span className="text-[10px] font-extrabold bg-lime-500/10 text-lime-400 border border-lime-500/20 px-2 py-0.5 rounded-full">
+              Vitrin (5 Fotoğraf)
+            </span>
+          </div>
           {photoEntries.length > 0 && (
             <button onClick={() => handleTabChange("fotograflar")} className="photo-showcase-all">
               Tümünü Gör ({photoEntries.length})
             </button>
           )}
         </div>
-        <div className="photo-showcase-grid">
-          {isSelf && (
-            <label className="photo-showcase-upload" title="Fotoğraf ekle">
-              <span className="photo-showcase-upload-icon">+</span>
-              <span className="photo-showcase-upload-label">
-                {isPending ? "Yükleniyor..." : "Foto ekle catlasinlar"}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                disabled={isPending}
-                style={{ display: "none" }}
+
+        {/* Ana Büyük Kadraj Vitrin Hero View */}
+        {photoEntries.length > 0 ? (
+          <div className="mb-3 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 relative group">
+            <Link 
+              href={`/pozkes#entry-${(photoEntries[selectedPhotoIndex] || photoEntries[0]).id}`}
+              prefetch={false}
+              onClick={() => playBuzzSound()}
+              className="block relative aspect-video sm:aspect-[16/9] max-h-[320px] overflow-hidden"
+            >
+              <img
+                src={(photoEntries[selectedPhotoIndex] || photoEntries[0]).imageUrl!}
+                alt="Kadraj Vitrin"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-            </label>
-          )}
-          {photoEntries.slice(0, isSelf ? 5 : 6).map((photo) => (
-            <div key={photo.id} className="photo-showcase-item photo-showcase-item--btn">
-              <Link 
-                href={`/pozkes#entry-${photo.id}`} 
-                prefetch={false}
-                onClick={() => playBuzzSound()}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3 sm:p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-zinc-200 line-clamp-1">
+                    {(photoEntries[selectedPhotoIndex] || photoEntries[0]).content || "PozKes Fotoğrafı"}
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-bold shrink-0 bg-black/60 backdrop-blur px-2 py-1 rounded-md border border-white/10">
+                    ❤️ {(photoEntries[selectedPhotoIndex] || photoEntries[0]).likesCount || 0}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        ) : (
+          <div className="mb-3 p-6 text-center border border-dashed border-zinc-850 rounded-xl bg-zinc-950/30">
+            <p className="text-xs text-zinc-500 italic">
+              {isSelf 
+                ? "Henüz vitrine fotoğraf eklemediniz. Aşağıdaki + butonundan hemen foto ekleyin çatlasınlar!" 
+                : "Bu yazar henüz vitrin fotoğrafı yüklememiş."}
+            </p>
+          </div>
+        )}
+
+        {/* 5'li Mini Fotoğraf Şeridi Grid */}
+        <div className="grid grid-cols-5 gap-2">
+          {Array.from({ length: 5 }).map((_, idx) => {
+            const photo = photoEntries[idx];
+            if (photo) {
+              const isSelected = selectedPhotoIndex === idx;
+              return (
+                <button
+                  key={photo.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedPhotoIndex(idx);
+                    playBuzzSound();
+                  }}
+                  className={`aspect-square rounded-lg overflow-hidden border-2 transition-all relative group cursor-pointer ${
+                    isSelected 
+                      ? "border-lime-500 ring-2 ring-lime-500/30 scale-[1.02]" 
+                      : "border-zinc-850 hover:border-zinc-700 opacity-80 hover:opacity-100"
+                  }`}
+                >
+                  <img
+                    src={photo.imageUrl!}
+                    alt={`Kadraj ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {isSelected && (
+                    <div className="absolute top-1 right-1 bg-lime-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">
+                      ✓
+                    </div>
+                  )}
+                </button>
+              );
+            }
+
+            if (isSelf) {
+              return (
+                <label
+                  key={`upload-slot-${idx}`}
+                  className="aspect-square rounded-lg border-2 border-dashed border-lime-500/40 bg-lime-500/5 hover:bg-lime-500/10 hover:border-lime-400 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all p-1 text-center group"
+                  title="PozKes foto ekle çatlasınlar"
+                >
+                  <span className="text-lime-400 font-black text-base group-hover:scale-125 transition-transform">+</span>
+                  <span className="text-[9px] font-bold text-lime-400/90 leading-tight">Foto Ekle</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    disabled={isPending}
+                    style={{ display: "none" }}
+                  />
+                </label>
+              );
+            }
+
+            return (
+              <div
+                key={`empty-slot-${idx}`}
+                className="aspect-square rounded-lg border border-zinc-900 bg-zinc-950/40 opacity-30 flex items-center justify-center"
               >
-                <img
-                  src={photo.imageUrl!}
-                  alt="Poz"
-                  width={150}
-                  height={150}
-                  className="photo-showcase-img"
-                  loading="lazy"
-                />
-              </Link>
-            </div>
-          ))}
-          {/* Empty cells to fill the 6-grid placeholder if empty */}
-          {Array.from({ length: Math.max(0, (isSelf ? 5 : 6) - photoEntries.length) }).map((_, idx) => (
-            <div key={`empty-${idx}`} className="photo-showcase-item opacity-15"></div>
-          ))}
+                <span className="text-zinc-700 text-xs">📷</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
