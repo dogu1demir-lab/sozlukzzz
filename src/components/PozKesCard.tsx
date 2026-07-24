@@ -15,7 +15,7 @@ import {
 import { playBuzzSound, formatDate } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
-import { Trash2, Share2, Edit3, Check, X } from "lucide-react";
+import { Trash2, Share2, Edit3, Check, X, MessageSquare } from "lucide-react";
 
 interface PozKesCardProps {
   entry: {
@@ -78,6 +78,27 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(customTitle || "");
   const [editBody, setEditBody] = useState(captionBody || "");
+
+  const [showAllComments, setShowAllComments] = useState(false);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleReplyComment = (username: string) => {
+    if (!isLoggedIn) {
+      alert("Yorum yazmak için giriş yapmalısınız.");
+      return;
+    }
+    playBuzzSound();
+    const mentionTag = `@${username} `;
+    setNewComment(prev => {
+      if (prev.includes(mentionTag)) return prev;
+      return `${mentionTag}${prev}`;
+    });
+    setTimeout(() => {
+      if (commentInputRef.current) {
+        commentInputRef.current.focus();
+      }
+    }, 50);
+  };
 
   const handleEditToggle = () => {
     setEditTitle(customTitle || "");
@@ -339,14 +360,14 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
         {/* Custom Title sub-row */}
         {customTitle ? (
-          <div className="pt-0.5">
+          <div className="pt-0.5 flex justify-start text-left">
             <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-teal-300 bg-teal-500/10 px-3 py-1 rounded-xl border border-teal-500/25 leading-snug break-words">
               <span className="text-teal-400">📌</span>
               <span>{customTitle}</span>
             </span>
           </div>
         ) : entry.topic && entry.topic.slug !== "pozkes-galeri" ? (
-          <div className="pt-0.5">
+          <div className="pt-0.5 flex justify-start text-left">
             <Link
               href={`/baslik/${entry.topic.slug}#entry-${entry.id}`}
               prefetch={false}
@@ -512,10 +533,22 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           )
         )}
 
+        {comments.length > 3 && (
+          <button
+            type="button"
+            onClick={() => { playBuzzSound(); setShowAllComments(!showAllComments); }}
+            className="mb-2.5 text-[11px] font-bold text-teal-400 hover:text-teal-300 transition-colors flex items-center gap-1 cursor-pointer select-none"
+          >
+            {showAllComments
+              ? "▲ Yorumları gizle"
+              : `💬 Tüm ${comments.length} yorumu gör... (${comments.length - 3} gizli yorum)`}
+          </button>
+        )}
+
         {comments.length > 0 && (
           <ul className="kd-comment-list">
-            {comments.map((comment) => (
-              <li key={comment.id} className="kd-comment-item">
+            {(showAllComments ? comments : comments.slice(-3)).map((comment) => (
+              <li key={comment.id} className="kd-comment-item group">
                 <Link 
                   className="kd-comment-avatar" 
                   href={`/yazar/${comment.author.username}`}
@@ -550,6 +583,16 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                     <ExpandableMentionText content={comment.content} limit={150} />
                   </span>
                 </div>
+
+                {/* Reply / Vızılda Button */}
+                <button
+                  type="button"
+                  onClick={() => handleReplyComment(comment.author.username)}
+                  className="px-1.5 py-0.5 text-[10px] font-bold text-zinc-500 hover:text-teal-400 hover:bg-teal-500/10 rounded transition-colors cursor-pointer opacity-80 group-hover:opacity-100"
+                  title={`@${comment.author.username} yazarını yanıtla`}
+                >
+                  vızılda
+                </button>
 
                 <button
                   onClick={() => handleLikeComment(comment.id, comment.hasLiked)}
@@ -594,6 +637,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           <form onSubmit={handleCommentSubmit} className="kd-comment-form">
             <div className="mention-wrap">
               <textarea
+                ref={commentInputRef}
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Yorum ekle…"
