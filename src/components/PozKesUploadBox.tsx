@@ -6,6 +6,7 @@ import { createPozKesEntryAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import { Image as ImageIcon, X, Send } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface PozKesUploadBoxProps {
   isLoggedIn: boolean;
@@ -56,7 +57,7 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
     setErrorMsg(null);
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         let width = img.width;
@@ -177,7 +178,7 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
           {/* Compact Image Preview */}
           {imagePreview && (
             <div className="relative max-h-48 w-fit rounded-xl overflow-hidden border border-teal-500/30 bg-black/60 group">
-              <img src={imagePreview} alt="Önizleme" className="max-h-48 object-contain rounded-xl" />
+              <Image src={imagePreview} alt="Önizleme" width={480} height={480} unoptimized style={{ width: "auto", height: "auto" }} className="max-h-48 object-contain rounded-xl" />
               <button
                 type="button"
                 onClick={handleRemoveImage}

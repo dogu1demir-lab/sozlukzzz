@@ -7,6 +7,7 @@ import { playBuzzSound } from "@/lib/utils";
 import { useFeedbackModal } from "@/components/FeedbackModal";
 import { X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface PollOption {
   id: string;
@@ -200,9 +201,11 @@ export default function PollBlock({
                             className="poll-voters-user-chip flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-800 bg-slate-950/40 hover:border-teal-500/50 hover:bg-slate-900/50 text-[10px] font-semibold text-slate-350 hover:text-white transition-all"
                           >
                             {voter.avatarUrl ? (
-                              <img
+                              <Image
                                 src={voter.avatarUrl}
                                 alt={voter.username}
+                                width={16}
+                                height={16}
                                 className="w-4 h-4 rounded-full object-cover shrink-0"
                               />
                             ) : (

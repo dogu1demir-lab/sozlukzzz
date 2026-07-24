@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import SendMessageForm from "@/components/SendMessageForm";
 import ChatScrollAnchor from "@/components/ChatScrollAnchor";
 import { cleanUsernameHandle } from "@/lib/utils";
@@ -206,9 +207,11 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                   }`}
                 >
                   {conv.avatarUrl ? (
-                    <img
+                    <Image
                       src={conv.avatarUrl}
                       alt={conv.username}
+                      width={36}
+                      height={36}
                       className="w-9 h-9 rounded-full object-cover border border-white/5 shrink-0"
                     />
                   ) : (
@@ -262,9 +265,11 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                 <ArrowLeft className="h-4.5 w-4.5" />
               </Link>
               {activePartner.avatarUrl ? (
-                <img
+                <Image
                   src={activePartner.avatarUrl}
                   alt={activePartner.username}
+                  width={34}
+                  height={34}
                   className="w-8.5 h-8.5 rounded-full object-cover border border-white/5 shrink-0"
                 />
               ) : (

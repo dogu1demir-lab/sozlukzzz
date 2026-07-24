@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { SessionUser } from "@/lib/auth";
@@ -321,11 +322,12 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                         {topic.isUser ? (
                           <>
                             {topic.avatarUrl ? (
-                              <img
+                              <Image
                                 src={`/api/yazar-image/${encodeURIComponent(topic.username)}`}
                                 alt={topic.username}
                                 width={18}
                                 height={18}
+                                unoptimized
                                 className="w-4.5 h-4.5 rounded-full object-cover shrink-0 border border-white/5"
                               />
                             ) : (
@@ -470,11 +472,12 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                   className="flex items-center gap-1 focus:outline-none"
                 >
                   {user.avatarUrl ? (
-                    <img 
+                    <Image
                       src={`/api/yazar-image/${encodeURIComponent(user.username)}`}
                       alt={user.username}
                       width={30}
                       height={30}
+                      unoptimized
                       className="w-7.5 h-7.5 rounded-full object-cover border border-white/5"
                     />
                   ) : (
@@ -651,11 +654,12 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                           {topic.isUser ? (
                             <>
                               {topic.avatarUrl ? (
-                                <img
+                                <Image
                                   src={`/api/yazar-image/${encodeURIComponent(topic.username)}`}
                                   alt={topic.username}
                                   width={18}
                                   height={18}
+                                  unoptimized
                                   className="w-4.5 h-4.5 rounded-full object-cover shrink-0 border border-white/5"
                                 />
                               ) : (

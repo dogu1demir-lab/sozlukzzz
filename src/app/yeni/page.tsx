@@ -2,6 +2,7 @@
 
 import { useState, useRef, useTransition, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import { createTopicAndEntryAction, createPollTopicAction, getAllUsernamesAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import { X, Plus } from "lucide-react";
@@ -163,7 +164,7 @@ function NewThreadContent() {
     setError("");
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         let width = img.width;
@@ -426,7 +427,7 @@ function NewThreadContent() {
 
             {base64Image && (
               <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-slate-750 mt-2 shrink-0 group">
-                <img src={base64Image} alt="Yüklenen görsel" className="w-full h-full object-cover" />
+                <Image src={base64Image} alt="Yüklenen görsel" fill sizes="128px" unoptimized className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={handleRemoveImage}

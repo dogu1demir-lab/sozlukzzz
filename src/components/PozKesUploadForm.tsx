@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect, useRef } from "react";
 import { createPozKesEntryAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import { Image as ImageIcon, Send, AlertCircle, Sparkles, X } from "lucide-react";
+import Image from "next/image";
 
 interface PozKesUploadFormProps {
   isLoggedIn: boolean;
@@ -50,7 +51,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         let width = img.width;
@@ -202,7 +203,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
         
         {base64Image ? (
           <div className="relative rounded-xl border border-zinc-800 overflow-hidden bg-zinc-900/40 max-w-sm">
-            <img src={base64Image} alt="PozKes Yükleme Önizleme" className="w-full max-h-60 object-cover" />
+            <Image src={base64Image} alt="PozKes Yükleme Önizleme" width={600} height={400} unoptimized className="w-full max-h-60 object-cover" />
             <button
               type="button"
               onClick={removeImage}

@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { 
   likeEntryAction, 
@@ -312,11 +313,12 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
             onClick={() => playBuzzSound()}
           >
             {entry.author.avatarUrl ? (
-              <img
+              <Image
                 src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
                 alt={entry.author.username}
                 width={32}
                 height={32}
+                unoptimized
                 className="avatar avatar-sm avatar-img"
               />
             ) : (
@@ -379,13 +381,14 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
       {/* Image body */}
       <div className="kd-card-img-wrap">
-        <img
+        <Image
           src={entry.imageUrl}
           alt={`${entry.author.username} tarafından paylaşıldı`}
           width={600}
           height={400}
+          sizes="(max-width: 640px) 100vw, 600px"
+          unoptimized
           className="kd-card-img"
-          loading="lazy"
         />
       </div>
 
@@ -499,11 +502,12 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           captionBody && (
             <div className="mb-2 pb-2 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed flex items-start gap-2">
               {entry.author.avatarUrl ? (
-                <img
+                <Image
                   src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
                   alt={entry.author.username}
                   width={22}
                   height={22}
+                  unoptimized
                   className="avatar avatar-xs avatar-img mt-0.5"
                 />
               ) : (
@@ -550,11 +554,12 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                   href={`/yazar/${comment.author.username}`}
                 >
                   {comment.author.avatarUrl ? (
-                    <img
+                    <Image
                       src={`/api/yazar-image/${encodeURIComponent(comment.author.username)}`}
                       alt={comment.author.username}
                       width={24}
                       height={24}
+                      unoptimized
                       className="avatar avatar-xs avatar-img"
                     />
                   ) : (

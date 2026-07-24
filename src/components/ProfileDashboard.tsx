@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Shield, MessageSquare, ArrowRight, X, AlertCircle } from "lucide-react";
 import { playBuzzSound, formatDate } from "@/lib/utils";
@@ -250,7 +251,7 @@ export default function ProfileDashboard({
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         const MAX_WIDTH = 1200;
@@ -307,11 +308,12 @@ export default function ProfileDashboard({
           {/* Avatar Icon */}
           <div className="profile-avatar-wrap">
             {author.avatarUrl ? (
-              <img
+              <Image
                 src={`/api/yazar-image/${encodeURIComponent(author.username)}`}
                 alt={author.username}
                 width={80}
                 height={80}
+                unoptimized
                 className="w-20 h-20 rounded-full object-cover border-4 border-slate-800 shadow-md shrink-0 ring-2 ring-lime-500/40"
               />
             ) : (
@@ -471,9 +473,13 @@ export default function ProfileDashboard({
         {displayProfilePhotos.length > 0 ? (
           <div className="mb-3 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 relative group">
             <div className="block relative aspect-video sm:aspect-[16/9] max-h-[320px] overflow-hidden">
-              <img
+              <Image
                 src={displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0]}
                 alt="Profil Resmi"
+                fill
+                sizes="(max-width: 768px) 100vw, 640px"
+                unoptimized={(displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0]).startsWith("/api/")}
+                priority
                 onClick={() => setLightboxUrl(displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0])}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 cursor-pointer"
                 title="Fotoğrafı Tam Ekran Büyüt 🔍"
@@ -542,9 +548,12 @@ export default function ProfileDashboard({
                       : "border-zinc-850 hover:border-zinc-700 opacity-80 hover:opacity-100"
                   }`}
                 >
-                  <img
+                  <Image
                     src={photoUrl}
                     alt={`Profil Resmi ${idx + 1}`}
+                    fill
+                    sizes="(max-width: 640px) 20vw, 128px"
+                    unoptimized={photoUrl.startsWith("/api/")}
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute bottom-1 left-1 bg-black/80 text-zinc-300 text-[8px] font-extrabold px-1 py-0.5 rounded backdrop-blur-sm pointer-events-none border border-white/10">
@@ -752,11 +761,12 @@ export default function ProfileDashboard({
                           onClick={() => playBuzzSound()}
                           className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30 block cursor-pointer transition-all hover:border-lime-500/50"
                         >
-                          <img
+                          <Image
                             src={photo.imageUrl!}
                             alt={photo.topic.title}
-                            width={150}
-                            height={150}
+                            fill
+                            sizes="(max-width: 640px) 50vw, 33vw"
+                            unoptimized
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-2.5 transition-all">
@@ -802,7 +812,7 @@ export default function ProfileDashboard({
                         className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                       >
                         {f.avatarUrl ? (
-                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} loading="lazy" className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} unoptimized className="w-8 h-8 rounded-full object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
                             {(f.displayName ?? f.username).substring(0, 1).toUpperCase()}
@@ -846,7 +856,7 @@ export default function ProfileDashboard({
                         className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                       >
                         {f.avatarUrl ? (
-                          <img src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} loading="lazy" className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={`/api/yazar-image/${encodeURIComponent(f.username)}`} alt={f.username} width={32} height={32} unoptimized className="w-8 h-8 rounded-full object-cover" />
                         ) : (
                           <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-black text-xs shrink-0" style={{ backgroundColor: f.avatarColor }}>
                             {(f.displayName ?? f.username).substring(0, 1).toUpperCase()}
@@ -890,9 +900,13 @@ export default function ProfileDashboard({
           >
             <X className="w-5 h-5" />
           </button>
-          <img
+          <Image
             src={lightboxUrl}
             alt="Profil Resmi Tam Ekran"
+            width={1920}
+            height={1920}
+            unoptimized={lightboxUrl.startsWith("/api/")}
+            style={{ width: "auto", height: "auto" }}
             className="max-w-full max-h-[90vh] object-contain rounded-2xl border border-zinc-800 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
@@ -915,7 +929,7 @@ export default function ProfileDashboard({
             </div>
 
             <div className="relative aspect-video rounded-xl overflow-hidden border border-zinc-800 bg-black/40 max-h-32 flex items-center justify-center">
-              <img src={photoToDelete} alt="Silinecek fotoğraf" className="w-full h-full object-cover" />
+              <Image src={photoToDelete} alt="Silinecek fotoğraf" fill sizes="384px" unoptimized={photoToDelete.startsWith("/api/")} className="w-full h-full object-cover" />
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-2">

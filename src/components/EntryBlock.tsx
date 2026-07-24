@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { deleteEntryAction, editEntryAction } from "@/app/actions";
 import { playBuzzSound, formatDate } from "@/lib/utils";
@@ -164,11 +165,12 @@ export default function EntryBlock({
             className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
           >
             {entry.author.avatarUrl ? (
-              <img
+              <Image
                 src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
                 alt={entry.author.username}
                 width={20}
                 height={20}
+                unoptimized
                 className="w-5 h-5 rounded-full object-cover border border-white/5"
               />
             ) : (
@@ -189,12 +191,13 @@ export default function EntryBlock({
       {/* Photo Akışı (PozKes) Image rendering if present */}
       {entry.imageUrl && (
         <div className="mt-3 overflow-hidden rounded-xl border border-zinc-900 bg-zinc-900/40 max-w-xl">
-          <img
+          <Image
             src={entry.imageUrl}
             alt="PozKes"
-            loading="lazy"
             width={600}
             height={400}
+            sizes="(max-width: 640px) 100vw, 576px"
+            unoptimized
             className="w-full max-h-96 object-cover hover:scale-[1.02] transition-transform duration-300"
           />
         </div>

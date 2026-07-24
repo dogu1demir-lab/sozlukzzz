@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { 
   updateProfileAvatarAction, 
   updateProfileInfoAction, 
@@ -47,7 +48,7 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
     setStatusMessage(null);
     const reader = new FileReader();
     reader.onload = (event) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
         let width = img.width;
@@ -168,9 +169,12 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
         <div className="avatar-upload-row flex items-center gap-5">
           <div className="relative group">
             {avatarUrl ? (
-              <img
+              <Image
                 src={avatarUrl}
                 alt={user.username}
+                width={80}
+                height={80}
+                unoptimized={avatarUrl.startsWith("data:")}
                 className="w-20 h-20 rounded-full object-cover border-2 border-lime-500/40 shadow-lg ring-4 ring-lime-500/10 shrink-0"
               />
             ) : (

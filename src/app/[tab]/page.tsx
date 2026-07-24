@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import Link from "next/link";
+import Image from "next/image";
 import { Metadata } from "next";
 import ReactionButtons from "@/components/ReactionButtons";
 import IntroBanner from "@/components/IntroBanner";
@@ -630,11 +631,12 @@ export default async function Home({ params }: PageProps) {
                         className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
                       >
                         {entry.author.avatarUrl ? (
-                          <img
+                          <Image
                             src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
                             alt={entry.author.username}
                             width={20}
                             height={20}
+                            unoptimized
                             className="w-5 h-5 rounded-full object-cover border border-white/5"
                           />
                         ) : (
@@ -655,12 +657,12 @@ export default async function Home({ params }: PageProps) {
                   {/* Photo Akışı (PozKes) Image rendering */}
                   {entry.imageUrl && (
                     <div className="mt-3 overflow-hidden rounded-xl border border-zinc-900 bg-zinc-900/40 max-w-xl">
-                      <img 
-                        src={entry.imageUrl} 
-                        alt="PozKes" 
-                        loading="lazy"
+                      <Image
+                        src={entry.imageUrl}
+                        alt="PozKes"
                         width={600}
                         height={400}
+                        sizes="(max-width: 640px) 100vw, 576px"
                         className="w-full max-h-96 object-cover hover:scale-[1.02] transition-transform duration-300"
                       />
                     </div>
