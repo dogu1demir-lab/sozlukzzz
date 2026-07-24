@@ -161,11 +161,13 @@ export default function ProfileDashboard({
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const handleSetAsAvatar = (photoUrl: string) => {
+    playBuzzSound();
     startTransition(async () => {
       const res = await setAvatarFromPozKesAction(photoUrl);
       if (res.success) {
-        playBuzzSound();
+        setSelectedPhotoIndex(0);
         router.refresh();
+        window.location.reload();
       }
     });
   };
