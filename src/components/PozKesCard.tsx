@@ -55,8 +55,18 @@ interface PozKesCardProps {
   isAdmin?: boolean;
 }
 
+const parsePozKesContent = (rawContent: string | undefined | null) => {
+  if (!rawContent) return { title: null, body: "" };
+  const match = rawContent.match(/^\*\*(.+?)\*\*\n\n?([\s\S]*)$/);
+  if (match) {
+    return { title: match[1].trim(), body: match[2].trim() };
+  }
+  return { title: null, body: rawContent };
+};
+
 export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }: PozKesCardProps) {
   const router = useRouter();
+  const { title: customTitle, body: captionBody } = parsePozKesContent(entry.content);
   const [likesCount, setLikesCount] = useState(entry.likesCount);
   const [hasLiked, setHasLiked] = useState(entry.hasLiked);
   const [newComment, setNewComment] = useState("");
@@ -376,35 +386,44 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       <div className="kd-comments">
         {/* Caption/Description inside comments wrapper if exists */}
         {entry.content && (
-          <div className="mb-2 pb-2 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed flex items-start gap-2">
-            {entry.author.avatarUrl ? (
-              <img
-                src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
-                alt={entry.author.username}
-                width={24}
-                height={24}
-                className="avatar avatar-xs avatar-img mt-0.5"
-              />
-            ) : (
-              <div
-                className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0 mt-0.5"
-                style={{ backgroundColor: entry.author.avatarColor }}
-              >
-                {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
+          <div className="mb-2 pb-2.5 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed space-y-2">
+            {customTitle && (
+              <div className="font-extrabold text-sm text-teal-400 bg-teal-500/10 border-l-2 border-teal-500 px-2.5 py-1 rounded-r-lg flex items-center gap-1.5">
+                <span className="text-xs">📌</span> {customTitle}
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <Link
-                href={`/yazar/${entry.author.username}`}
-                prefetch={false}
-                className="font-bold text-white hover:text-teal-400 mr-1.5"
-              >
-                {entry.author.displayName ?? entry.author.username}
-              </Link>
-              <span className="text-zinc-200 block mt-1">
-                <ExpandableMentionText content={entry.content} />
-              </span>
-            </div>
+            {captionBody && (
+              <div className="flex items-start gap-2">
+                {entry.author.avatarUrl ? (
+                  <img
+                    src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
+                    alt={entry.author.username}
+                    width={22}
+                    height={22}
+                    className="avatar avatar-xs avatar-img mt-0.5"
+                  />
+                ) : (
+                  <div
+                    className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0 mt-0.5"
+                    style={{ backgroundColor: entry.author.avatarColor }}
+                  >
+                    {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <Link
+                    href={`/yazar/${entry.author.username}`}
+                    prefetch={false}
+                    className="font-bold text-white hover:text-teal-400 mr-1.5"
+                  >
+                    {entry.author.displayName ?? entry.author.username}
+                  </Link>
+                  <span className="text-zinc-200">
+                    <ExpandableMentionText content={captionBody} />
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
