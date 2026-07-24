@@ -47,6 +47,11 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
       return;
     }
 
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg("Resim boyutu en fazla 10MB olabilir.");
+      return;
+    }
+
     setErrorMsg(null);
     const reader = new FileReader();
     reader.onload = (event) => {

@@ -39,6 +39,11 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 10 * 1024 * 1024) {
+      setStatusMessage({ type: "error", text: "Profil fotoğrafı boyutu en fazla 10MB olabilir." });
+      return;
+    }
+
     setStatusMessage(null);
     const reader = new FileReader();
     reader.onload = (event) => {
