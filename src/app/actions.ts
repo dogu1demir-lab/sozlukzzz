@@ -3079,7 +3079,8 @@ export async function addProfilePhotoAction(base64Image: string) {
     await prisma.user.update({
       where: { id: user.id },
       data: { 
-        profilePhotos: updatedPhotos
+        profilePhotos: updatedPhotos,
+        ...(!dbUser?.profilePhotos || dbUser.profilePhotos.length === 0 ? {} : {})
       }
     });
 

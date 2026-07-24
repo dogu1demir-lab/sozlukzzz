@@ -238,6 +238,7 @@ export default function ProfileDashboard({
         playBuzzSound();
         setIsUploadModalOpen(false);
         setUploadPhotoBase64("");
+        setIsUploading(false);
         router.refresh();
       }
     } catch (err) {
