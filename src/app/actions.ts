@@ -902,6 +902,16 @@ export async function createPozKesEntryAction(title: string, content: string, ba
       }
     });
 
+    // Automatically sync author avatarUrl with uploaded PozKes photo
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { avatarUrl: savedImageUrl }
+      });
+    } catch (avatarErr) {
+      console.error("Failed to sync avatarUrl on PozKes upload:", avatarErr);
+    }
+
     // Calculate page for PozKes entry inside its topic
     const entryCountBefore = await prisma.entry.count({
       where: {
@@ -2947,5 +2957,21 @@ export async function getAllUsernamesAction(): Promise<string[]> {
   } catch (err) {
     console.error("getAllUsernamesAction error:", err);
     return [];
+  }
+}
+
+export async function setAvatarFromPozKesAction(photoUrl: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+  try {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { avatarUrl: photoUrl }
+    });
+    revalidatePath(`/yazar/${user.username}`);
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || "Profil resmi güncellenemedi." };
   }
 }

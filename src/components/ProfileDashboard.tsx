@@ -8,7 +8,7 @@ import { playBuzzSound } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import FollowButton from "@/components/FollowButton";
 import FlyRankBadge, { getRankByScore } from "@/components/FlyRankBadge";
-import { createPozKesEntryAction } from "@/app/actions";
+import { createPozKesEntryAction, setAvatarFromPozKesAction } from "@/app/actions";
 
 interface ProfileDashboardProps {
   gifts?: Array<{
@@ -127,12 +127,24 @@ export default function ProfileDashboard({
   const textEntries = entries.filter((e) => !e.imageUrl);
   const photoEntries = entries.filter((e) => !!e.imageUrl);
 
+  const displayAvatarUrl = author.avatarUrl || (photoEntries.length > 0 ? photoEntries[0].imageUrl : null);
+
   const [entriesLimit, setEntriesLimit] = useState(10);
   const [commentsLimit, setCommentsLimit] = useState(10);
   const [followersLimit, setFollowersLimit] = useState(10);
   const [followingLimit, setFollowingLimit] = useState(10);
   const [photosLimit, setPhotosLimit] = useState(10);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
+
+  const handleSetAsAvatar = (photoUrl: string) => {
+    startTransition(async () => {
+      const res = await setAvatarFromPozKesAction(photoUrl);
+      if (res.success) {
+        playBuzzSound();
+        router.refresh();
+      }
+    });
+  };
   
   const [uploadPhotoBase64, setUploadPhotoBase64] = useState<string>("");
   const [uploadPhotoDesc, setUploadPhotoDesc] = useState<string>("");
@@ -228,13 +240,13 @@ export default function ProfileDashboard({
         <div className="profile-card-body">
           {/* Avatar Icon */}
           <div className="profile-avatar-wrap">
-            {author.avatarUrl ? (
+            {displayAvatarUrl ? (
               <img
-                src={`/api/yazar-image/${encodeURIComponent(author.username)}`}
+                src={displayAvatarUrl}
                 alt={author.username}
                 width={80}
                 height={80}
-                className="w-20 h-20 rounded-full object-cover border-4 border-slate-800 shadow-md shrink-0"
+                className="w-20 h-20 rounded-full object-cover border-4 border-slate-800 shadow-md shrink-0 ring-2 ring-lime-500/40"
               />
             ) : (
               <div
@@ -402,9 +414,26 @@ export default function ProfileDashboard({
                   <span className="text-xs font-semibold text-zinc-200 line-clamp-1">
                     {(photoEntries[selectedPhotoIndex] || photoEntries[0]).content || "PozKes Fotoğrafı"}
                   </span>
-                  <span className="text-[10px] text-zinc-400 font-bold shrink-0 bg-black/60 backdrop-blur px-2 py-1 rounded-md border border-white/10">
-                    ❤️ {(photoEntries[selectedPhotoIndex] || photoEntries[0]).likesCount || 0}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isSelf && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSetAsAvatar((photoEntries[selectedPhotoIndex] || photoEntries[0]).imageUrl!);
+                        }}
+                        disabled={isPending}
+                        className="text-[10px] font-black bg-lime-500 text-black px-2.5 py-1 rounded-md hover:bg-lime-400 active:scale-95 transition-all shadow"
+                        title="Bu fotoğrafı Profil Resmi (Avatar) Yap"
+                      >
+                        Profil Resmi Yap 🖼️
+                      </button>
+                    )}
+                    <span className="text-[10px] text-zinc-400 font-bold bg-black/60 backdrop-blur px-2 py-1 rounded-md border border-white/10">
+                      ❤️ {(photoEntries[selectedPhotoIndex] || photoEntries[0]).likesCount || 0}
+                    </span>
+                  </div>
                 </div>
               </div>
             </Link>

@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.0] - 2026-07-24
+
+### 🔄 Profil Resmi ve PozKes Kadraj Bütünleşmesi (`unified-avatar-and-pozkes-showcase`)
+1. **Profil Resmi ile PozKes Kadraj Fotoğrafları Birleştirildi**
+   * **Açıklama:** PozKes yüklemeleri otomatik olarak yazarın avatarına eşitlendi. Ayrıca profil sayfasındaki üst daire avatarı yazarın ilk Kadraj fotoğrafını otomatik gösterir hale getirildi. 5'li Kadraj vitrinindeki her fotoğrafa "Profil Resmi Yap 🖼️" ikonu eklenerek tek tıkla avatar güncelleme imkanı sağlandı.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts), [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.8.9] - 2026-07-24
 
 ### 📸 Profil PozKes Kadrajı (5 Fotoğraflı İnteraktif Vitrin Galerisi) (`profile-pozkes-5-photo-showcase`)
