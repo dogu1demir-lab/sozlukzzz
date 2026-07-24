@@ -30,9 +30,58 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { tab } = await params;
   const activeTab = tab || "bugun";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
+
+  const tabMetaMap: Record<string, { title: string; description: string }> = {
+    bugun: {
+      title: "Bugün 🪰 — sözlükzzz",
+      description: "sözlükzzz'de bugün yazılan en son entry'ler, canlı vızıltılar ve güncel sohbet akışı."
+    },
+    gundem: {
+      title: "Gündem 🔥 — sözlükzzz",
+      description: "sözlükzzz gündeminde öne çıkan popüler konular, en çok konuşulan başlıklar ve tartışmalar."
+    },
+    takip: {
+      title: "Takip Ettiklerim 👥 — sözlükzzz",
+      description: "Takip ettiğiniz yazarların en son paylaştığı entry'ler, düşünceler ve vızıltılar."
+    },
+    begenilen: {
+      title: "En Çok Beğenilenler 🏆 — sözlükzzz",
+      description: "sözlükzzz yazarlarının en çok beğendiği efsane entry'ler ve popüler başlıklar."
+    },
+    goruntulenen: {
+      title: "En Çok Görüntülenenler 👁️ — sözlükzzz",
+      description: "sözlükzzz'de en çok okunan başlıklar ve en çok dikkat çeken yazılar."
+    }
+  };
+
+  const currentMeta = tabMetaMap[activeTab] || tabMetaMap.bugun;
+  const canonicalUrl = activeTab === "bugun" ? appUrl : `${appUrl}/${activeTab}`;
+
   return {
+    title: currentMeta.title,
+    description: currentMeta.description,
     alternates: {
-      canonical: activeTab === "bugun" ? appUrl : `${appUrl}/${activeTab}`,
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: currentMeta.title,
+      description: currentMeta.description,
+      url: canonicalUrl,
+      siteName: "sözlükzzz",
+      images: [
+        {
+          url: `${appUrl}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: "sözlükzzz"
+        }
+      ]
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: currentMeta.title,
+      description: currentMeta.description,
+      images: [`${appUrl}/og-image.jpg`]
     }
   };
 }
