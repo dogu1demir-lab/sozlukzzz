@@ -132,9 +132,23 @@ export default function ProfileDashboard({
 
   const avatarImgUrl = author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(author.username)}` : null;
 
-  const displayProfilePhotos = (author.profilePhotos && author.profilePhotos.length > 0)
-    ? author.profilePhotos
-    : (avatarImgUrl ? [avatarImgUrl] : []);
+  let displayProfilePhotos: string[] = [];
+  const rawProfilePhotos = author.profilePhotos || [];
+
+  if (rawProfilePhotos.length > 0) {
+    const containsAvatar = avatarImgUrl && (
+      rawProfilePhotos.includes(author.avatarUrl || "") ||
+      rawProfilePhotos.includes(avatarImgUrl)
+    );
+
+    if (avatarImgUrl && !containsAvatar) {
+      displayProfilePhotos = [avatarImgUrl, ...rawProfilePhotos].slice(0, 5);
+    } else {
+      displayProfilePhotos = rawProfilePhotos.slice(0, 5);
+    }
+  } else if (avatarImgUrl) {
+    displayProfilePhotos = [avatarImgUrl];
+  }
 
   const [entriesLimit, setEntriesLimit] = useState(10);
   const [commentsLimit, setCommentsLimit] = useState(10);
