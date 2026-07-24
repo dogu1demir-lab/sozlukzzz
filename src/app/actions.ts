@@ -82,6 +82,27 @@ function paginateWithCursor<T>(
 
 import { cleanUsernameHandle } from "@/lib/utils";
 
+// Helper: Silinen entry/başlığa işaret eden bildirimleri temizle (ölü link kalıntısı olmasın)
+async function deleteNotificationsForEntry(entryId: string) {
+  try {
+    await prisma.notification.deleteMany({
+      where: { relatedUrl: { contains: entryId } }
+    });
+  } catch (err) {
+    console.error("deleteNotificationsForEntry error:", err);
+  }
+}
+
+async function deleteNotificationsForTopic(slug: string) {
+  try {
+    await prisma.notification.deleteMany({
+      where: { relatedUrl: { contains: `/baslik/${slug}` } }
+    });
+  } catch (err) {
+    console.error("deleteNotificationsForTopic error:", err);
+  }
+}
+
 // Helper: Calculate user score and check link posting capability (Level 15 / Aerodinamik Sinek -> score >= 930)
 async function userCanPostLinks(userId: string, role: string): Promise<{ allowed: boolean; score: number }> {
   if (role === "ADMIN") return { allowed: true, score: 99999 };
@@ -1300,29 +1321,38 @@ export async function deleteAccountAction() {
     }
 
     // Clean up physical image files from disk (avatar, showcase photos, entry images)
+    // ve diğer kullanıcıların bildirimlerinde ölü link kalmasın diye referansları topla
+    let deletedEntryIds: string[] = [];
+    let ownedTopicSlugs: string[] = [];
     try {
       const dbUser = await prisma.user.findUnique({
         where: { id: user.id },
         select: {
           avatarUrl: true,
           profilePhotos: true,
-          entries: { select: { imageUrl: true } }
+          entries: { select: { id: true, imageUrl: true } }
         }
       });
 
       if (dbUser) {
+        deletedEntryIds = dbUser.entries.map((e) => e.id);
         if (dbUser.avatarUrl) await deleteImageFile(dbUser.avatarUrl);
         if (dbUser.profilePhotos) {
           for (const photo of dbUser.profilePhotos) {
             await deleteImageFile(photo);
           }
         }
-        if (dbUser.entries) {
-          for (const entry of dbUser.entries) {
-            if (entry.imageUrl) await deleteImageFile(entry.imageUrl);
-          }
+        for (const entry of dbUser.entries) {
+          if (entry.imageUrl) await deleteImageFile(entry.imageUrl);
         }
       }
+
+      // Hesap silinince boşalacak (tüm entry'leri bu kullanıcıya ait) başlıklar
+      const ownedTopics = await prisma.topic.findMany({
+        where: { entries: { every: { authorId: user.id } } },
+        select: { slug: true }
+      });
+      ownedTopicSlugs = ownedTopics.map((t) => t.slug);
     } catch (cleanupErr) {
       console.error("Account image files cleanup error:", cleanupErr);
     }
@@ -1343,6 +1373,19 @@ export async function deleteAccountAction() {
       });
     } catch (topicErr) {
       console.error("Failed to clean up empty topics:", topicErr);
+    }
+
+    // Kullanıcının entry'lerine ve boşalıp silinen başlıklarına işaret eden
+    // bildirimleri diğer kullanıcıların listelerinden temizle
+    try {
+      for (const entryId of deletedEntryIds) {
+        await deleteNotificationsForEntry(entryId);
+      }
+      for (const slug of ownedTopicSlugs) {
+        await deleteNotificationsForTopic(slug);
+      }
+    } catch (notifErr) {
+      console.error("Account notification cleanup error:", notifErr);
     }
 
     // Clear cookie
@@ -2025,6 +2068,9 @@ export async function deleteEntryAction(entryId: string) {
       where: { id: entryId }
     });
 
+    // Silinen entry'ye işaret eden bildirimleri temizle
+    await deleteNotificationsForEntry(entryId);
+
     // Check if the topic has any other entries left
     const remainingCount = await prisma.entry.count({
       where: { topicId }
@@ -2036,6 +2082,8 @@ export async function deleteEntryAction(entryId: string) {
         where: { id: topicId }
       });
       topicDeleted = true;
+      // Boş kalan başlık silindiğinde ona ait bildirimler de temizlensin
+      await deleteNotificationsForTopic(slug);
     } else {
       // Recalculate the lastEntryAt based on the newest remaining entry
       const latestEntry = await prisma.entry.findFirst({
@@ -2256,11 +2304,16 @@ export async function resolveReportAction(reportId: string, actionType: "DISMISS
             await deleteImageFile(entry.imageUrl);
           }
 
+          // Silinen entry'ye işaret eden bildirimleri temizle
+          await deleteNotificationsForEntry(report.targetId);
+
           if (entry.topic._count.entries <= 1) {
             // Only entry, delete topic
             await prisma.topic.delete({
               where: { id: entry.topicId }
             });
+            // Boş kalan başlık silindiğinde ona ait bildirimler de temizlensin
+            await deleteNotificationsForTopic(entry.topic.slug);
           } else {
             // Delete entry only
             await prisma.entry.delete({
@@ -2958,6 +3011,9 @@ export async function adminDeleteTopicAction(topicId: string) {
         await deleteImageFile(entry.imageUrl);
       }
     }
+
+    // Başlığa işaret eden bildirimleri temizle
+    await deleteNotificationsForTopic(topic.slug);
 
     await clearAllFeedAndSidebarCaches();
     return { success: true };
