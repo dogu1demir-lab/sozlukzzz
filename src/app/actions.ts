@@ -317,6 +317,12 @@ export async function createTopicAndEntryAction(title: string, content: string, 
       // Touch topic lastEntryAt to bubble it up in sidebars and feeds
       await prisma.$executeRaw`UPDATE "Topic" SET "lastEntryAt" = ${new Date()} WHERE "id" = ${topic.id}`;
 
+      // Calculate target page for this new entry in the existing topic
+      const totalEntries = await prisma.entry.count({
+        where: { topicId: topic.id }
+      });
+      const page = Math.ceil(totalEntries / 10) || 1;
+
       // Parse mentions and create notifications
       const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
       const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
@@ -331,19 +337,13 @@ export async function createTopicAndEntryAction(title: string, content: string, 
           await prisma.notification.create({
             data: {
               type: "REPLY",
-              content: `@${user.username} bir entry'de sizden bahsetti! vızzz!`,
+              content: `@${user.username} bir entry'de sizden bahsetti!`,
               userId: targetUser.id,
-              relatedUrl: `/baslik/${slug}#entry-${entry.id}`
+              relatedUrl: `/baslik/${slug}?p=${page}#entry-${entry.id}`
             }
           });
         }
       }
-      
-      // Calculate target page for this new entry in the existing topic
-      const totalEntries = await prisma.entry.count({
-        where: { topicId: topic.id }
-      });
-      const page = Math.ceil(totalEntries / 10) || 1;
 
       await clearAllFeedAndSidebarCaches(user.id);
 

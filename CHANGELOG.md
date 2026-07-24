@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.5] - 2026-07-24
+
+### 🎯 Bildirim Nokta Atışı Yönlendirme Düzeltmesi (`mention-notification-pinpoint-page-routing`)
+1. **Bahsedilme Bildirimlerine Tam Sayfa Numarası ve İlgili Yorum Çapa Adresi eklendi**
+   * **Açıklama:** Var olan bir konuda bahsedilme (`@kullanici`) bildirimi oluşturulurken entry'nin kaçıncı sayfaya düştüğü hesaplanarak `relatedUrl` adresi `/baslik/slug?p=SAYFA#entry-ID` şeklinde nokta atışı yönlendirilecek şekilde güncellendi.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+
+---
+
 ## [1.8.4] - 2026-07-23
 
 ### 🎨 PozKes Kart Başlığı Hizalama ve Tarih Hizalama Düzeltmesi (`pozkes-header-flex-alignment`)
