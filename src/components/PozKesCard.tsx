@@ -136,6 +136,9 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       } else {
         router.refresh();
       }
+    });
+  };
+
   const handleDeleteEntry = () => {
     if (!confirm("Bu PozKes gönderisini ve tüm yorumlarını kalıcı olarak silmek istediğinize emin misiniz?")) return;
 
