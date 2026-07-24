@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import PozKesCard from "@/components/PozKesCard";
 import PozKesLoadMore from "@/components/PozKesLoadMore";
 import PozKesHashRedirector from "@/components/PozKesHashRedirector";
+import PozKesUploadBox from "@/components/PozKesUploadBox";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -100,6 +101,9 @@ export default async function PozKesPage() {
         <h1 className="kd-title">PozKes 📸</h1>
         <p className="kd-subtitle">Kullanıcıların paylaştığı fotoğraflar</p>
       </div>
+
+      {/* Direct Upload Box */}
+      <PozKesUploadBox isLoggedIn={!!user} />
 
       {/* Feed list */}
       <div className="kd-feed">

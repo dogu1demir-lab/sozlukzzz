@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.7] - 2026-07-24
+
+### 📸 PozKes Sayfası Doğrudan Fotoğraf Paylaşım Kutusu (`pozkes-direct-upload-box`)
+1. **PozKes Akışının En Tepesine Fotoğraf Yükleme Paneli Eklendi**
+   * **Açıklama:** Kullanıcıların PozKes sayfasındayken başka yere gitmeden anında fotoğraf yükleyebilmesi için `/pozkes` sayfasının en tepesine görsel önizlemeli, açıklama metinli ve hızlı gönderimli `PozKesUploadBox` bileşeni yerleştirildi. Giriş yapmamış kullanıcılar için şık giriş davet kartı gösterilir.
+   * **Kod Referansı:** [PozKesUploadBox.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesUploadBox.tsx), [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/pozkes/page.tsx)
+
+---
+
 ## [1.9.6] - 2026-07-24
 
 ### 🚀 PozKes Eski Fotoğraf Hedefleme ve Canlı Çekim Düzeltmesi (`pozkes-historical-hash-redirector`)
