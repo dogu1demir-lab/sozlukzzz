@@ -3100,8 +3100,16 @@ export async function removeProfilePhotoAction(photoUrl: string) {
   try {
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { profilePhotos: true, avatarUrl: true }
+      select: { profilePhotos: true, avatarUrl: true, username: true }
     });
+
+    if (
+      dbUser?.avatarUrl === photoUrl || 
+      photoUrl.includes(`/api/yazar-image/${encodeURIComponent(user.username)}`) ||
+      photoUrl.includes(`/api/yazar-image/${user.username}`)
+    ) {
+      return { error: "Ana profil resmi vitrinden doğrudan silinemez. Lütfen Ayarlar sayfasından güncelleyin." };
+    }
 
     const currentPhotos = dbUser?.profilePhotos || [];
     const updatedPhotos = currentPhotos.filter((p) => p !== photoUrl);
@@ -3109,8 +3117,7 @@ export async function removeProfilePhotoAction(photoUrl: string) {
     await prisma.user.update({
       where: { id: user.id },
       data: { 
-        profilePhotos: updatedPhotos,
-        ...(dbUser?.avatarUrl === photoUrl ? { avatarUrl: updatedPhotos[0] || null } : {})
+        profilePhotos: updatedPhotos
       }
     });
 

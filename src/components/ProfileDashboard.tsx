@@ -163,9 +163,20 @@ export default function ProfileDashboard({
   };
 
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
+  const [cannotDeleteAvatarModal, setCannotDeleteAvatarModal] = useState(false);
 
   const handleRemoveProfilePhoto = (photoUrl: string) => {
     playBuzzSound();
+    const isMainAvatar = 
+      photoUrl === avatarImgUrl || 
+      photoUrl === author.avatarUrl || 
+      photoUrl.includes(`/api/yazar-image/`);
+
+    if (isMainAvatar) {
+      setCannotDeleteAvatarModal(true);
+      return;
+    }
+
     setPhotoToDelete(photoUrl);
   };
 
@@ -910,6 +921,46 @@ export default function ProfileDashboard({
               >
                 {isPending ? "Siliniyor..." : "Evet, Sil 🗑️"}
               </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Modern Warning Modal: Main Profile Picture Cannot Be Deleted */}
+      {cannotDeleteAvatarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+            
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg shrink-0">
+                🚫
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white">Ana Profil Resmi Silinemez</h3>
+                <p className="text-xs text-amber-400/90 font-medium mt-0.5">Bu fotoğraf #1 numaralı ana profil resminizdir.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-zinc-850 bg-zinc-900/60 text-xs text-zinc-300 leading-relaxed">
+              Ana profil resminiz vitrinin baş köşesinde (#1 Slot) yer almaktadır. Resmi kaldırmak veya yenisiyle değiştirmek için Ayarlar sayfasını kullanabilir veya vitrine yeni fotoğraflar ekleyebilirsiniz.
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => { playBuzzSound(); setCannotDeleteAvatarModal(false); }}
+                className="px-4 py-2 text-xs font-extrabold text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800 rounded-xl transition-all active:scale-95 cursor-pointer"
+              >
+                Anladım
+              </button>
+              <Link
+                href="/settings"
+                onClick={() => setCannotDeleteAvatarModal(false)}
+                className="px-4 py-2 text-xs font-black text-black bg-lime-500 hover:bg-lime-400 rounded-xl transition-all active:scale-95 shadow-md shadow-lime-500/10 cursor-pointer"
+              >
+                Ayarlar'a Git ⚙️
+              </Link>
             </div>
 
           </div>
