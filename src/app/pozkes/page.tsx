@@ -129,9 +129,8 @@ export default async function PozKesPage() {
           likes: true
         },
         orderBy: {
-          createdAt: "desc"
-        },
-        take: 50
+          createdAt: "asc"
+        }
       }
     },
     orderBy: {
@@ -144,8 +143,7 @@ export default async function PozKesPage() {
     const likesCount = entry.likes.filter((l) => l.isLike).length;
     const hasLiked = user ? entry.likes.some((l) => l.userId === user.id && l.isLike) : false;
 
-    // Son 50 yorum desc çekildi; kartlar eskiden yeniye (asc) gösterdiği için geri çevir
-    const formattedComments = [...entry.comments].reverse().map((comment) => {
+    const formattedComments = entry.comments.map((comment) => {
       const likesCount = comment.likes.length;
       const hasLiked = user ? comment.likes.some((l) => l.userId === user.id) : false;
       return {
