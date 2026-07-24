@@ -269,7 +269,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                     <React.Fragment key={msg.id}>
                       {showDateDivider && (
                         <div className="flex justify-center my-2 select-none shrink-0">
-                          <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900/60 px-3 py-1 rounded-full border border-zinc-900/40">
+                          <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900/60 px-3 py-1 rounded-full border border-zinc-900/40" suppressHydrationWarning>
                             {getRelativeDateLabel()}
                           </span>
                         </div>

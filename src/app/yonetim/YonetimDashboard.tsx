@@ -674,7 +674,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
 
                       <p className="text-[10px] text-zinc-550">{usr.email}</p>
                       
-                      <p className="text-[10px] text-zinc-650">
+                      <p className="text-[10px] text-zinc-650" suppressHydrationWarning>
                         Kayıt: {new Date(usr.createdAt).toLocaleDateString("tr-TR")} • {usr._count.entries} entry • {usr._count.comments} yorum
                       </p>
                     </div>
@@ -992,7 +992,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                           {topic.entryCount} entry
                         </span>
                       </div>
-                      <p className="text-[10px] text-zinc-600">
+                      <p className="text-[10px] text-zinc-600" suppressHydrationWarning>
                         Oluşturulma: {new Date(topic.createdAt).toLocaleDateString("tr-TR")}
                       </p>
                     </div>
