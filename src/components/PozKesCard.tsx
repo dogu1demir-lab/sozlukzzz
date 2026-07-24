@@ -305,7 +305,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   return (
     <article id={`entry-${entry.id}`} className="kd-card">
       {/* Header */}
-      <div className="kd-card-header flex flex-col gap-1.5">
+      <div className="kd-card-header flex flex-col !items-start gap-1.5 w-full">
         <div className="flex items-center justify-between gap-2 min-w-0 w-full">
           <Link
             href={`/yazar/${entry.author.username}`}
@@ -360,14 +360,14 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
         {/* Custom Title sub-row */}
         {customTitle ? (
-          <div className="pt-0.5 flex justify-start text-left">
+          <div className="pt-0.5 flex justify-start text-left w-full">
             <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-teal-300 bg-teal-500/10 px-3 py-1 rounded-xl border border-teal-500/25 leading-snug break-words">
-              <span className="text-teal-400">📌</span>
+              <span className="text-teal-400 shrink-0">📌</span>
               <span>{customTitle}</span>
             </span>
           </div>
         ) : entry.topic && entry.topic.slug !== "pozkes-galeri" ? (
-          <div className="pt-0.5 flex justify-start text-left">
+          <div className="pt-0.5 flex justify-start text-left w-full">
             <Link
               href={`/baslik/${entry.topic.slug}#entry-${entry.id}`}
               prefetch={false}
