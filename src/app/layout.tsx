@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -125,13 +126,15 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-lime-500 selection:text-black antialiased`}
         suppressHydrationWarning
       >
-        <Header 
-          user={user} 
-          unreadNotificationsCount={unreadNotificationsCount} 
-          unreadMessagesCount={unreadMessagesCount}
-          notifications={notifications} 
-          latestUsername={latestUsername}
-        />
+        <Suspense>
+          <Header 
+            user={user} 
+            unreadNotificationsCount={unreadNotificationsCount} 
+            unreadMessagesCount={unreadMessagesCount}
+            notifications={notifications} 
+            latestUsername={latestUsername}
+          />
+        </Suspense>
         <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row">
           {/* Left Sidebar */}
           <Sidebar />
