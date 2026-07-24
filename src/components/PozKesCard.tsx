@@ -77,7 +77,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
   const getShareUrl = () => {
     if (typeof window === "undefined") return "";
-    return `${window.location.origin}/pozkes#entry-${entry.id}`;
+    return `${window.location.origin}/pozkes?e=${entry.id}#entry-${entry.id}`;
   };
 
   const handleCopyLink = () => {

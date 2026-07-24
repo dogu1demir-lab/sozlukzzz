@@ -6,17 +6,97 @@ import PozKesHashRedirector from "@/components/PozKesHashRedirector";
 import PozKesUploadBox from "@/components/PozKesUploadBox";
 import { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "PozKes 📸 — sözlükzzz",
-  description: "Yazarların paylaştığı anlık fotoğraflar, estetik kareler ve özel kadrajlar.",
-  alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr"}/pozkes`,
-  },
-  openGraph: {
+interface Props {
+  searchParams: Promise<{ e?: string }>;
+}
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const resolvedParams = await searchParams;
+  const entryId = resolvedParams?.e;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
+
+  if (entryId) {
+    try {
+      const entry = await prisma.entry.findUnique({
+        where: { id: entryId },
+        include: { author: true }
+      });
+
+      if (entry && entry.imageUrl) {
+        let customTitle = "";
+        let bodyText = entry.content || "";
+        const match = entry.content?.match(/^\*\*(.+?)\*\*\n\n?([\s\S]*)$/);
+        if (match) {
+          customTitle = match[1].trim();
+          bodyText = match[2].trim();
+        }
+
+        const displayTitle = customTitle
+          ? `${customTitle} 📸 — PozKes`
+          : `@${entry.author.displayName ?? entry.author.username} PozKes Paylaşımı`;
+
+        const displayDesc = bodyText
+          ? `"${bodyText.substring(0, 120)}"`
+          : "Yazarların paylaştığı anlık fotoğraflar, estetik kareler ve özel kadrajlar.";
+
+        const imageUrl = `${baseUrl}/api/image/${entry.id}`;
+
+        return {
+          title: displayTitle,
+          description: displayDesc,
+          alternates: {
+            canonical: `${baseUrl}/pozkes?e=${entry.id}`,
+          },
+          openGraph: {
+            title: displayTitle,
+            description: displayDesc,
+            url: `${baseUrl}/pozkes?e=${entry.id}`,
+            siteName: "sözlükzzz",
+            images: [
+              {
+                url: imageUrl,
+                width: 1200,
+                height: 1200,
+                alt: customTitle || "PozKes Fotoğrafı"
+              }
+            ],
+            type: "article"
+          },
+          twitter: {
+            card: "summary_large_image",
+            title: displayTitle,
+            description: displayDesc,
+            images: [imageUrl]
+          }
+        };
+      }
+    } catch (e) {
+      console.error("Failed to generate dynamic metadata for PozKes:", e);
+    }
+  }
+
+  return {
     title: "PozKes 📸 — sözlükzzz",
     description: "Yazarların paylaştığı anlık fotoğraflar, estetik kareler ve özel kadrajlar.",
-  }
-};
+    alternates: {
+      canonical: `${baseUrl}/pozkes`,
+    },
+    openGraph: {
+      title: "PozKes 📸 — sözlükzzz",
+      description: "Yazarların paylaştığı anlık fotoğraflar, estetik kareler ve özel kadrajlar.",
+      url: `${baseUrl}/pozkes`,
+      siteName: "sözlükzzz",
+      images: [
+        {
+          url: `${baseUrl}/icon.jpg`,
+          width: 800,
+          height: 800,
+          alt: "PozKes sözlükzzz"
+        }
+      ]
+    }
+  };
+}
 
 export const revalidate = 0; // Disable cache to fetch real-time items
 
