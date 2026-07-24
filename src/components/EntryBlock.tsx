@@ -168,7 +168,7 @@ export default function EntryBlock({
             <span className="font-semibold">{entry.author.displayName ?? entry.author.username}</span>
           </Link>
           <span>•</span>
-          <span className="text-[11px]">{formatClientDate(entry.createdAt)}</span>
+          <span className="text-[11px]" suppressHydrationWarning>{formatClientDate(entry.createdAt)}</span>
         </div>
       </div>
 
