@@ -11,12 +11,13 @@ export async function GET(req: NextRequest) {
   const writer = responseStream.writable.getWriter();
   const encoder = new TextEncoder();
 
-  // Create a separate Redis connection for subscribing
-  // (same fail-fast connection settings as the shared client in lib/redis.ts)
+  // Create a separate Redis connection for subscribing.
+  // Offline queue must stay ENABLED here: subscribe() is issued before the
+  // connection is ready, otherwise ioredis fails fast with
+  // "Stream isn't writeable".
   const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6379";
   const subscriber = new Redis(redisUrl, {
     maxRetriesPerRequest: 3,
-    enableOfflineQueue: false,
     connectTimeout: 5000,
   });
 
