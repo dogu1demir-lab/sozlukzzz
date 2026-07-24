@@ -214,8 +214,8 @@ export default function ProfileDashboard({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 1.5 * 1024 * 1024) {
-      alert("Görsel boyutu 1.5MB'dan küçük olmalıdır zzz.");
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Görsel boyutu 5MB'dan küçük olmalıdır.");
       return;
     }
 
