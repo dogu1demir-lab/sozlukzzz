@@ -257,6 +257,7 @@ export default async function Home({ params }: PageProps) {
     if (entries.length === 0) {
       const rawEntries = await prisma.entry.findMany({
         where: {
+          topic: { slug: "pozkes-galeri" },
           imageUrl: { not: null }
         },
         include: {

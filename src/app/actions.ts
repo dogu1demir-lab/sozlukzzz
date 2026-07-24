@@ -1599,7 +1599,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         }));
     } else if (tab === "pozkes") {
       entries = await prisma.entry.findMany({
-        where: { imageUrl: { not: null } },
+        where: { topic: { slug: "pozkes-galeri" }, imageUrl: { not: null } },
         include: {
           topic: {
             include: { poll: { select: { id: true } } }
@@ -1742,6 +1742,7 @@ export async function getMorePozKesAction(offset: number, limit: number = 10) {
   try {
     const entries = await prisma.entry.findMany({
       where: {
+        topic: { slug: "pozkes-galeri" },
         imageUrl: { not: null }
       },
       include: {

@@ -25,6 +25,7 @@ export default async function PozKesPage() {
 
   const entries = await prisma.entry.findMany({
     where: {
+      topic: { slug: "pozkes-galeri" },
       imageUrl: { not: null }
     },
     include: {
