@@ -406,7 +406,7 @@ export default function ProfileDashboard({
               <span>
                 <strong>{entries.length}</strong> gönderi
               </span>
-               <span>• Katılım: {new Date(author.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
+               <span suppressHydrationWarning>• Katılım: {new Date(author.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
             </div>
           </div>
         </div>
@@ -622,7 +622,7 @@ export default function ProfileDashboard({
                         >
                           {entry.topic.title}
                         </Link>
-                        <span className="text-[10px] text-slate-500">
+                        <span className="text-[10px] text-slate-500" suppressHydrationWarning>
                           {formatDate(entry.createdAt)}
                         </span>
                       </div>
@@ -671,7 +671,7 @@ export default function ProfileDashboard({
                             </Link>{" "}
                             {isPozKes ? "için yorum yaptı" : "konusundaki gönderiye yorum yaptı"}
                           </div>
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[10px] text-slate-500" suppressHydrationWarning>
                             {formatDate(comment.createdAt)}
                           </span>
                         </div>
