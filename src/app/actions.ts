@@ -3042,10 +3042,23 @@ export async function setAvatarFromPozKesAction(photoUrl: string) {
   const user = await getSessionUser();
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
   try {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { profilePhotos: true }
+    });
+
+    const currentPhotos = dbUser?.profilePhotos || [];
+    const updatedPhotos = currentPhotos.filter((p) => p !== photoUrl);
+
     await prisma.user.update({
       where: { id: user.id },
-      data: { avatarUrl: photoUrl }
+      data: { 
+        avatarUrl: photoUrl,
+        profilePhotos: updatedPhotos
+      }
     });
+
+    await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/");
     return { success: true };

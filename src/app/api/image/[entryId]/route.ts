@@ -20,10 +20,18 @@ export async function GET(request: Request, { params }: RouteParams) {
       return new NextResponse("Image not found", { status: 404 });
     }
 
-    // If it's a physical file path (starts with /), redirect directly
-    if (entry.imageUrl.startsWith("/")) {
+    // Prevent infinite self-redirect loops if imageUrl points to this endpoint
+    if (entry.imageUrl.includes("/api/image/")) {
+      return new NextResponse("Image loop detected", { status: 400 });
+    }
+
+    // If it's a physical file path (starts with /) or remote URL, redirect directly
+    if (entry.imageUrl.startsWith("/") || entry.imageUrl.startsWith("http")) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
-      return NextResponse.redirect(new URL(entry.imageUrl, appUrl));
+      const redirectTarget = entry.imageUrl.startsWith("http")
+        ? entry.imageUrl
+        : new URL(entry.imageUrl, appUrl).toString();
+      return NextResponse.redirect(redirectTarget);
     }
 
     // Parse base64 URL schema (e.g. data:image/jpeg;base64,xxxx...)

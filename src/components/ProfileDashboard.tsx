@@ -132,13 +132,21 @@ export default function ProfileDashboard({
 
   const avatarImgUrl = author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(author.username)}` : null;
 
+  // Helper to normalize photo URLs for strict deduplication
+  const getPhotoKey = (url: string | null | undefined): string => {
+    if (!url) return "";
+    return url.replace(/^https?:\/\/[^\/]+/, "").replace(/^\//, "").split("?")[0];
+  };
+
   let displayProfilePhotos: string[] = [];
   const rawProfilePhotos = author.profilePhotos || [];
+  const mainAvatarKey = getPhotoKey(author.avatarUrl);
 
   if (avatarImgUrl) {
-    const showcaseWithoutAvatar = rawProfilePhotos.filter(
-      (p) => p !== author.avatarUrl && p !== avatarImgUrl
-    );
+    const showcaseWithoutAvatar = rawProfilePhotos.filter((p) => {
+      const pKey = getPhotoKey(p);
+      return pKey !== mainAvatarKey && p !== author.avatarUrl && p !== avatarImgUrl;
+    });
     displayProfilePhotos = [avatarImgUrl, ...showcaseWithoutAvatar].slice(0, 5);
   } else if (rawProfilePhotos.length > 0) {
     displayProfilePhotos = rawProfilePhotos.slice(0, 5);
@@ -442,7 +450,15 @@ export default function ProfileDashboard({
             </span>
           </div>
           {photoEntries.length > 0 && (
-            <button onClick={() => handleTabChange("fotograflar")} className="photo-showcase-all">
+            <button 
+              onClick={() => {
+                handleTabChange("fotograflar");
+                setTimeout(() => {
+                  document.getElementById("pozkes-galerisi-section")?.scrollIntoView({ behavior: "smooth" });
+                }, 100);
+              }} 
+              className="photo-showcase-all"
+            >
               PozKes Galerisi ({photoEntries.length})
             </button>
           )}
@@ -716,7 +732,7 @@ export default function ProfileDashboard({
           )}
 
           {activeTab === "fotograflar" && (
-            <div className="space-y-4">
+            <div id="pozkes-galerisi-section" className="space-y-4 pt-2">
               {photoEntries.length === 0 ? (
                 <div className="text-center py-6 text-xs text-slate-500 italic">Henüz PozKes veya konulu fotoğraf paylaşılmamış.</div>
               ) : (

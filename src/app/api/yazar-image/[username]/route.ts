@@ -28,10 +28,18 @@ export async function GET(request: Request, { params }: RouteParams) {
       return new NextResponse("Avatar not found", { status: 404 });
     }
 
-    // If it's a physical file path (starts with /), redirect directly
-    if (user.avatarUrl.startsWith("/")) {
+    // Prevent infinite self-redirect loops if avatarUrl points to this endpoint
+    if (user.avatarUrl.includes("/api/yazar-image/")) {
+      return new NextResponse("Avatar loop detected", { status: 400 });
+    }
+
+    // If it's a physical file path (starts with /) or remote URL, redirect directly
+    if (user.avatarUrl.startsWith("/") || user.avatarUrl.startsWith("http")) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
-      return NextResponse.redirect(new URL(user.avatarUrl, appUrl));
+      const redirectTarget = user.avatarUrl.startsWith("http") 
+        ? user.avatarUrl 
+        : new URL(user.avatarUrl, appUrl).toString();
+      return NextResponse.redirect(redirectTarget);
     }
 
     // Parse base64
