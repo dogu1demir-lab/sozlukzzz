@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import PozKesCard from "@/components/PozKesCard";
 import PozKesLoadMore from "@/components/PozKesLoadMore";
+import PozKesHashRedirector from "@/components/PozKesHashRedirector";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -102,6 +103,12 @@ export default async function PozKesPage() {
 
       {/* Feed list */}
       <div className="kd-feed">
+        <PozKesHashRedirector
+          initialEntryIds={formattedEntries.map(e => e.id)}
+          isLoggedIn={!!user}
+          currentUserId={user?.id}
+          isAdmin={user?.role === "ADMIN"}
+        />
         {formattedEntries.length === 0 ? (
           <div className="rounded-xl border border-dashed border-zinc-850 p-12 text-center text-zinc-500">
             <p className="text-sm">PozKes'te henüz paylaşılmış bir fotoğraf bulunamadı zzz.</p>

@@ -1769,6 +1769,83 @@ export async function getMorePozKesAction(offset: number, limit: number = 10) {
   }
 }
 
+// Action: Fetch Single PozKes Entry (by ID)
+export async function getSinglePozKesAction(entryId: string) {
+  const user = await getSessionUser();
+  try {
+    const entry = await prisma.entry.findUnique({
+      where: { id: entryId },
+      include: {
+        topic: true,
+        author: {
+          select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
+        },
+        likes: true,
+        comments: {
+          include: {
+            author: {
+              select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
+            },
+            likes: true
+          },
+          orderBy: {
+            createdAt: "asc"
+          }
+        }
+      }
+    });
+
+    if (!entry) {
+      return { error: "Fotoğraf bulunamadı." };
+    }
+
+    const likesCount = entry.likes.filter((l) => l.isLike).length;
+    const hasLiked = user ? entry.likes.some((l) => l.userId === user.id && l.isLike) : false;
+
+    const formattedComments = entry.comments.map((comment) => {
+      const likesCount = comment.likes.length;
+      const hasLiked = user ? comment.likes.some((l) => l.userId === user.id) : false;
+      return {
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        author: {
+          id: comment.author.id,
+          username: comment.author.username,
+          avatarColor: comment.author.avatarColor,
+          avatarUrl: comment.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(comment.author.username)}` : null,
+        },
+        likesCount,
+        hasLiked
+      };
+    });
+
+    const formatted = {
+      id: entry.id,
+      content: entry.content,
+      imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : "",
+      createdAt: entry.createdAt,
+      topic: {
+        title: entry.topic.title,
+        slug: entry.topic.slug
+      },
+      author: {
+        id: entry.author.id,
+        username: entry.author.username,
+        avatarColor: entry.author.avatarColor,
+        avatarUrl: entry.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(entry.author.username)}` : null,
+      },
+      likesCount,
+      hasLiked,
+      comments: formattedComments
+    };
+
+    return { success: true, entry: formatted };
+  } catch (e) {
+    return { error: "Fotoğraf yüklenirken bir hata oluştu." };
+  }
+}
+
 // Action: Delete Entry
 export async function deleteEntryAction(entryId: string) {
   const user = await getSessionUser();

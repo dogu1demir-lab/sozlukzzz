@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.6] - 2026-07-24
+
+### 🚀 PozKes Eski Fotoğraf Hedefleme ve Canlı Çekim Düzeltmesi (`pozkes-historical-hash-redirector`)
+1. **Eski PozKes Fotoğraflarına Uçulduğunda Otomatik İçerik Çekimi Eklendi**
+   * **Açıklama:** Geçmiş tarihlerde (örn. 26 Haziran) paylaşılan PozKes fotoğraflarına `/pozkes#entry-ID` adresi üzerinden uçulduğunda, ilk 7 en yeni fotoğraflık akışta yer almadığı için sayfa başında kalma sorunu çözüldü. `getSinglePozKesAction` sunucu aksiyonu ve `PozKesHashRedirector` istemci bileşeni ile hedeflenen eski fotoğraf anında çekilip akışın tepesine eklenir ve odağa alınır.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts), [PozKesHashRedirector.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesHashRedirector.tsx), [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/pozkes/page.tsx)
+
+---
+
 ## [1.9.5] - 2026-07-24
 
 ### 🎯 Stalksss Girdiler Sekmesi Nokta Atışı Entry Linki (`stalksss-entries-tab-anchor-fix`)
