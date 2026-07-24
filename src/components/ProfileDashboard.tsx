@@ -491,9 +491,8 @@ export default function ProfileDashboard({
             if (photoUrl) {
               const isSelected = selectedPhotoIndex === idx;
               return (
-                <button
+                <div
                   key={`prof-photo-${idx}`}
-                  type="button"
                   onClick={() => {
                     setSelectedPhotoIndex(idx);
                     playBuzzSound();
@@ -530,7 +529,7 @@ export default function ProfileDashboard({
                       ✕
                     </button>
                   )}
-                </button>
+                </div>
               );
             }
 
