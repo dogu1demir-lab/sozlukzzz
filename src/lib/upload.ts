@@ -16,9 +16,15 @@ export async function saveBase64Image(
 ): Promise<string | null> {
   if (!base64Str) return null;
 
-  // If it's already a URL/path, return as is
-  if (base64Str.startsWith("/") || base64Str.startsWith("http")) {
+  // If it's already one of our own uploaded file paths or a trusted https URL, return as is
+  if (base64Str.startsWith("/uploads/") || base64Str.startsWith("https://")) {
     return base64Str;
+  }
+
+  // Reject untrusted URL/path passthroughs (http://, protocol-relative, other local paths)
+  if (base64Str.startsWith("/") || base64Str.startsWith("http")) {
+    console.error("Upload rejected: untrusted URL passthrough.");
+    return null;
   }
 
   try {

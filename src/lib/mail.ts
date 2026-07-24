@@ -1,26 +1,38 @@
 import nodemailer from "nodemailer";
+import { getBaseUrl } from "./baseUrl";
 
-// Create nodemailer transporter using Güzel Hosting SMTP credentials
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "mail.guzel.net.tr",
-  port: parseInt(process.env.SMTP_PORT || "465", 10),
-  secure: (process.env.SMTP_PORT || "465") === "465", // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER || "yonetim@sozlukzzz.tr",
-    pass: process.env.SMTP_PASS || "q3t2bi2K1I",
-  },
-  tls: {
-    // Do not fail on invalid certs
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 5000, // 5 seconds connection timeout
-  socketTimeout: 5000,     // 5 seconds socket timeout
-});
+// Create nodemailer transporter using Güzel Hosting SMTP credentials.
+// Returns null when SMTP_PASS is not configured so callers can skip sending.
+function createTransporter() {
+  if (!process.env.SMTP_PASS) {
+    return null;
+  }
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "mail.guzel.net.tr",
+    port: parseInt(process.env.SMTP_PORT || "465", 10),
+    secure: (process.env.SMTP_PORT || "465") === "465", // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP_USER || "yonetim@sozlukzzz.tr",
+      pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      // TLS certificate verification is on by default; set SMTP_TLS_INSECURE=1 to disable
+      rejectUnauthorized: process.env.SMTP_TLS_INSECURE !== "1",
+    },
+    connectionTimeout: 5000, // 5 seconds connection timeout
+    socketTimeout: 5000,     // 5 seconds socket timeout
+  });
+}
 
 /**
  * Sends a password reset email using a beautifully designed HTML template.
  */
 export async function sendPasswordResetEmail(to: string, username: string, resetLink: string) {
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.error("SMTP_PASS tanımlı olmadığı için şifre sıfırlama e-postası gönderilemedi.");
+    return null;
+  }
   const mailOptions = {
     from: `"sözlükzzz" <${process.env.SMTP_USER || "yonetim@sozlukzzz.tr"}>`,
     to,
@@ -147,7 +159,12 @@ export async function sendPasswordResetEmail(to: string, username: string, reset
  * Sends a welcome email to a new user.
  */
 export async function sendWelcomeEmail(to: string, username: string) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sozlukzzz.tr";
+  const transporter = createTransporter();
+  if (!transporter) {
+    console.error("SMTP_PASS tanımlı olmadığı için hoş geldin e-postası gönderilemedi.");
+    return null;
+  }
+  const appUrl = getBaseUrl();
   const mailOptions = {
     from: `"sözlükzzz" <${process.env.SMTP_USER || "yonetim@sozlukzzz.tr"}>`,
     to,

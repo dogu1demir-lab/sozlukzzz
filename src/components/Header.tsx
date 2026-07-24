@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { SessionUser } from "@/lib/auth";
 import { logoutAction, markNotificationsAsReadAction, searchTopicsAction } from "@/app/actions";
 import { playBuzzSound, formatDate } from "@/lib/utils";
@@ -28,11 +28,33 @@ import {
   Loader2
 } from "lucide-react";
 
+interface HeaderNotification {
+  id: string;
+  content: string;
+  isRead: boolean;
+  relatedUrl: string | null;
+  createdAt: Date | string;
+}
+
+interface TopicSearchResult {
+  id: string;
+  slug: string;
+  url?: string | null;
+  isUser?: boolean;
+  username: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  avatarColor?: string;
+  title?: string;
+  snippet?: string | null;
+  entryCount: number;
+}
+
 interface HeaderProps {
   user: SessionUser | null;
   unreadNotificationsCount: number;
   unreadMessagesCount?: number;
-  notifications: any[];
+  notifications: HeaderNotification[];
   latestUsername?: string;
 }
 
@@ -45,7 +67,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
   const [isMuted, setIsMuted] = useState(false);
 
   // Autocomplete search states
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<TopicSearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -56,9 +78,11 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
   const [displayText, setDisplayText] = useState("");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    // localStorage tercihini mount sonrası güvenli şekilde oku (hydration uyuşmazlığı olmaması için)
+    const id = setTimeout(() => {
       setIsMuted(localStorage.getItem("buzzMuted") === "true");
-    }
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
 
   const toggleMute = () => {
@@ -77,8 +101,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
     if (!latestUsername) return;
     let index = 0;
     const fullText = `@${latestUsername}`;
-    setDisplayText("");
-    
+
     const interval = setInterval(() => {
       setDisplayText(fullText.substring(0, index + 1));
       index++;
@@ -86,44 +109,43 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
         clearInterval(interval);
       }
     }, 120); // 120ms per character
-    
+
     return () => clearInterval(interval);
   }, [latestUsername]);
-  
+
   const router = useRouter();
-  const searchParams = useSearchParams();
   const pathname = usePathname();
   const userMenuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const activeTab = searchParams.get("tab") || "bugun";
-
-  useEffect(() => {
+  // Prop değişimlerine render sırasında ayak uydur (React "adjust state during render" kalıbı)
+  const [prevUnreadCount, setPrevUnreadCount] = useState(unreadNotificationsCount);
+  if (prevUnreadCount !== unreadNotificationsCount) {
+    setPrevUnreadCount(unreadNotificationsCount);
     setLocalUnreadCount(unreadNotificationsCount);
-  }, [unreadNotificationsCount]);
+  }
 
-  // Clear search and close mobile menu on page navigation
-  useEffect(() => {
+  // Sayfa geçişinde aramayı temizle ve mobil menüyü kapat
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setSearchQuery("");
+    setSearchResults([]);
     setShowDropdown(false);
+    setIsSearchLoading(false);
     setIsMobileMenuOpen(false);
-  }, [pathname]);
+  }
 
   // Debounced search trigger
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setShowDropdown(false);
-      setIsSearchLoading(false);
-      return;
-    }
+    if (!searchQuery.trim()) return;
 
-    setIsSearchLoading(true);
     const delayDebounceFn = setTimeout(async () => {
+      setIsSearchLoading(true);
       try {
         const res = await searchTopicsAction(searchQuery);
         if (res.success && res.topics) {
-          setSearchResults(res.topics);
+          setSearchResults(res.topics as TopicSearchResult[]);
           setShowDropdown(true);
         } else {
           setSearchResults([]);
@@ -138,6 +160,16 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
+
+  // Arama kutusu boşaltıldığında sonuçları anında temizle
+  const handleSearchQueryChange = (value: string) => {
+    setSearchQuery(value);
+    if (!value.trim()) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      setIsSearchLoading(false);
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const hasNewTopicOption = searchQuery.trim().length > 0;
@@ -201,6 +233,9 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
 
     router.push(`/baslik/${cleanSearch}?q=${encodeURIComponent(searchQuery)}`);
     setSearchQuery("");
+    setSearchResults([]);
+    setShowDropdown(false);
+    setIsSearchLoading(false);
   };
 
   const handleLogout = async () => {
@@ -252,7 +287,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
             type="text"
             placeholder="ara..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
             className="w-full h-8 rounded-full bg-zinc-900 border border-zinc-800 px-3 pl-8 text-xs sm:text-sm text-zinc-200 placeholder-zinc-550 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
@@ -362,7 +397,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
             <>
               <Link
                 href="/yeni"
-                prefetch={false}
                 className="hidden sm:flex items-center gap-1 px-3 h-8 rounded-full bg-lime-500 text-black font-bold text-xs sm:text-sm hover:bg-lime-400 transition-colors active:scale-95 shrink-0"
               >
                 <PlusCircle className="h-3.5 w-3.5" />
@@ -371,7 +405,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
 
               <Link
                 href="/mesajlar"
-                prefetch={false}
                 title="Özel Mesajlar"
                 className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-lime-400 transition-all relative shrink-0"
               >
@@ -413,7 +446,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                           <Link
                             key={notif.id}
                             href={notif.relatedUrl || "/bugun"}
-                            prefetch={false}
                             onClick={() => {
                               setShowNotifications(false);
                             }}
@@ -462,7 +494,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                     </div>
                     <Link
                       href={`/yazar/${user.username}`}
-                      prefetch={false}
                       onClick={() => {
                         setShowUserMenu(false);
                       }}
@@ -473,7 +504,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                     </Link>
                     <Link
                       href="/mesajlar"
-                      prefetch={false}
                       onClick={() => {
                         setShowUserMenu(false);
                       }}
@@ -485,7 +515,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                     {user.role === "ADMIN" && (
                       <Link
                         href="/yonetim"
-                        prefetch={false}
                         onClick={() => {
                           setShowUserMenu(false);
                         }}
@@ -510,14 +539,12 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
             <div className="flex items-center gap-1">
               <Link
                 href="/giris"
-                prefetch={false}
                 className="px-2 py-1 text-xs sm:text-sm font-bold text-zinc-400 hover:text-white transition-colors"
               >
                 giriş
               </Link>
               <Link
                 href="/kaydol"
-                prefetch={false}
                 className="px-3 py-1 text-xs sm:text-sm font-bold rounded-full bg-zinc-900 hover:bg-zinc-800 text-white transition-all active:scale-95 border border-zinc-800"
               >
                 kaydol
@@ -542,7 +569,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
             <span>aramıza katılan son yazar:</span>
             <Link 
               href={`/yazar/${latestUsername}`}
-              prefetch={false}
               className="text-lime-400 font-bold hover:underline"
             >
               {displayText}
@@ -591,7 +617,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
               type="text"
               placeholder="başlık ara veya yeni başlık yaz..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchQueryChange(e.target.value)}
               onKeyDown={handleKeyDown}
               onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
               className="w-full h-8.5 rounded-full bg-zinc-900 border border-zinc-800 px-3.5 pl-9 text-xs text-zinc-200 placeholder-zinc-550 focus:outline-none focus:border-lime-500"
@@ -684,7 +710,6 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
             <div className="flex gap-2">
               <Link
                 href="/yeni"
-                prefetch={false}
                 className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-full bg-lime-500 text-black font-bold text-xs animate-none"
                 onClick={() => {
                   setIsMobileMenuOpen(false);

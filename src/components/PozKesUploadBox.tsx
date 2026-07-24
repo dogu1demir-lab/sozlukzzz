@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createPozKesEntryAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { Camera, Image as ImageIcon, X, Send, Sparkles } from "lucide-react";
+import { Image as ImageIcon, X, Send } from "lucide-react";
 import Link from "next/link";
 
 interface PozKesUploadBoxProps {
@@ -19,26 +19,25 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showTitleInput, setShowTitleInput] = useState(false);
 
   if (!isLoggedIn) {
     return (
       <div className="mb-6 p-4 rounded-2xl border border-zinc-850 bg-zinc-950/40 text-center space-y-2">
         <p className="text-xs text-zinc-400">
-          PozKes'te anlık fotoğraf paylaşmak ve vızıldamak için giriş yapmalısın.
+          PozKes&apos;te anlık fotoğraf paylaşmak ve vızıldamak için giriş yapmalısın.
         </p>
         <div className="flex justify-center gap-2 pt-1">
-          <Link href="/giris" prefetch={false} className="px-4 py-1.5 bg-teal-500 hover:bg-teal-400 text-white font-bold text-xs rounded-full transition-colors">
+          <Link href="/giris" className="px-4 py-1.5 bg-teal-500 hover:bg-teal-400 text-white font-bold text-xs rounded-full transition-colors">
             Giriş Yap
           </Link>
-          <Link href="/kaydol" prefetch={false} className="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-full transition-colors">
+          <Link href="/kaydol" className="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs rounded-full transition-colors">
             Kaydol
           </Link>
         </div>
       </div>
     );
   }
-
-  const [showTitleInput, setShowTitleInput] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

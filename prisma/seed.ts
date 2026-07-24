@@ -7,6 +7,14 @@ function hashPassword(password: string): string {
 }
 
 async function main() {
+  // Production veritabanina karsi yanlislikla calistirmayi onle:
+  // seed tum tablolari sildigi icin acik onay (SEED_CONFIRM=1) sart.
+  if (process.env.SEED_CONFIRM !== '1') {
+    throw new Error(
+      'Seed tum verileri siler. Calistirmak icin SEED_CONFIRM=1 ortam degiskeni ile tekrar deneyin.'
+    );
+  }
+
   console.log('Veritabanı temizleniyor...');
   await prisma.notification.deleteMany({});
   await prisma.message.deleteMany({});

@@ -7,7 +7,8 @@ import { deleteEntryAction, editEntryAction } from "@/app/actions";
 import { playBuzzSound, formatDate } from "@/lib/utils";
 import ReactionButtons from "./ReactionButtons";
 import MentionText from "./MentionText";
-import { Edit3, Trash2, X, Check } from "lucide-react";
+import { useFeedbackModal } from "./FeedbackModal";
+import { X, Check } from "lucide-react";
 
 interface Author {
   id: string;
@@ -52,10 +53,22 @@ export default function EntryBlock({
   const [editContent, setEditContent] = useState(entry.content);
   const [currentContent, setCurrentContent] = useState(entry.content);
   const [isPending, startTransition] = useTransition();
+  const { alert: showAlert, feedbackModal } = useFeedbackModal();
+
+  // entry.content prop'u değişirse state'i senkronize et (React "adjust state
+  // during render" kalıbı); kullanıcı düzenleme modundayken yazdığı metnin
+  // üzerine yazma.
+  const [prevEntryContent, setPrevEntryContent] = useState(entry.content);
+  if (prevEntryContent !== entry.content) {
+    setPrevEntryContent(entry.content);
+    if (!isEditing) {
+      setCurrentContent(entry.content);
+      setEditContent(entry.content);
+    }
+  }
 
   const isOwner = currentUserId === entry.author.id;
   const canDelete = isOwner || isAdmin;
-  const canEdit = isOwner || isAdmin;
 
   const handleInsertBkzEdit = () => {
     const textarea = document.getElementById(`edit-textarea-${entry.id}`) as HTMLTextAreaElement;
@@ -83,21 +96,21 @@ export default function EntryBlock({
     setIsEditing(!isEditing);
   };
 
-  const handleEditSave = () => {
+  const handleEditSave = async () => {
     if (!editContent.trim()) {
-      alert("İçerik boş olamaz.");
+      await showAlert("İçerik boş olamaz.");
       return;
     }
 
     if (editContent.trim().length < 45) {
-      alert("İçerik en az 45 karakter olmalıdır zzz.");
+      await showAlert("İçerik en az 45 karakter olmalıdır zzz.");
       return;
     }
 
     startTransition(async () => {
       const result = await editEntryAction(entry.id, editContent);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
         setCurrentContent(editContent.trim());
         setIsEditing(false);
@@ -118,7 +131,7 @@ export default function EntryBlock({
     startTransition(async () => {
       const result = await deleteEntryAction(entry.id);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
         if (result.topicDeleted) {
           router.push("/bugun");
@@ -129,7 +142,7 @@ export default function EntryBlock({
     });
   };
 
-  const formatClientDate = (dateVal: any) => {
+  const formatClientDate = (dateVal: Date | string) => {
     return formatDate(dateVal);
   };
 
@@ -148,7 +161,6 @@ export default function EntryBlock({
         <div className="flex items-center gap-2 text-xs text-zinc-400">
           <Link
             href={`/yazar/${entry.author.username}`}
-            prefetch={false}
             className="flex items-center gap-1.5 hover:text-zinc-300 transition-colors"
           >
             {entry.author.avatarUrl ? (
@@ -294,6 +306,9 @@ export default function EntryBlock({
           </div>
         </div>
       )}
+
+      {/* Ortak Geri Bildirim Modalı (alert/confirm/prompt) */}
+      {feedbackModal}
     </article>
   );
 }

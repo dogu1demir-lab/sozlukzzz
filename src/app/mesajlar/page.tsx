@@ -5,12 +5,60 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import SendMessageForm from "@/components/SendMessageForm";
 import ChatScrollAnchor from "@/components/ChatScrollAnchor";
-import { formatDate, cleanUsernameHandle } from "@/lib/utils";
-import { Mail, Send, User, MessageSquare, PlusCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import { cleanUsernameHandle } from "@/lib/utils";
+import { Mail, MessageSquare, ArrowLeft } from "lucide-react";
 import MessageBubble from "@/components/MessageBubble";
 import ClearConversationButton from "@/components/ClearConversationButton";
 
 export const revalidate = 0; // Fresh messages every time
+
+interface ChatPartner {
+  id: string;
+  username: string;
+  displayName: string | null;
+  avatarColor: string;
+  avatarUrl: string | null;
+}
+
+interface ChatMessage {
+  id: string;
+  content: string;
+  senderId: string;
+  receiverId: string;
+  createdAt: Date | string;
+}
+
+// Tarih ayraçları formatDate standardıyla aynı sabit +3 (Türkiye) saat dilimini kullanır.
+// Render sırasında impure çağrı yapmamak için hesaplama render dışındaki bu yardımcıdadır.
+const TR_OFFSET = 3 * 60 * 60 * 1000;
+const TR_MONTHS = [
+  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+];
+
+function getMessageDayInfo(createdAt: Date | string): { dayKey: string; label: string } {
+  const dayKeyOf = (time: number) => {
+    const tr = new Date(time + TR_OFFSET);
+    return `${tr.getUTCFullYear()}-${tr.getUTCMonth()}-${tr.getUTCDate()}`;
+  };
+
+  const msgTime = new Date(createdAt).getTime();
+  const dayKey = dayKeyOf(msgTime);
+  const todayKey = dayKeyOf(Date.now());
+  const yesterdayKey = dayKeyOf(Date.now() - 24 * 60 * 60 * 1000);
+
+  let label: string;
+  if (dayKey === todayKey) {
+    label = "Bugün";
+  } else if (dayKey === yesterdayKey) {
+    label = "Dün";
+  } else {
+    const tr = new Date(msgTime + TR_OFFSET);
+    label = `${tr.getUTCDate()} ${TR_MONTHS[tr.getUTCMonth()]} ${tr.getUTCFullYear()}`;
+  }
+
+  return { dayKey, label };
+}
 
 interface PageProps {
   searchParams: Promise<{ u?: string }>;
@@ -25,7 +73,7 @@ export default async function MessagesPage({ searchParams }: PageProps) {
     redirect("/giris");
   }
 
-  // 2. Fetch all messages in which the user is sender or receiver
+  // 2. Fetch recent messages in which the user is sender or receiver
   const allMessages = await prisma.message.findMany({
     where: {
       OR: [
@@ -43,7 +91,8 @@ export default async function MessagesPage({ searchParams }: PageProps) {
     },
     orderBy: {
       createdAt: "desc"
-    }
+    },
+    take: 200
   });
 
   // 3. Extract unique chat partners and their last messages
@@ -83,8 +132,8 @@ export default async function MessagesPage({ searchParams }: PageProps) {
   );
 
   // 4. If active chat partner username (u) is selected, query messages
-  let activePartner: any = null;
-  let chatMessages: any[] = [];
+  let activePartner: ChatPartner | null = null;
+  let chatMessages: ChatMessage[] = [];
 
   if (u) {
     const targetHandle = cleanUsernameHandle(u);
@@ -93,7 +142,12 @@ export default async function MessagesPage({ searchParams }: PageProps) {
       select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
     });
 
-    if (activePartner && activePartner.id !== user.id) {
+    if (activePartner && activePartner.id === user.id) {
+      // Kullanıcı kendine mesaj penceresi açamaz
+      activePartner = null;
+    }
+
+    if (activePartner) {
       // Mark all incoming messages from this partner as read
       await prisma.message.updateMany({
         where: {
@@ -142,12 +196,11 @@ export default async function MessagesPage({ searchParams }: PageProps) {
             </div>
           ) : (
             conversations.map((conv) => {
-              const isActive = u === conv.username;
+              const isActive = u ? cleanUsernameHandle(u) === conv.username : false;
               return (
                 <Link
                   key={conv.username}
                   href={`/mesajlar?u=${conv.username}`}
-                  prefetch={false}
                   className={`flex items-start gap-3 p-4 transition-colors hover:bg-zinc-900/50 ${
                     isActive ? "bg-zinc-900/80" : ""
                   }`}
@@ -204,7 +257,6 @@ export default async function MessagesPage({ searchParams }: PageProps) {
               {/* Back Button on Mobile */}
               <Link 
                 href="/mesajlar" 
-                prefetch={false}
                 className="md:hidden p-1.5 -ml-1 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-900 transition-colors"
               >
                 <ArrowLeft className="h-4.5 w-4.5" />
@@ -235,42 +287,22 @@ export default async function MessagesPage({ searchParams }: PageProps) {
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col bg-zinc-950/10">
               {(() => {
-                let lastDateString = "";
+                let lastDayKey = "";
                 return chatMessages.map((msg) => {
-                  const msgDate = new Date(msg.createdAt);
-                  const dateString = msgDate.toLocaleDateString("tr-TR", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                  });
-                  
+                  const { dayKey, label } = getMessageDayInfo(msg.createdAt);
+
                   let showDateDivider = false;
-                  if (dateString !== lastDateString) {
+                  if (dayKey !== lastDayKey) {
                     showDateDivider = true;
-                    lastDateString = dateString;
+                    lastDayKey = dayKey;
                   }
-
-                  const getRelativeDateLabel = () => {
-                    const today = new Date();
-                    const yesterday = new Date();
-                    yesterday.setDate(today.getDate() - 1);
-                    
-                    const isSameDay = (d1: Date, d2: Date) =>
-                      d1.getDate() === d2.getDate() &&
-                      d1.getMonth() === d2.getMonth() &&
-                      d1.getFullYear() === d2.getFullYear();
-
-                    if (isSameDay(msgDate, today)) return "Bugün";
-                    if (isSameDay(msgDate, yesterday)) return "Dün";
-                    return dateString;
-                  };
 
                   return (
                     <React.Fragment key={msg.id}>
                       {showDateDivider && (
                         <div className="flex justify-center my-2 select-none shrink-0">
                           <span className="text-[10px] font-bold text-zinc-500 bg-zinc-900/60 px-3 py-1 rounded-full border border-zinc-900/40" suppressHydrationWarning>
-                            {getRelativeDateLabel()}
+                            {label}
                           </span>
                         </div>
                       )}

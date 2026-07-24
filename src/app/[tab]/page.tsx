@@ -7,17 +7,12 @@ import IntroBanner from "@/components/IntroBanner";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
 import FeedLoadMore from "@/components/FeedLoadMore";
 import { formatDate } from "@/lib/utils";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { redis } from "@/lib/redis";
-import { 
-  TrendingUp, 
-  AlertTriangle, 
-  Calendar, 
-  Camera, 
-  Users, 
-  Award, 
-  Eye, 
-  Sparkles 
+import {
+  AlertTriangle,
+  Users,
+  Eye
 } from "lucide-react";
 
 export const revalidate = 0; // Fresh content on homepage always
@@ -88,19 +83,66 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 const VALID_TABS = ["bugun", "gundem", "takip", "begenilen", "goruntulenen"];
 
+interface FeedLike {
+  userId: string;
+  isLike: boolean;
+}
+
+interface FeedAuthor {
+  id: string;
+  username: string;
+  displayName?: string | null;
+  avatarColor: string;
+  avatarUrl: string | null;
+}
+
+interface FeedTopic {
+  id: string;
+  title: string;
+  slug: string;
+  poll: { id: string } | null;
+}
+
+interface FeedEntry {
+  id: string;
+  content: string;
+  imageUrl: string | null;
+  createdAt: Date | string;
+  topic: FeedTopic;
+  author: FeedAuthor;
+  likes: FeedLike[];
+}
+
+interface PopularTopicEntry {
+  id: string;
+  content: string;
+  createdAt: Date | string;
+  author: FeedAuthor;
+  likes: FeedLike[];
+}
+
+interface PopularTopic {
+  id: string;
+  title: string;
+  slug: string;
+  viewCount: number;
+  poll: { id: string } | null;
+  entries: PopularTopicEntry[];
+}
+
 export default async function Home({ params }: PageProps) {
   const pageStart = performance.now();
   const { tab } = await params;
   const activeTab = tab || "bugun";
 
   if (!VALID_TABS.includes(activeTab)) {
-    redirect("/bugun");
+    notFound();
   }
 
   const user = await getSessionUser();
 
-  let entries: any[] = [];
-  let popularTopics: any[] = [];
+  let entries: FeedEntry[] = [];
+  let popularTopics: PopularTopic[] = [];
 
   const dbStart = performance.now();
 
@@ -292,55 +334,8 @@ export default async function Home({ params }: PageProps) {
         console.error("Redis set gundem error:", redisErr);
       }
     }
-  } else if (activeTab === "pozkes") {
-    const cacheKey = "stream:pozkes";
-    try {
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        entries = JSON.parse(cached);
-      }
-    } catch (redisErr) {
-      console.error("Redis get pozkes error:", redisErr);
-    }
-
-    if (entries.length === 0) {
-      const rawEntries = await prisma.entry.findMany({
-        where: {
-          topic: { slug: "pozkes-galeri" },
-          imageUrl: { not: null }
-        },
-        include: {
-          topic: {
-            include: {
-              poll: {
-                select: { id: true }
-              }
-            }
-          },
-          author: {
-            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
-          },
-          likes: true
-        },
-        orderBy: {
-          createdAt: "desc"
-        },
-        take: 7
-      });
-
-      entries = rawEntries.map(entry => ({
-        ...entry,
-        imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : null
-      }));
-
-      try {
-        await redis.set(cacheKey, JSON.stringify(entries), "EX", 30);
-      } catch (redisErr) {
-        console.error("Redis set pozkes error:", redisErr);
-      }
-    }
-  } else if (activeTab === "takip") {
-    const cacheKey = user ? `stream:takip:${user.id}` : "stream:takip:guest";
+  } else if (activeTab === "takip" && user) {
+    const cacheKey = `stream:takip:${user.id}`;
     try {
       const cached = await redis.get(cacheKey);
       if (cached) {
@@ -350,7 +345,7 @@ export default async function Home({ params }: PageProps) {
       console.error("Redis get takip error:", redisErr);
     }
 
-    if (entries.length === 0 && user) {
+    if (entries.length === 0) {
       // Find following IDs
       const follows = await prisma.follow.findMany({
         where: { followerId: user.id },
@@ -373,7 +368,7 @@ export default async function Home({ params }: PageProps) {
               authorId: { in: followingIds }
             },
             orderBy: {
-              createdAt: "desc"
+              createdAt: "asc"
             },
             take: 1,
             include: {
@@ -427,24 +422,15 @@ export default async function Home({ params }: PageProps) {
     }
 
     if (entries.length === 0) {
-      // Fetch recent 100 entries, group by topic, then sort by likes count
+      // Fetch recent 100 entries, group by topic, then sort topics by likes count
       const rawEntries = await prisma.entry.findMany({
         where: {
           topic: {
             slug: { not: "pozkes-galeri" }
           }
         },
-        include: {
-          topic: {
-            include: {
-              poll: {
-                select: { id: true }
-              }
-            }
-          },
-          author: {
-            select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
-          },
+        select: {
+          topicId: true,
           likes: true
         },
         orderBy: {
@@ -455,20 +441,53 @@ export default async function Home({ params }: PageProps) {
         take: 100
       });
 
-      const uniqueMap = new Map<string, any>();
+      const uniqueMap = new Map<string, { topicId: string; likes: FeedLike[] }>();
       for (const entry of rawEntries) {
         if (!uniqueMap.has(entry.topicId)) {
           uniqueMap.set(entry.topicId, entry);
         }
       }
 
-      entries = Array.from(uniqueMap.values())
+      const rankedTopicIds = Array.from(uniqueMap.values())
         .sort((a, b) => {
-          const aLikes = a.likes.filter((l: any) => l.isLike).length;
-          const bLikes = b.likes.filter((l: any) => l.isLike).length;
+          const aLikes = a.likes.filter((l) => l.isLike).length;
+          const bLikes = b.likes.filter((l) => !l.isLike).length;
           return bLikes - aLikes;
         })
-        .slice(0, 7);
+        .slice(0, 7)
+        .map((entry) => entry.topicId);
+
+      // Konu sıralaması beğeniye göre kalır ama gösterilen entry konunun ilk entry'sidir (createdAt asc)
+      const firstEntries = await Promise.all(
+        rankedTopicIds.map((topicId) =>
+          prisma.entry.findFirst({
+            where: { topicId },
+            orderBy: {
+              createdAt: "asc"
+            },
+            include: {
+              topic: {
+                include: {
+                  poll: {
+                    select: { id: true }
+                  }
+                }
+              },
+              author: {
+                select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
+              },
+              likes: true
+            }
+          })
+        )
+      );
+
+      entries = firstEntries
+        .filter((entry) => entry !== null)
+        .map((entry) => ({
+          ...entry,
+          imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : null
+        }));
 
       try {
         await redis.set(cacheKey, JSON.stringify(entries), "EX", 60);
@@ -529,15 +548,15 @@ export default async function Home({ params }: PageProps) {
 
   // Map entries to inject user reactions
   const formattedEntries = entries.map((entry) => {
-    const likesCount = entry.likes.filter((l: any) => l.isLike).length;
-    const dislikesCount = entry.likes.filter((l: any) => !l.isLike).length;
-    const userLike = user ? entry.likes.find((l: any) => l.userId === user.id) : null;
+    const likesCount = entry.likes.filter((l) => l.isLike).length;
+    const dislikesCount = entry.likes.filter((l) => !l.isLike).length;
+    const userLike = user ? entry.likes.find((l) => l.userId === user.id) : null;
     const userReaction = userLike ? (userLike.isLike ? ("LIKE" as const) : ("DISLIKE" as const)) : null;
 
     return {
       id: entry.id,
       content: entry.content,
-      imageUrl: entry.imageUrl ? (entry.imageUrl.startsWith("data:") ? `/api/image/${entry.id}` : entry.imageUrl) : null,
+      imageUrl: entry.imageUrl ? entry.imageUrl : null,
       createdAt: entry.createdAt,
       topic: entry.topic,
       author: {
@@ -569,8 +588,8 @@ export default async function Home({ params }: PageProps) {
             <Users className="h-8 w-8 text-zinc-650 mx-auto mb-3" />
             <p className="text-sm">Takip ettiğiniz yazarların akışını görmek için giriş yapmalısınız.</p>
             <div className="mt-4 flex justify-center gap-2">
-              <Link href="/giris" prefetch={false} className="px-4 py-1.5 bg-lime-500 text-black text-xs font-bold rounded-full">giriş yap</Link>
-              <Link href="/kaydol" prefetch={false} className="px-4 py-1.5 bg-zinc-800 text-white text-xs font-bold rounded-full">kaydol</Link>
+              <Link href="/giris" className="px-4 py-1.5 bg-lime-500 text-black text-xs font-bold rounded-full">giriş yap</Link>
+              <Link href="/kaydol" className="px-4 py-1.5 bg-zinc-800 text-white text-xs font-bold rounded-full">kaydol</Link>
             </div>
           </div>
         )}
@@ -578,10 +597,13 @@ export default async function Home({ params }: PageProps) {
         {/* Entries list render (standard tabs) */}
         {activeTab !== "goruntulenen" ? (
           formattedEntries.length === 0 ? (
+            // Takip sekmesinde misafir zaten giriş duvarını görüyor; boş-durum kartını gösterme
+            activeTab === "takip" && !user ? null : (
             <div className="rounded-xl border border-dashed border-zinc-850 p-12 text-center text-zinc-500">
               <AlertTriangle className="h-8 w-8 text-zinc-700 mx-auto mb-3" />
               <p className="text-sm">Bu kategoride henüz girilmiş bir entry bulunamadı zzz.</p>
             </div>
+            )
           ) : (
             <div className="space-y-6">
               {formattedEntries.map((entry) => (
@@ -677,9 +699,9 @@ export default async function Home({ params }: PageProps) {
                 const firstEntry = topic.entries[0];
                 if (!firstEntry) return null;
 
-                const likesCount = firstEntry.likes.filter((l: any) => l.isLike).length;
-                const dislikesCount = firstEntry.likes.filter((l: any) => !l.isLike).length;
-                const userLike = user ? firstEntry.likes.find((l: any) => l.userId === user.id) : null;
+                const likesCount = firstEntry.likes.filter((l) => l.isLike).length;
+                const dislikesCount = firstEntry.likes.filter((l) => !l.isLike).length;
+                const userLike = user ? firstEntry.likes.find((l) => l.userId === user.id) : null;
                 const userReaction = userLike ? (userLike.isLike ? ("LIKE" as const) : ("DISLIKE" as const)) : null;
 
                 return (

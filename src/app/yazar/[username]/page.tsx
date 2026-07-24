@@ -48,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description: bioSnippet,
     alternates: {
-      canonical: `${appUrl}/yazar/${encodeURIComponent(username)}`,
+      canonical: `${appUrl}/yazar/${encodeURIComponent(author.username)}`,
     },
     openGraph: {
       title,
@@ -105,7 +105,8 @@ export default async function AuthorProfilePage({ params }: PageProps) {
         },
         orderBy: {
           createdAt: "desc"
-        }
+        },
+        take: 100
       },
       followers: {
         include: {
@@ -141,7 +142,8 @@ export default async function AuthorProfilePage({ params }: PageProps) {
     },
     orderBy: {
       createdAt: "desc"
-    }
+    },
+    take: 100
   });
 
   // Calculate statistics & Score

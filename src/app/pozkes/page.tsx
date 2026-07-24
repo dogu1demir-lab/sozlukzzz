@@ -19,7 +19,14 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     try {
       const entry = await prisma.entry.findUnique({
         where: { id: entryId },
-        include: { author: true }
+        select: {
+          id: true,
+          content: true,
+          imageUrl: true,
+          author: {
+            select: { username: true, displayName: true }
+          }
+        }
       });
 
       if (entry && entry.imageUrl) {
@@ -122,8 +129,9 @@ export default async function PozKesPage() {
           likes: true
         },
         orderBy: {
-          createdAt: "asc"
-        }
+          createdAt: "desc"
+        },
+        take: 50
       }
     },
     orderBy: {
@@ -136,7 +144,8 @@ export default async function PozKesPage() {
     const likesCount = entry.likes.filter((l) => l.isLike).length;
     const hasLiked = user ? entry.likes.some((l) => l.userId === user.id && l.isLike) : false;
 
-    const formattedComments = entry.comments.map((comment) => {
+    // Son 50 yorum desc çekildi; kartlar eskiden yeniye (asc) gösterdiği için geri çevir
+    const formattedComments = [...entry.comments].reverse().map((comment) => {
       const likesCount = comment.likes.length;
       const hasLiked = user ? comment.likes.some((l) => l.userId === user.id) : false;
       return {
@@ -192,7 +201,7 @@ export default async function PozKesPage() {
         />
         {formattedEntries.length === 0 ? (
           <div className="rounded-xl border border-dashed border-zinc-850 p-12 text-center text-zinc-500">
-            <p className="text-sm">PozKes'te henüz paylaşılmış bir fotoğraf bulunamadı zzz.</p>
+            <p className="text-sm">PozKes&apos;te henüz paylaşılmış bir fotoğraf bulunamadı zzz.</p>
           </div>
         ) : (
           <>

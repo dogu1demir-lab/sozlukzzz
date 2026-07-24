@@ -28,7 +28,8 @@ export default function HashRedirector({ currentEntryIds }: HashRedirectorProps)
         const entryIndex = currentEntryIds.indexOf(entryId);
         setTimeout(() => {
           // If it's the very first entry on the first page, scroll to top so the topic title remains visible
-          if (entryIndex === 0 && (!window.location.search || window.location.search.includes("p=1"))) {
+          const currentPage = new URLSearchParams(window.location.search).get("p");
+          if (entryIndex === 0 && (!currentPage || currentPage === "1")) {
             window.scrollTo({ top: 0, behavior: "smooth" });
           } else {
             const el = document.getElementById(`entry-${entryId}`);

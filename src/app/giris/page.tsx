@@ -40,7 +40,7 @@ export default function Login() {
             🪰
           </span>
           <h2 className="mt-2 text-lg font-bold tracking-tight text-white">
-            sözlükzzz'e <span className="text-lime-400">giriş</span>
+            sözlükzzz&apos;e <span className="text-lime-400">giriş</span>
           </h2>
           <p className="mt-1 text-xs text-zinc-500">
             vızıldamaya kaldığın yerden devam et zzz.

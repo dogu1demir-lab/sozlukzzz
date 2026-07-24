@@ -200,10 +200,10 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
               {isPending ? "Yükleniyor..." : "Yeni Profil Resmi Yükle"}
             </label>
             <p className="text-[11px] text-zinc-400">
-              Yüklenen görsel otomatik olarak WebP'ye dönüştürülür (Maks 10 MB).
+              Yüklenen görsel otomatik olarak WebP&apos;ye dönüştürülür (Maks 10 MB).
             </p>
             <div className="p-2.5 rounded-xl border border-lime-500/20 bg-lime-500/5 text-[11px] text-lime-300 font-medium">
-              Yüklediğiniz bu resim, profildeki <strong>5 Fotoğraf Vitrini'nin #1 numaralı ana resmine</strong> otomatik entegre edilir.
+              Yüklediğiniz bu resim, profildeki <strong>5 Fotoğraf Vitrini&apos;nin #1 numaralı ana resmine</strong> otomatik entegre edilir.
             </div>
           </div>
         </div>

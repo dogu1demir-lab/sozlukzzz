@@ -4,6 +4,7 @@ import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { sendMessageAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
+import { useFeedbackModal } from "@/components/FeedbackModal";
 import { Send } from "lucide-react";
 
 interface SendMessageFormProps {
@@ -13,10 +14,11 @@ interface SendMessageFormProps {
 export default function SendMessageForm({ receiverUsername }: SendMessageFormProps) {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   const isSubmittingOrPending = isPending || submitting;
   const router = useRouter();
   const submittingRef = useRef(false);
+  const { alert: showAlert, feedbackModal } = useFeedbackModal();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,13 +31,13 @@ export default function SendMessageForm({ receiverUsername }: SendMessageFormPro
     try {
       const result = await sendMessageAction(receiverUsername, content);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
         setContent("");
         router.refresh();
       }
-    } catch (err) {
-      alert("Mesaj gönderilirken teknik bir hata oluştu.");
+    } catch {
+      await showAlert("Mesaj gönderilirken teknik bir hata oluştu.");
     } finally {
       setSubmitting(false);
       submittingRef.current = false;
@@ -60,6 +62,7 @@ export default function SendMessageForm({ receiverUsername }: SendMessageFormPro
       >
         <Send className="h-4 w-4" />
       </button>
+      {feedbackModal}
     </form>
   );
 }

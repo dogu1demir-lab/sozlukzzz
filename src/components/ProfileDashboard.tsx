@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, Calendar, Shield, MessageSquare, BookOpen, ThumbsUp, Users, ArrowRight, X, Send, AlertCircle } from "lucide-react";
+import { Shield, MessageSquare, ArrowRight, X, AlertCircle } from "lucide-react";
 import { playBuzzSound, formatDate } from "@/lib/utils";
-import MentionText from "@/components/MentionText";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
 import FollowButton from "@/components/FollowButton";
 import FlyRankBadge, { getRankByScore } from "@/components/FlyRankBadge";
-import { createPozKesEntryAction, setAvatarFromPozKesAction, addProfilePhotoAction, removeProfilePhotoAction } from "@/app/actions";
+import { useFeedbackModal } from "@/components/FeedbackModal";
+import { setAvatarFromPozKesAction, addProfilePhotoAction, removeProfilePhotoAction } from "@/app/actions";
 
 interface ProfileDashboardProps {
   gifts?: Array<{
@@ -121,6 +121,7 @@ export default function ProfileDashboard({
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"girdiler" | "yanitlar" | "fotograflar" | "takipci" | "takip">("girdiler");
   const [isPending, startTransition] = useTransition();
+  const { alert: showAlert, feedbackModal } = useFeedbackModal();
 
   const isSelf = sessionUser?.id === author.id;
   const currentRank = getRankByScore(score);
@@ -128,8 +129,6 @@ export default function ProfileDashboard({
   // Filter entries
   const textEntries = entries.filter((e) => !e.imageUrl);
   const photoEntries = entries.filter((e) => !!e.imageUrl);
-
-  const displayAvatarUrl = author.avatarUrl || (photoEntries.length > 0 ? photoEntries[0].imageUrl : null);
 
   const avatarImgUrl = author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(author.username)}` : null;
 
@@ -168,7 +167,8 @@ export default function ProfileDashboard({
       if (res.success) {
         setSelectedPhotoIndex(0);
         router.refresh();
-        window.location.reload();
+      } else if (res.error) {
+        await showAlert(res.error);
       }
     });
   };
@@ -201,15 +201,11 @@ export default function ProfileDashboard({
       if (res.success) {
         playBuzzSound();
         router.refresh();
+      } else if (res.error) {
+        await showAlert(res.error);
       }
     });
   };
-  
-  const [uploadPhotoBase64, setUploadPhotoBase64] = useState<string>("");
-  const [uploadPhotoDesc, setUploadPhotoDesc] = useState<string>("");
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
-  const [uploadError, setUploadError] = useState<string>("");
-  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -286,11 +282,9 @@ export default function ProfileDashboard({
         if (e.target) e.target.value = "";
 
         startTransition(async () => {
-          setIsUploading(true);
           const result = await addProfilePhotoAction(finalBase64);
-          setIsUploading(false);
           if (result.error) {
-            alert(result.error);
+            await showAlert(result.error);
           } else {
             playBuzzSound();
             setSelectedPhotoIndex(displayProfilePhotos.length > 0 ? displayProfilePhotos.length : 1);
@@ -350,7 +344,6 @@ export default function ProfileDashboard({
                   <Link 
                     className="btn btn-outline btn-sm text-xs font-bold px-4 py-2 border border-slate-700 hover:border-teal-500 rounded-lg text-slate-350 hover:text-white transition-all bg-slate-900/60" 
                     href="/settings"
-                    prefetch={false}
                   >
                     Profili Düzenle
                   </Link>
@@ -364,7 +357,6 @@ export default function ProfileDashboard({
                       />
                       <Link
                         href={`/mesajlar?u=${author.username}`}
-                        prefetch={false}
                         className="flex items-center gap-1 px-4 py-2 rounded-lg bg-slate-950 border border-slate-800 hover:border-teal-500 text-white text-xs font-bold transition-all"
                       >
                         <MessageSquare className="h-3.5 w-3.5 text-teal-400" />
@@ -503,10 +495,10 @@ export default function ProfileDashboard({
                         >
                           Ana Profil Resmi Yap 🖼️
                         </button>
-                        {author.profilePhotos && author.profilePhotos.length > 0 && (
+                        {displayProfilePhotos.length > 0 && (
                           <button
                             type="button"
-                            onClick={() => handleRemoveProfilePhoto(author.profilePhotos![selectedPhotoIndex] || author.profilePhotos![0])}
+                            onClick={() => handleRemoveProfilePhoto(displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0])}
                             disabled={isPending}
                             className="text-[10px] font-black bg-rose-500/20 border border-rose-500/40 text-rose-400 px-2 py-1 rounded-md hover:bg-rose-500/30 active:scale-95 transition-all"
                             title="Fotoğrafı Sil"
@@ -663,7 +655,6 @@ export default function ProfileDashboard({
                       <div className="flex justify-between items-baseline gap-2 min-w-0">
                         <Link 
                           href={`/baslik/${entry.topic.slug}#entry-${entry.id}`} 
-                          prefetch={false}
                           className="text-sm font-bold text-white hover:text-teal-400 break-words min-w-0"
                         >
                           {entry.topic.title}
@@ -710,7 +701,6 @@ export default function ProfileDashboard({
                           <div className="text-[11px] text-slate-400 break-words min-w-0">
                             <Link 
                               href={targetUrl} 
-                              prefetch={false}
                               className="font-semibold text-slate-300 hover:text-teal-400 break-words min-w-0"
                             >
                               {isPozKes ? "PozKes Fotoğrafı" : comment.entry.topic.title}
@@ -759,7 +749,6 @@ export default function ProfileDashboard({
                         <Link
                           key={photo.id}
                           href={targetUrl}
-                          prefetch={false}
                           onClick={() => playBuzzSound()}
                           className="group relative aspect-square rounded-xl overflow-hidden border border-slate-850 bg-slate-900/30 block cursor-pointer transition-all hover:border-lime-500/50"
                         >
@@ -809,7 +798,6 @@ export default function ProfileDashboard({
                       <Link
                         key={f.id}
                         href={`/yazar/${f.username}`}
-                        prefetch={false}
                         onClick={() => playBuzzSound()}
                         className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                       >
@@ -854,7 +842,6 @@ export default function ProfileDashboard({
                       <Link
                         key={f.id}
                         href={`/yazar/${f.username}`}
-                        prefetch={false}
                         onClick={() => playBuzzSound()}
                         className="flex items-center gap-3 p-3 rounded-xl border border-slate-850 bg-slate-950/20 hover:border-slate-800 transition-all"
                       >
@@ -986,7 +973,7 @@ export default function ProfileDashboard({
                 onClick={() => setCannotDeleteAvatarModal(false)}
                 className="px-4 py-2 text-xs font-black text-black bg-lime-500 hover:bg-lime-400 rounded-xl transition-all active:scale-95 shadow-md shadow-lime-500/10 cursor-pointer"
               >
-                Ayarlar'a Git ⚙️
+                Ayarlar&apos;a Git ⚙️
               </Link>
             </div>
 
@@ -1019,6 +1006,9 @@ export default function ProfileDashboard({
           </div>
         </div>
       )}
+
+      {/* Ortak Geri Bildirim Modalı (alert/confirm/prompt) */}
+      {feedbackModal}
     </div>
   );
 }

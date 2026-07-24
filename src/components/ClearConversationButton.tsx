@@ -5,6 +5,7 @@ import { clearConversationAction } from "@/app/actions";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { playBuzzSound } from "@/lib/utils";
+import { useFeedbackModal } from "@/components/FeedbackModal";
 
 interface ClearConversationButtonProps {
   partnerUsername: string;
@@ -13,12 +14,13 @@ interface ClearConversationButtonProps {
 export default function ClearConversationButton({ partnerUsername }: ClearConversationButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const { confirm: askConfirm, alert: showAlert, feedbackModal } = useFeedbackModal();
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (
-      !confirm(
+      !(await askConfirm(
         `@${partnerUsername} ile olan tüm sohbet geçmişinizi (gönderilen ve alınan tüm mesajları) kökten silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`
-      )
+      ))
     ) {
       return;
     }
@@ -28,7 +30,7 @@ export default function ClearConversationButton({ partnerUsername }: ClearConver
     startTransition(async () => {
       const res = await clearConversationAction(partnerUsername);
       if (res.error) {
-        alert(res.error);
+        await showAlert(res.error);
       } else {
         router.push("/mesajlar");
         router.refresh();
@@ -37,13 +39,16 @@ export default function ClearConversationButton({ partnerUsername }: ClearConver
   };
 
   return (
-    <button
-      onClick={handleClear}
-      disabled={isPending}
-      title="Sohbeti Sil / Temizle"
-      className="p-2 text-zinc-500 hover:text-red-400 hover:bg-zinc-900/60 rounded-lg transition-colors cursor-pointer shrink-0 ml-auto"
-    >
-      <Trash2 className="h-4.5 w-4.5" />
-    </button>
+    <>
+      <button
+        onClick={handleClear}
+        disabled={isPending}
+        title="Sohbeti Sil / Temizle"
+        className="p-2 text-zinc-500 hover:text-red-400 hover:bg-zinc-900/60 rounded-lg transition-colors cursor-pointer shrink-0 ml-auto"
+      >
+        <Trash2 className="h-4.5 w-4.5" />
+      </button>
+      {feedbackModal}
+    </>
   );
 }

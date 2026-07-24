@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 import { getSinglePozKesAction } from "@/app/actions";
 import PozKesCard from "./PozKesCard";
+
+type PozKesEntry = ComponentProps<typeof PozKesCard>["entry"];
 
 interface PozKesHashRedirectorProps {
   initialEntryIds: string[];
@@ -17,7 +19,7 @@ export default function PozKesHashRedirector({
   currentUserId,
   isAdmin
 }: PozKesHashRedirectorProps) {
-  const [targetEntry, setTargetEntry] = useState<any>(null);
+  const [targetEntry, setTargetEntry] = useState<PozKesEntry | null>(null);
 
   useEffect(() => {
     const handleHash = async () => {

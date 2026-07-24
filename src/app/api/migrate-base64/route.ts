@@ -10,7 +10,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get("secret");
 
-  const expectedSecret = process.env.MIGRATION_SECRET || "sinek-vizzz-9988";
+  const expectedSecret = process.env.MIGRATION_SECRET;
+  if (!expectedSecret) {
+    console.error("MIGRATION_SECRET ortam değişkeni tanımlı değil.");
+    return new NextResponse("Server misconfigured", { status: 500 });
+  }
   if (secret !== expectedSecret) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
@@ -57,7 +61,7 @@ export async function GET(request: Request) {
 
       fs.writeFileSync(absolutePath, buffer);
       return relativePath;
-    } catch (e: any) {
+    } catch (e) {
       console.error("Error writing base64 file:", e);
       throw e;
     }
@@ -88,8 +92,8 @@ export async function GET(request: Request) {
             results.usersMigrated++;
           }
         }
-      } catch (err: any) {
-        const errMsg = `User ${user.username} migration failed: ${err.message}`;
+      } catch (err) {
+        const errMsg = `User ${user.username} migration failed: ${err instanceof Error ? err.message : String(err)}`;
         results.errors.push(errMsg);
         console.error(errMsg);
       }
@@ -119,8 +123,8 @@ export async function GET(request: Request) {
             results.entriesMigrated++;
           }
         }
-      } catch (err: any) {
-        const errMsg = `Entry ${entry.id} migration failed: ${err.message}`;
+      } catch (err) {
+        const errMsg = `Entry ${entry.id} migration failed: ${err instanceof Error ? err.message : String(err)}`;
         results.errors.push(errMsg);
         console.error(errMsg);
       }
@@ -129,8 +133,8 @@ export async function GET(request: Request) {
     console.log("=== MIGRATION COMPLETED ===", results);
     return NextResponse.json({ success: true, results });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Migration error:", error);
-    return NextResponse.json({ success: false, error: error.message, results });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : String(error), results });
   }
 }

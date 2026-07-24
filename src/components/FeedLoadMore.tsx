@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { getMoreEntriesAction } from "@/app/actions";
-import { playBuzzSound, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import ReactionButtons from "./ReactionButtons";
 import ExpandableMentionText from "./ExpandableMentionText";
 
@@ -46,12 +46,15 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reset state when tab changes
-  useEffect(() => {
+  // Reset state when tab changes (render sırasında prop değişimine ayak uydurma)
+  const tabKey = `${tab}:${initialOffset}`;
+  const [prevTabKey, setPrevTabKey] = useState(tabKey);
+  if (prevTabKey !== tabKey) {
+    setPrevTabKey(tabKey);
     setEntries([]);
     setOffset(initialOffset);
     setHasMore(true);
-  }, [tab, initialOffset]);
+  }
 
   const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
@@ -81,7 +84,7 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
   };
 
   // Date format helper for client rendering
-  const formatClientDate = (dateVal: any) => {
+  const formatClientDate = (dateVal: Date | string) => {
     return formatDate(dateVal);
   };
 

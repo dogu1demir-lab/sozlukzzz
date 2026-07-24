@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { X, Trophy, Check } from "lucide-react";
-import { playBuzzSound } from "@/lib/utils";
 
 // Define the 24 ranks for the fly-themed dictionary
 export interface FlyRank {
@@ -157,9 +156,9 @@ function RenderFlyStageSvg({ level }: { level: number }) {
     let wingFill = "url(#wingGrad)";
     let wingStroke = "#1e3a8a";
     let eyeFill = "url(#eyeGrad)";
-    let legsColor = "#0f172a";
-    let strokeColor = "#0f172a";
-    let headFill = "#1e293b";
+    const legsColor = "#0f172a";
+    const strokeColor = "#0f172a";
+    const headFill = "#1e293b";
     let glowFilter = "drop-shadow-[0_4px_10px_rgba(59,130,246,0.3)]";
     let showBeeStripes = false;
     let showSoundWaves = false;

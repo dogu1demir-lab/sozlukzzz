@@ -1,6 +1,7 @@
 import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { redis } from "@/lib/redis";
 import SettingsClient from "./SettingsClient";
 
 export const revalidate = 0;
@@ -31,7 +32,6 @@ export default async function SettingsPage() {
 
   let disableSelfDeletion = false;
   try {
-    const { redis } = require("@/lib/redis");
     const cached = await redis.get("settings:disable_self_deletion");
     disableSelfDeletion = cached === "true";
   } catch (err) {

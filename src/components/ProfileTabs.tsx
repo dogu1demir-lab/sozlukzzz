@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Camera, Users, Award } from "lucide-react";
+import { BookOpen, Camera, Users } from "lucide-react";
 import { playBuzzSound } from "@/lib/utils";
 
 interface ProfileTabsProps {

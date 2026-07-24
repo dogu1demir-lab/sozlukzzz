@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { createPozKesEntryAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { Camera, Image as ImageIcon, Send, AlertCircle, Sparkles, X } from "lucide-react";
+import { Image as ImageIcon, Send, AlertCircle, Sparkles, X } from "lucide-react";
 
 interface PozKesUploadFormProps {
   isLoggedIn: boolean;
@@ -16,24 +15,20 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
   const [base64Image, setBase64Image] = useState("");
   const [error, setError] = useState("");
   const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">("idle");
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
   const isSubmittingOrPending = isPending || submitStatus !== "idle";
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submittingRef = useRef(false);
-  const router = useRouter();
 
   const [redirectUrl, setRedirectUrl] = useState("");
   const [showEscape, setShowEscape] = useState(false);
 
   useEffect(() => {
-    if (submitStatus === "redirecting") {
-      const timer = setTimeout(() => {
-        setShowEscape(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    } else {
-      setShowEscape(false);
-    }
+    if (submitStatus !== "redirecting") return;
+    const timer = setTimeout(() => {
+      setShowEscape(true);
+    }, 3000);
+    return () => clearTimeout(timer);
   }, [submitStatus]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +125,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
 
     submittingRef.current = true;
     setSubmitStatus("submitting");
+    setShowEscape(false);
     try {
       const result = await createPozKesEntryAction(title, content, base64Image);
       if (result.error) {
@@ -153,7 +149,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
           window.location.href = targetUrl;
         }, 1600);
       }
-    } catch (err) {
+    } catch {
       setError("PozKes yüklenirken teknik bir hata oluştu.");
       setSubmitStatus("idle");
       submittingRef.current = false;
@@ -164,7 +160,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
     return (
       <div className="rounded-xl border border-dashed border-zinc-850 p-8 text-center bg-zinc-900/10">
         <p className="text-sm text-zinc-400">
-          PozKes'te fotoğraf paylaşmak için lütfen giriş yapın.
+          PozKes&apos;te fotoğraf paylaşmak için lütfen giriş yapın.
         </p>
       </div>
     );
@@ -174,7 +170,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
     <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-zinc-900 bg-zinc-950/20 p-4 md:p-6 shadow-xl">
       <div className="flex items-center gap-2">
         <Sparkles className="h-4.5 w-4.5 text-lime-400" />
-        <h3 className="text-sm font-bold text-white">PozKes'te Fotoğraf Paylaş</h3>
+        <h3 className="text-sm font-bold text-white">PozKes&apos;te Fotoğraf Paylaş</h3>
       </div>
 
       {error && (
@@ -222,7 +218,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
           >
             <ImageIcon className="h-6 w-6 text-zinc-650 group-hover:text-lime-400 mx-auto mb-2 transition-colors" />
             <span className="text-xs text-zinc-400 group-hover:text-zinc-300 font-medium block">Cihazından bir fotoğraf seç</span>
-            <span className="text-[10px] text-zinc-600 block mt-1">PNG, JPG, WEBP (Maks. 1.5MB)</span>
+            <span className="text-[10px] text-zinc-600 block mt-1">PNG, JPG, WEBP (Maks. 10MB)</span>
           </div>
         )}
 
@@ -301,6 +297,7 @@ export default function PozKesUploadForm({ isLoggedIn }: PozKesUploadFormProps) 
                     type="button"
                     onClick={() => {
                       setSubmitStatus("idle");
+                      setShowEscape(false);
                       submittingRef.current = false;
                     }}
                     className="text-red-400 hover:text-red-300 transition-colors underline cursor-pointer"

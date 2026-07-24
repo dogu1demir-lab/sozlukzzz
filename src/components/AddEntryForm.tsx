@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { createEntryAction, getAllUsernamesAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
 import { Send, AlertCircle } from "lucide-react";
@@ -11,16 +12,17 @@ interface AddEntryFormProps {
   isLoggedIn: boolean;
 }
 
+declare global {
+  interface Window {
+    isUculuyor?: boolean;
+  }
+}
+
 export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps) {
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">(() => {
-    if (typeof window !== "undefined" && (window as any).isUculuyor) {
-      return "redirecting";
-    }
-    return "idle";
-  });
-  const [isPending, startTransition] = useTransition();
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "redirecting">("idle");
+  const [isPending] = useTransition();
   const isSubmittingOrPending = isPending || submitStatus !== "idle";
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,15 +31,23 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
   const [redirectUrl, setRedirectUrl] = useState("");
   const [showEscape, setShowEscape] = useState(false);
 
+  // window.isUculuyor global'ini sunucu/istemci uyuşmazlığı (hydration)
+  // riski olmadan, mount sonrası güvenli şekilde oku.
   useEffect(() => {
-    if (submitStatus === "redirecting") {
-      const timer = setTimeout(() => {
-        setShowEscape(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    } else {
-      setShowEscape(false);
-    }
+    const id = setTimeout(() => {
+      if (window.isUculuyor) {
+        setSubmitStatus("redirecting");
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    if (submitStatus !== "redirecting") return;
+    const timer = setTimeout(() => {
+      setShowEscape(true);
+    }, 3000);
+    return () => clearTimeout(timer);
   }, [submitStatus]);
 
   // Mentions Autocomplete States
@@ -50,6 +60,24 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
 
   const replyTo = searchParams.get("replyTo");
   const replyIndex = searchParams.get("replyIndex");
+
+  // replyTo query parametresi değişimine render sırasında ayak uydur
+  // (React "adjust state during render" kalıbı; null başlangıcı ilk mount'ta da doldurmayı sağlar)
+  const [prevReplyTo, setPrevReplyTo] = useState<string | null>(null);
+  if (prevReplyTo !== replyTo) {
+    setPrevReplyTo(replyTo);
+    if (replyTo) {
+      setContent(prev => {
+        if (!prev.trim() || prev === `@${replyTo} `) {
+          return `@${replyTo} `;
+        }
+        if (!prev.includes(`@${replyTo}`)) {
+          return `@${replyTo} ${prev}`;
+        }
+        return prev;
+      });
+    }
+  }
 
   const handleFocus = async () => {
     if (allUsernames.length === 0) {
@@ -126,20 +154,6 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
     }
   };
 
-  useEffect(() => {
-    if (replyTo) {
-      setContent(prev => {
-        if (!prev.trim() || prev === `@${replyTo} `) {
-          return `@${replyTo} `;
-        }
-        if (!prev.includes(`@${replyTo}`)) {
-          return `@${replyTo} ${prev}`;
-        }
-        return prev;
-      });
-    }
-  }, [replyTo]);
-
   const handleInsertBkz = () => {
     const textarea = document.getElementById("entry-textarea") as HTMLTextAreaElement;
     if (!textarea) return;
@@ -183,11 +197,12 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
 
     submittingRef.current = true;
     setSubmitStatus("submitting");
-    
+    setShowEscape(false);
+
     if (typeof window !== "undefined" && document.activeElement) {
       (document.activeElement as HTMLElement).blur();
     }
-    
+
     try {
       const result = await createEntryAction(topicId, content);
       if (result.error) {
@@ -204,7 +219,7 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
         setRedirectUrl(targetUrl);
         setSubmitStatus("redirecting");
         if (typeof window !== "undefined") {
-          (window as any).isUculuyor = true;
+          window.isUculuyor = true;
         }
         
         setTimeout(() => {
@@ -215,7 +230,7 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
           }
         }, 1600);
       }
-    } catch (err) {
+    } catch {
       setError("Entry gönderilirken teknik bir hata oluştu.");
       setSubmitStatus("idle");
       submittingRef.current = false;
@@ -227,9 +242,9 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
       <div className="rounded-xl border border-dashed border-zinc-800 p-6 text-center bg-zinc-900/10">
         <p className="text-sm text-zinc-400">
           Bu başlığa entry girmek için lütfen{" "}
-          <a href="/giris" className="text-lime-400 font-bold hover:underline">giriş yapın</a>{" "}
+          <Link href="/giris" className="text-lime-400 font-bold hover:underline">giriş yapın</Link>{" "}
           veya{" "}
-          <a href="/kaydol" className="text-lime-400 font-bold hover:underline">kaydolun</a>.{" "}
+          <Link href="/kaydol" className="text-lime-400 font-bold hover:underline">kaydolun</Link>.{" "}
           (Yazar alımları başladı, acele et!)
         </p>
       </div>
@@ -244,7 +259,7 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
         <div className="flex items-center justify-between rounded-lg bg-zinc-900/50 border border-zinc-800 p-2.5 text-xs text-zinc-400 animate-in fade-in duration-200">
           <span className="flex items-center gap-1">
             <span className="text-lime-400 font-bold">@{replyTo}</span>
-            <span>isimli yazarın {replyIndex ? `#${replyIndex} nolu` : ""} entry'sine cevap yazıyorsunuz</span>
+            <span>isimli yazarın {replyIndex ? `#${replyIndex} nolu` : ""} entry&apos;sine cevap yazıyorsunuz</span>
           </span>
           <button
             type="button"
@@ -369,8 +384,9 @@ export default function AddEntryForm({ topicId, isLoggedIn }: AddEntryFormProps)
                     type="button"
                     onClick={() => {
                       setSubmitStatus("idle");
+                      setShowEscape(false);
                       if (typeof window !== "undefined") {
-                        (window as any).isUculuyor = false;
+                        window.isUculuyor = false;
                       }
                       submittingRef.current = false;
                     }}

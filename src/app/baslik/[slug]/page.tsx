@@ -1,12 +1,10 @@
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
 import Link from "next/link";
-import { notFound, redirect, permanentRedirect } from "next/navigation";
+import { redirect, permanentRedirect } from "next/navigation";
 import EntryBlock from "@/components/EntryBlock";
 import AddEntryForm from "@/components/AddEntryForm";
-import MentionText from "@/components/MentionText";
-import { formatDate } from "@/lib/utils";
-import { HelpCircle, Sparkles, MessageSquare, ArrowRight, Eye } from "lucide-react";
+import { HelpCircle, Sparkles, ArrowRight } from "lucide-react";
 import { Suspense } from "react";
 import PollBlock from "@/components/PollBlock";
 import { Metadata } from "next";
@@ -17,12 +15,15 @@ import HashRedirector from "@/components/HashRedirector";
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const { p } = await searchParams;
-  const pageVal = parseInt(p || "1", 10) || 1;
+  const requestedPage = parseInt(p || "1", 10) || 1;
 
   const topic = await prisma.topic.findUnique({
     where: { slug },
     select: { 
-      title: true, 
+      title: true,
+      _count: {
+        select: { entries: true }
+      },
       entries: { 
         orderBy: { createdAt: "asc" },
         take: 1, 
@@ -36,6 +37,11 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
       title: "Konu Bulunamadı — sözlükzzz",
     };
   }
+
+  // Sayfa gövdesindeki sanitize mantığının aynısı: p'yi [1, totalPages] aralığına kısıtla
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(topic._count.entries / itemsPerPage) || 1;
+  const pageVal = Math.max(1, Math.min(requestedPage, totalPages));
 
   const snippet = topic.entries[0]?.content
     ? topic.entries[0].content.substring(0, 150) + "..."
@@ -172,7 +178,6 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
             {/* Direct creation link to prefill title */}
             <Link
               href={`/yeni?title=${encodeURIComponent(searchTitle)}`}
-              prefetch={false}
               className="group flex items-center justify-between w-full h-11 px-4 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-300 hover:text-white hover:border-lime-500 transition-all"
             >
               <span className="font-medium truncate">Başlığı oluşturmaya başla: &quot;{searchTitle}&quot;</span>
@@ -182,11 +187,11 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
         ) : (
           <div className="mt-6 rounded-xl border border-zinc-900 bg-zinc-900/10 p-5 text-sm text-zinc-400">
             Fikirlerini paylaşıp bu başlığı oluşturmak için lütfen önce{" "}
-            <Link href="/giris" prefetch={false} className="text-lime-400 font-bold hover:underline">
+            <Link href="/giris" className="text-lime-400 font-bold hover:underline">
               giriş yapın
             </Link>{" "}
             veya{" "}
-            <Link href="/kaydol" prefetch={false} className="text-lime-400 font-bold hover:underline">
+            <Link href="/kaydol" className="text-lime-400 font-bold hover:underline">
               kaydolun
             </Link>
             .
@@ -356,13 +361,15 @@ export default async function TopicPage({ params, searchParams }: PageProps) {
       <div className="space-y-4">
         {formattedEntries.length === 0 ? (
           <div className="rounded-xl border border-dashed border-zinc-850 p-10 text-center text-zinc-550 text-xs italic">
-            Bu anket başlığına henüz vızıldanmamış. Aşağıdan ilk entry&apos;i girerek tartışmayı başlatın!
+            {topic.poll
+              ? "Bu anket başlığına henüz vızıldanmamış. Aşağıdan ilk entry'yi girerek tartışmayı başlatın!"
+              : "Bu başlığa henüz vızıldanmamış. Aşağıdan ilk entry'yi girerek tartışmayı başlatın!"}
           </div>
         ) : (
           formattedEntries.map((entry, idx) => (
             <EntryBlock
               key={entry.id}
-              entry={entry as any}
+              entry={entry}
               index={(sanitizedPage - 1) * 10 + idx}
               isLoggedIn={!!user}
               currentUserId={user?.id}

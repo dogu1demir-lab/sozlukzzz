@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { formatDate } from "@/lib/utils";
 
 interface Message {
   id: string;
@@ -34,15 +35,12 @@ export default function MessageBubble({ msg, currentUserId }: MessageBubbleProps
       >
         <span className="break-all whitespace-pre-wrap">{msg.content}</span>
         <span
+          suppressHydrationWarning
           className={`text-[8.5px] text-right mt-1.5 block select-none ${
             isMe ? "text-zinc-800" : "text-zinc-500"
           }`}
         >
-          {new Date(msg.createdAt).toLocaleTimeString("tr-TR", {
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "Europe/Istanbul"
-          })}
+          {formatDate(msg.createdAt)}
         </span>
       </div>
     </div>

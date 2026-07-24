@@ -24,7 +24,7 @@ export default function MessagesPoller() {
             // Instantly refresh the page data
             router.refresh();
           }
-        } catch (e) {
+        } catch {
           // Heartbeat or other events, refresh page data to be sure
           router.refresh();
         }

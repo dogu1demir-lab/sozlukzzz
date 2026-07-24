@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useTransition, Suspense, useEffect } from "react";
+import { useState, useRef, useTransition, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createTopicAndEntryAction, createPollTopicAction, getAllUsernamesAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
@@ -14,11 +14,14 @@ function NewThreadContent() {
   // Normal Thread State
   const [title, setTitle] = useState(titleParam);
 
-  useEffect(() => {
+  // ?title= parametresi değişirse başlığı render sırasında güncelle (React "adjusting state" kalıbı)
+  const [prevTitleParam, setPrevTitleParam] = useState(titleParam);
+  if (prevTitleParam !== titleParam) {
+    setPrevTitleParam(titleParam);
     if (titleParam) {
       setTitle(titleParam);
     }
-  }, [titleParam]);
+  }
   const [content, setContent] = useState("");
   const [base64Image, setBase64Image] = useState<string | null>(null);
 

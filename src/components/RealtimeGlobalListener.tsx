@@ -92,7 +92,7 @@ export default function RealtimeGlobalListener({ currentUsername }: RealtimeGlob
             }
             router.refresh();
           }
-        } catch (e) {
+        } catch {
           // Fallback refresh
           router.refresh();
         }

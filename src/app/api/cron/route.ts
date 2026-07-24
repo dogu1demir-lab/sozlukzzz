@@ -6,7 +6,12 @@ export async function GET(request: Request) {
   const secret = searchParams.get('secret');
   const authHeader = request.headers.get('authorization');
 
-  const expectedSecret = process.env.CRON_SECRET || "sozlukzzzCronSecret2026";
+  const expectedSecret = process.env.CRON_SECRET;
+  if (!expectedSecret) {
+    console.error("CRON_SECRET ortam değişkeni tanımlı değil.");
+    return new NextResponse("Server misconfigured", { status: 500 });
+  }
+
   const isAuthorized = 
     secret === expectedSecret || 
     authHeader === `Bearer ${expectedSecret}`;
@@ -33,7 +38,8 @@ export async function GET(request: Request) {
       message: "Veritabanı canlı tutuldu ve 30 günden eski bildirimler temizlendi.",
       cleanedNotificationsCount: deleteResult.count 
     });
-  } catch (error: any) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

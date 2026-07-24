@@ -17,6 +17,7 @@ import {
   getUserGiftsAction
 } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
+import { useFeedbackModal } from "@/components/FeedbackModal";
 import {
   Flag,
   Trash2,
@@ -58,6 +59,43 @@ interface YonetimDashboardProps {
   reports: ReportData[];
 }
 
+interface AdminUserItem {
+  id: string;
+  username: string;
+  displayName?: string | null;
+  email?: string | null;
+  role: string;
+  avatarColor?: string | null;
+  createdAt: string | Date;
+  _count: { entries: number; comments: number };
+}
+
+interface AdminTopicItem {
+  id: string;
+  title: string;
+  slug: string;
+  entryCount: number;
+  createdAt: string | Date;
+}
+
+interface AdminStats {
+  totalUsers: number;
+  totalTopics: number;
+  todayEntries: number;
+  todayComments: number;
+}
+
+interface AdminHealth {
+  db: string;
+  redis: string;
+}
+
+interface AdminGiftItem {
+  id: string;
+  giftType: string;
+  note: string | null;
+}
+
 const ALL_GIFTS_MAP: Record<string, { name: string; emoji: string; description: string; type: "MEDAL" | "CERTIFICATE" }> = {
   SWEET: { name: "Tatlı Sinek", emoji: "🍬", description: "Pozitif, sevecen ve tatlı dilli yazarlara verilir.", type: "MEDAL" },
   KING: { name: "Kral Sinek", emoji: "👑", description: "Derin, yüksek kaliteli yazılar yazan bilge yazarlara verilir.", type: "MEDAL" },
@@ -83,6 +121,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState("");
   const [statusError, setStatusError] = useState(false);
+  const { confirm, feedbackModal } = useFeedbackModal();
 
   // --- Reports Tab State ---
   const [reports, setReports] = useState<ReportData[]>(initialReports);
@@ -90,12 +129,12 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
 
   // --- Users Tab State ---
   const [userQuery, setUserQuery] = useState("");
-  const [usersList, setUsersList] = useState<any[]>([]);
+  const [usersList, setUsersList] = useState<AdminUserItem[]>([]);
   const [userSearching, setUserSearching] = useState(false);
 
   // --- Topics Tab State ---
   const [topicQuery, setTopicQuery] = useState("");
-  const [topicsList, setTopicsList] = useState<any[]>([]);
+  const [topicsList, setTopicsList] = useState<AdminTopicItem[]>([]);
   const [topicSearching, setTopicSearching] = useState(false);
   
   // Topic Rename state
@@ -103,20 +142,20 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const [renamingTitle, setRenamingTitle] = useState("");
   
   // Topic Merge state
-  const [mergingTopic, setMergingTopic] = useState<any | null>(null);
+  const [mergingTopic, setMergingTopic] = useState<AdminTopicItem | null>(null);
   const [mergeTargetQuery, setMergeTargetQuery] = useState("");
-  const [mergeTargetResults, setMergeTargetResults] = useState<any[]>([]);
+  const [mergeTargetResults, setMergeTargetResults] = useState<AdminTopicItem[]>([]);
   const [mergeSearching, setMergeSearching] = useState(false);
 
   // --- Settings Tab State ---
   const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, disableSelfDeletion: false, xPixelId: "", xSignupEventId: "" });
-  const [stats, setStats] = useState<any>(null);
-  const [health, setHealth] = useState<any>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [health, setHealth] = useState<AdminHealth | null>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
 
   // --- Gift Tab State ---
-  const [giftTargetUser, setGiftTargetUser] = useState<any | null>(null);
-  const [giftList, setGiftList] = useState<any[]>([]);
+  const [giftTargetUser, setGiftTargetUser] = useState<AdminUserItem | null>(null);
+  const [giftList, setGiftList] = useState<AdminGiftItem[]>([]);
   const [giftListLoading, setGiftListLoading] = useState(false);
   const [selectedGiftType, setSelectedGiftType] = useState("SWEET");
   const [giftNote, setGiftNote] = useState("");
@@ -129,13 +168,6 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
     }
   }, [statusMessage]);
 
-  // Load Settings & Stats on demand when Tab changes to SETTINGS
-  useEffect(() => {
-    if (activeTab === "SETTINGS") {
-      fetchSettingsAndStats();
-    }
-  }, [activeTab]);
-
   const showFeedback = (msg: string, isErr = false) => {
     setStatusMessage(msg);
     setStatusError(isErr);
@@ -143,7 +175,8 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   };
 
   const fetchSettingsAndStats = () => {
-    setSettingsLoading(true);
+    // Not: setSettingsLoading(true) sekme butonunun onClick'inde yapılır;
+    // effect içinden senkron setState çağırmamak için burada yüklemeyi başlatmıyoruz.
     startTransition(async () => {
       const settingsRes = await adminGetSettingsAction();
       const statsRes = await adminGetStatsAction();
@@ -176,13 +209,20 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
     });
   };
 
+  // Load Settings & Stats on demand when Tab changes to SETTINGS
+  useEffect(() => {
+    if (activeTab === "SETTINGS") {
+      fetchSettingsAndStats();
+    }
+  }, [activeTab]);
+
   // --- Report Actions ---
-  const handleResolveReport = (reportId: string, actionType: "DISMISS" | "DELETE_CONTENT") => {
+  const handleResolveReport = async (reportId: string, actionType: "DISMISS" | "DELETE_CONTENT") => {
     const msg = actionType === "DELETE_CONTENT" 
       ? "Bu içeriği silmek ve şikayeti kapatmak istediğinize emin misiniz zzz?"
       : "Şikayeti kapatmak istediğinize emin misiniz zzz?";
     
-    if (!confirm(msg)) return;
+    if (!(await confirm(msg))) return;
 
     startTransition(async () => {
       const result = await resolveReportAction(reportId, actionType);
@@ -211,9 +251,9 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
     });
   };
 
-  const handleUpdateRole = (userId: string, newRole: string, username: string) => {
+  const handleUpdateRole = async (userId: string, newRole: string, username: string) => {
     const actionText = newRole === "BANNED" ? "engellemek" : newRole === "ADMIN" ? "yönetici yapmak" : "yazar statüsüne almak";
-    if (!confirm(`@${username} kullanıcısını ${actionText} istediğinizden emin misiniz zzz?`)) return;
+    if (!(await confirm(`@${username} kullanıcısını ${actionText} istediğinizden emin misiniz zzz?`))) return;
 
     startTransition(async () => {
       const result = await adminUpdateUserRoleAction(userId, newRole);
@@ -227,7 +267,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   };
 
   // --- Gift Handlers ---
-  const handleOpenGiftModal = (usr: any) => {
+  const handleOpenGiftModal = (usr: AdminUserItem) => {
     setGiftTargetUser(usr);
     setGiftListLoading(true);
     setGiftNote("");
@@ -263,8 +303,8 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
     });
   };
 
-  const handleRemoveGift = (userGiftId: string) => {
-    if (!confirm("Bu hediyeyi/belgeyi geri almak istediğinizden emin misiniz zzz?")) return;
+  const handleRemoveGift = async (userGiftId: string) => {
+    if (!(await confirm("Bu hediyeyi/belgeyi geri almak istediğinizden emin misiniz zzz?"))) return;
     
     startTransition(async () => {
       const result = await adminRemoveGiftAction(userGiftId);
@@ -310,21 +350,22 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   };
 
   const handleSearchMergeTargets = () => {
-    if (!mergeTargetQuery.trim()) return;
+    if (!mergeTargetQuery.trim() || !mergingTopic) return;
     setMergeSearching(true);
     startTransition(async () => {
       const result = await adminSearchTopicsAction(mergeTargetQuery);
       setMergeSearching(false);
       if (result.topics) {
         // Exclude the source topic from search results
-        setMergeTargetResults(result.topics.filter((t: any) => t.id !== mergingTopic.id));
+        const sourceId = mergingTopic.id;
+        setMergeTargetResults(result.topics.filter((t) => t.id !== sourceId));
       }
     });
   };
 
-  const handleMergeTopics = (targetTopicId: string, targetTitle: string) => {
+  const handleMergeTopics = async (targetTopicId: string, targetTitle: string) => {
     if (!mergingTopic) return;
-    if (!confirm(`"${mergingTopic.title}" başlığını "${targetTitle}" başlığı ile birleştirmek istediğinize emin misiniz?\n\nBu işlem "${mergingTopic.title}" başlığındaki tüm entry'leri "${targetTitle}" başlığına taşıyacak ve eski başlığı tamamen silecektir zzz!`)) return;
+    if (!(await confirm(`"${mergingTopic.title}" başlığını "${targetTitle}" başlığı ile birleştirmek istediğinize emin misiniz?\n\nBu işlem "${mergingTopic.title}" başlığındaki tüm entry'leri "${targetTitle}" başlığına taşıyacak ve eski başlığı tamamen silecektir zzz!`))) return;
 
     startTransition(async () => {
       const result = await adminMergeTopicsAction(mergingTopic.id, targetTopicId);
@@ -340,8 +381,8 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
     });
   };
 
-  const handleDeleteTopic = (topicId: string, title: string) => {
-    if (!confirm(`"${title}" başlığını VE ALTINDAKİ TÜM ENTRY'LERİ silmek istediğinize emin misiniz zzz?\nBu işlem geri alınamaz!`)) return;
+  const handleDeleteTopic = async (topicId: string, title: string) => {
+    if (!(await confirm(`"${title}" başlığını VE ALTINDAKİ TÜM ENTRY'LERİ silmek istediğinize emin misiniz zzz?\nBu işlem geri alınamaz!`))) return;
 
     startTransition(async () => {
       const result = await adminDeleteTopicAction(topicId);
@@ -465,7 +506,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
         </button>
 
         <button
-          onClick={() => { playBuzzSound(); setActiveTab("SETTINGS"); }}
+          onClick={() => { playBuzzSound(); setActiveTab("SETTINGS"); setSettingsLoading(true); }}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold transition-all border ${
             activeTab === "SETTINGS" 
               ? "bg-lime-500 text-black border-lime-500" 
@@ -538,7 +579,6 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                         <span>Paylaşan:</span>
                         <Link
                           href={`/yazar/${report.targetAuthor}`}
-                          prefetch={false}
                           className="font-bold text-lime-400 hover:underline"
                         >
                           @{report.targetAuthor}
@@ -549,7 +589,6 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                             <Link
                               href={report.targetUrl}
                               target="_blank"
-                              prefetch={false}
                               className="text-zinc-400 hover:text-white flex items-center gap-1 hover:underline text-[11px]"
                             >
                               <span>İçeriğe Git</span>
@@ -776,7 +815,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                               <span className="text-base select-none">{giftInfo.emoji}</span>
                               <div>
                                 <span className="font-bold text-zinc-200">{giftInfo.name}</span>
-                                {g.note && <p className="text-[10px] text-zinc-550 italic mt-0.5">"{g.note}"</p>}
+                                {g.note && <p className="text-[10px] text-zinc-550 italic mt-0.5">&quot;{g.note}&quot;</p>}
                               </div>
                             </div>
                             <button
@@ -913,7 +952,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
 
                 <div className="space-y-1 bg-zinc-950/60 p-3 rounded-lg border border-zinc-900 text-xs">
                   <p className="text-zinc-400">
-                    <strong className="text-lime-400">Kaynak Başlık:</strong> "{mergingTopic.title}" ({mergingTopic.entryCount} entry)
+                    <strong className="text-lime-400">Kaynak Başlık:</strong> &quot;{mergingTopic.title}&quot; ({mergingTopic.entryCount} entry)
                   </p>
                   <p className="text-[10px] text-zinc-550 mt-1">
                     Bu başlığın altındaki tüm entryler aşağıdaki hedef başlığa taşınacak ve bu başlık tamamen silinecektir.
@@ -947,7 +986,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                   {mergeTargetResults.map(target => (
                     <div key={target.id} className="flex justify-between items-center py-2 text-xs">
                       <div>
-                        <span className="font-semibold text-zinc-200">"{target.title}"</span>
+                        <span className="font-semibold text-zinc-200">&quot;{target.title}&quot;</span>
                         <span className="text-zinc-650 text-[10px] ml-2">({target.entryCount} entry)</span>
                       </div>
                       <button
@@ -1162,7 +1201,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                     <div className="space-y-0.5">
                       <span className="text-xs font-bold text-zinc-200">Yeni Üye Kaydını Kapat</span>
                       <p className="text-[10px] text-zinc-550 max-w-md">
-                        Aktif edildiğinde yeni kullanıcıların kaydolması durdurulur, "kaydol" sayfası hata döndürür.
+                        Aktif edildiğinde yeni kullanıcıların kaydolması durdurulur, &quot;kaydol&quot; sayfası hata döndürür.
                       </p>
                     </div>
                     <button
@@ -1181,7 +1220,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                     <div className="space-y-0.5">
                       <span className="text-xs font-bold text-zinc-200">PozKes Paylaşımını Kapat</span>
                       <p className="text-[10px] text-zinc-555 max-w-md">
-                        Aktif edildiğinde yazarların PozKes'e yeni fotoğraf/görsel yüklemesi geçici olarak kapatılır.
+                        Aktif edildiğinde yazarların PozKes&apos;e yeni fotoğraf/görsel yüklemesi geçici olarak kapatılır.
                       </p>
                     </div>
                     <button
@@ -1268,6 +1307,8 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
           )}
         </div>
       )}
+
+      {feedbackModal}
     </div>
   );
 }

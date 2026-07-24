@@ -48,10 +48,28 @@ function truncateUrl(url: string, maxLength = 50): string {
       return domain + pathAndQuery.substring(0, remaining) + "...";
     }
     return domain + "...";
-  } catch (e) {
+  } catch {
     if (url.length <= maxLength) return url;
     return url.substring(0, maxLength - 3) + "...";
   }
+}
+
+// Twitter widgets.js'i sayfaya yalnızca bir kez ekler; birden fazla
+// embed açıldığında script tekrarını (duplicate) engeller.
+function ensureTwitterWidgets() {
+  const win = window as Window & { twttr?: { widgets?: { load: () => void } } };
+  if (win.twttr && win.twttr.widgets) {
+    win.twttr.widgets.load();
+    return;
+  }
+  if (document.querySelector('script[src="https://platform.twitter.com/widgets.js"]')) {
+    return;
+  }
+  const script = document.createElement("script");
+  script.setAttribute("src", "https://platform.twitter.com/widgets.js");
+  script.setAttribute("charset", "utf-8");
+  script.setAttribute("async", "true");
+  document.head.appendChild(script);
 }
 
 // Subcomponent: Click-to-reveal lazy loader for videos/tweets
@@ -61,16 +79,7 @@ function EmbedWrapper({ type, children }: { type: "twitter" | "video"; children:
   useEffect(() => {
     // Re-trigger Twitter widgets compile if we open a tweet embed
     if (isOpen && type === "twitter") {
-      const win = window as any;
-      if (win.twttr && win.twttr.widgets) {
-        win.twttr.widgets.load();
-      } else {
-        const script = document.createElement("script");
-        script.setAttribute("src", "https://platform.twitter.com/widgets.js");
-        script.setAttribute("charset", "utf-8");
-        script.setAttribute("async", "true");
-        document.head.appendChild(script);
-      }
+      ensureTwitterWidgets();
     }
   }, [isOpen, type]);
 
@@ -116,16 +125,7 @@ export default function MentionText({ content }: MentionTextProps) {
   useEffect(() => {
     // Fallback widget loader on mount if any open embeds already exist
     if (document.querySelector(".twitter-tweet")) {
-      const win = window as any;
-      if (win.twttr && win.twttr.widgets) {
-        win.twttr.widgets.load();
-      } else {
-        const script = document.createElement("script");
-        script.setAttribute("src", "https://platform.twitter.com/widgets.js");
-        script.setAttribute("charset", "utf-8");
-        script.setAttribute("async", "true");
-        document.head.appendChild(script);
-      }
+      ensureTwitterWidgets();
     }
   }, [content]);
 
@@ -166,7 +166,7 @@ export default function MentionText({ content }: MentionTextProps) {
           subParts.push(<React.Fragment key={key++}>{subText.substring(subLastIndex, urlMatchIndex)}</React.Fragment>);
         }
         
-        const [_, tweetUrl, videoUrl, normalUrl] = urlMatch;
+        const [, tweetUrl, videoUrl, normalUrl] = urlMatch;
         
         if (tweetUrl) {
           subParts.push(
@@ -217,7 +217,7 @@ export default function MentionText({ content }: MentionTextProps) {
         parts.push(...parseUrls(text.substring(lastIndex, matchIndex)));
       }
       
-      const [_, mentionUser, bkzTitle, gbkzTitle] = match;
+      const [, mentionUser, bkzTitle, gbkzTitle] = match;
       
       if (mentionUser) {
         parts.push(

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { likeEntryAction, reportAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
+import { useFeedbackModal } from "@/components/FeedbackModal";
 import { ThumbsUp, ThumbsDown, MessageSquare, Edit3, Trash2, Flag, Share2 } from "lucide-react";
 import Link from "next/link";
 
@@ -41,10 +42,11 @@ export default function ReactionButtons({
   const [reaction, setReaction] = useState<"LIKE" | "DISLIKE" | null>(userReaction);
   const [isPending, startTransition] = useTransition();
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const { alert: showAlert, prompt: askPrompt, feedbackModal } = useFeedbackModal();
 
-  const handleReaction = (type: "LIKE" | "DISLIKE") => {
+  const handleReaction = async (type: "LIKE" | "DISLIKE") => {
     if (!isLoggedIn) {
-      alert("Reaksiyon bırakmak için giriş yapmalısınız zzz.");
+      await showAlert("Reaksiyon bırakmak için giriş yapmalısınız zzz.");
       return;
     }
 
@@ -61,6 +63,12 @@ export default function ReactionButtons({
         });
       });
     }
+
+    // Snapshot current state so a failed request rolls back to the
+    // pre-click values instead of the (possibly stale) mount props.
+    const prevLikes = likes;
+    const prevDislikes = dislikes;
+    const prevReaction = reaction;
 
     // Optimistic UI updates
     if (type === "LIKE") {
@@ -87,42 +95,41 @@ export default function ReactionButtons({
       const result = await likeEntryAction(entryId, type === "LIKE");
       if (result.error) {
         // Rollback on error
-        setLikes(initialLikesCount);
-        setDislikes(initialDislikesCount);
-        setReaction(userReaction);
-        alert(result.error);
+        setLikes(prevLikes);
+        setDislikes(prevDislikes);
+        setReaction(prevReaction);
+        await showAlert(result.error);
       }
     });
   };
 
-  const handleReport = () => {
+  const handleReport = async () => {
     if (!isLoggedIn) {
-      alert("Şikayet etmek için giriş yapmalısınız zzz.");
+      await showAlert("Şikayet etmek için giriş yapmalısınız zzz.");
       return;
     }
 
-    const reason = prompt("Lütfen şikayet nedeninizi girin zzz (hakaret, spam, yasa dışı vb.):");
-    if (reason === null) return; // cancelled
-    if (!reason.trim()) {
-      alert("Şikayet nedeni boş olamaz.");
-      return;
-    }
+    const reason = await askPrompt("Lütfen şikayet nedeninizi girin zzz (hakaret, spam, yasa dışı vb.):");
+    if (!reason) return; // cancelled or empty
 
     playBuzzSound();
     startTransition(async () => {
       const result = await reportAction("ENTRY", entryId, reason);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
-        alert("Şikayetiniz başarıyla iletildi zzz. Moderatörlerimiz inceleyecektir.");
+        await showAlert("Şikayetiniz başarıyla iletildi zzz. Moderatörlerimiz inceleyecektir.");
       }
     });
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const entryUrl = `${window.location.origin}/baslik/${topicSlug}#entry-${entryId}`;
-    navigator.clipboard.writeText(entryUrl);
-    alert("Entry linki kopyalandı zzz!");
+    try {
+      await navigator.clipboard.writeText(entryUrl);
+    } catch {
+      await showAlert("Bağlantı kopyalanamadı. Lütfen tekrar deneyin.");
+    }
     setShowShareMenu(false);
   };
 
@@ -263,6 +270,9 @@ export default function ReactionButtons({
           <span>vızılda</span>
         </Link>
       )}
+
+      {/* Ortak Geri Bildirim Modalı (alert/confirm/prompt) */}
+      {feedbackModal}
     </div>
   );
 }

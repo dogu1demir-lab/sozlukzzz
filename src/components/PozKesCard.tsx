@@ -13,9 +13,9 @@ import {
   reportAction
 } from "@/app/actions";
 import { playBuzzSound, formatDate } from "@/lib/utils";
-import MentionText from "@/components/MentionText";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
-import { Trash2, Share2, Edit3, Check, X, MessageSquare } from "lucide-react";
+import { useFeedbackModal } from "@/components/FeedbackModal";
+import { Trash2, Share2, Edit3 } from "lucide-react";
 
 interface PozKesCardProps {
   entry: {
@@ -81,10 +81,11 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
   const [showAllComments, setShowAllComments] = useState(false);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
+  const { confirm: askConfirm, alert: showAlert, prompt: askPrompt, feedbackModal } = useFeedbackModal();
 
-  const handleReplyComment = (username: string) => {
+  const handleReplyComment = async (username: string) => {
     if (!isLoggedIn) {
-      alert("Yorum yazmak için giriş yapmalısınız.");
+      await showAlert("Yorum yazmak için giriş yapmalısınız.");
       return;
     }
     playBuzzSound();
@@ -106,9 +107,9 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
     setIsEditing(!isEditing);
   };
 
-  const handleSavePozKesEdit = () => {
+  const handleSavePozKesEdit = async () => {
     if (!editBody.trim()) {
-      alert("Açıklama boş olamaz.");
+      await showAlert("Açıklama boş olamaz.");
       return;
     }
 
@@ -121,7 +122,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
       const result = await editEntryAction(entry.id, finalContent);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
         setIsEditing(false);
         router.refresh();
@@ -134,11 +135,13 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
     return `${window.location.origin}/pozkes?e=${entry.id}#entry-${entry.id}`;
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     playBuzzSound();
     const url = getShareUrl();
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(url);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      await showAlert("Bağlantı kopyalanamadı. Lütfen tekrar deneyin.");
     }
     setShowShareMenu(false);
   };
@@ -163,14 +166,14 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
     setShowShareMenu(false);
   };
 
-  const handleLikePost = () => {
+  const handleLikePost = async () => {
     if (!isLoggedIn) {
-      alert("Beğenmek için giriş yapmalısınız zzz.");
+      await showAlert("Beğenmek için giriş yapmalısınız zzz.");
       return;
     }
 
     playBuzzSound();
-    
+
     // Optimistic post like toggle
     setHasLiked(prev => !prev);
     setLikesCount(prev => (hasLiked ? prev - 1 : prev + 1));
@@ -181,14 +184,14 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
         // Rollback
         setHasLiked(entry.hasLiked);
         setLikesCount(entry.likesCount);
-        alert(result.error);
+        await showAlert(result.error);
       }
     });
   };
 
-  const handleLikeComment = (commentId: string, initiallyLiked: boolean) => {
+  const handleLikeComment = async (commentId: string) => {
     if (!isLoggedIn) {
-      alert("Yorumu beğenmek için giriş yapmalısınız zzz.");
+      await showAlert("Yorumu beğenmek için giriş yapmalısınız zzz.");
       return;
     }
 
@@ -213,13 +216,13 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       if (result.error) {
         // Rollback
         setComments(entry.comments);
-        alert(result.error);
+        await showAlert(result.error);
       }
     });
   };
 
-  const handleDeleteComment = (commentId: string) => {
-    if (!confirm("Bu yorumu silmek istediğinize emin misiniz?")) return;
+  const handleDeleteComment = async (commentId: string) => {
+    if (!(await askConfirm("Bu yorumu silmek istediğinize emin misiniz?"))) return;
 
     playBuzzSound();
 
@@ -229,7 +232,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
     startTransition(async () => {
       const result = await deleteCommentAction(commentId);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
         // Rollback
         setComments(entry.comments);
       } else {
@@ -238,15 +241,15 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
     });
   };
 
-  const handleDeleteEntry = () => {
-    if (!confirm("Bu PozKes gönderisini ve tüm yorumlarını kalıcı olarak silmek istediğinize emin misiniz?")) return;
+  const handleDeleteEntry = async () => {
+    if (!(await askConfirm("Bu PozKes gönderisini ve tüm yorumlarını kalıcı olarak silmek istediğinize emin misiniz?"))) return;
 
     playBuzzSound();
 
     startTransition(async () => {
       const result = await deleteEntryAction(entry.id);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
         router.refresh();
       }
@@ -264,40 +267,36 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       try {
         const result = await createCommentAction(entry.id, newComment);
         if (result.error) {
-          alert(result.error);
+          await showAlert(result.error);
         } else if (result.success && result.comment) {
           setComments(prev => [...prev, result.comment]);
           setNewComment("");
           router.refresh();
         }
-      } catch (err) {
-        alert("Yorum gönderilirken teknik bir hata oluştu.");
+      } catch {
+        await showAlert("Yorum gönderilirken teknik bir hata oluştu.");
       } finally {
         setIsSubmitting(false);
       }
     });
   };
 
-  const handleReportContent = (targetType: "ENTRY" | "COMMENT", targetId: string) => {
+  const handleReportContent = async (targetType: "ENTRY" | "COMMENT", targetId: string) => {
     if (!isLoggedIn) {
-      alert("Şikayet etmek için giriş yapmalısınız zzz.");
+      await showAlert("Şikayet etmek için giriş yapmalısınız zzz.");
       return;
     }
 
-    const reason = prompt("Lütfen şikayet nedeninizi girin zzz (hakaret, spam, yasa dışı vb.):");
-    if (reason === null) return; // cancelled
-    if (!reason.trim()) {
-      alert("Şikayet nedeni boş olamaz.");
-      return;
-    }
+    const reason = await askPrompt("Lütfen şikayet nedeninizi girin zzz (hakaret, spam, yasa dışı vb.):");
+    if (!reason) return; // cancelled or empty
 
     playBuzzSound();
     startTransition(async () => {
       const result = await reportAction(targetType, targetId, reason);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
-        alert("Şikayetiniz başarıyla iletildi zzz. Moderatörlerimiz inceleyecektir.");
+        await showAlert("Şikayetiniz başarıyla iletildi zzz. Moderatörlerimiz inceleyecektir.");
       }
     });
   };
@@ -309,7 +308,6 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
         <div className="flex items-center justify-between gap-2 min-w-0 w-full">
           <Link
             href={`/yazar/${entry.author.username}`}
-            prefetch={false}
             className="kd-card-author shrink-0"
             onClick={() => playBuzzSound()}
           >
@@ -370,7 +368,6 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           <div className="pt-0.5 flex justify-start text-left w-full">
             <Link
               href={`/baslik/${entry.topic.slug}#entry-${entry.id}`}
-              prefetch={false}
               className="inline-flex items-center gap-1 text-xs font-bold text-lime-400/90 hover:text-lime-300 bg-lime-500/10 px-2.5 py-0.5 rounded-xl border border-lime-500/20"
             >
               <span>📌</span>
@@ -520,7 +517,6 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
               <div className="flex-1 min-w-0">
                 <Link
                   href={`/yazar/${entry.author.username}`}
-                  prefetch={false}
                   className="font-bold text-white hover:text-teal-400 mr-1.5"
                 >
                   {entry.author.displayName ?? entry.author.username}
@@ -552,7 +548,6 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                 <Link 
                   className="kd-comment-avatar" 
                   href={`/yazar/${comment.author.username}`}
-                  prefetch={false}
                 >
                   {comment.author.avatarUrl ? (
                     <img
@@ -574,7 +569,6 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                 <div className="kd-comment-body">
                   <Link
                     href={`/yazar/${comment.author.username}`}
-                    prefetch={false}
                     className="kd-comment-author"
                   >
                     {comment.author.displayName ?? comment.author.username}
@@ -595,7 +589,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
                 </button>
 
                 <button
-                  onClick={() => handleLikeComment(comment.id, comment.hasLiked)}
+                  onClick={() => handleLikeComment(comment.id)}
                   className={`kd-comment-like-btn ${comment.hasLiked ? "liked" : ""}`}
                   type="button"
                   aria-label="Beğen"
@@ -661,6 +655,9 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           </div>
         )}
       </div>
+
+      {/* Ortak Geri Bildirim Modalı (alert/confirm/prompt) */}
+      {feedbackModal}
     </article>
   );
 }

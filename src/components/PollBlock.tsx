@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { voteInPollAction, getPollVotersAction } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
+import { useFeedbackModal } from "@/components/FeedbackModal";
 import { X } from "lucide-react";
 import Link from "next/link";
 
@@ -49,10 +50,11 @@ export default function PollBlock({
   const [showVoters, setShowVoters] = useState(false);
   const [votersLoading, setVotersLoading] = useState(false);
   const [votersData, setVotersData] = useState<VoterGroup[] | null>(null);
+  const { alert: showAlert, feedbackModal } = useFeedbackModal();
 
-  const handleVote = (optionId: string) => {
+  const handleVote = async (optionId: string) => {
     if (!isLoggedIn) {
-      alert("Oy vermek için lütfen giriş yapın zzz.");
+      await showAlert("Oy vermek için lütfen giriş yapın zzz.");
       return;
     }
 
@@ -61,7 +63,7 @@ export default function PollBlock({
     startTransition(async () => {
       const result = await voteInPollAction(pollId, optionId);
       if (result.error) {
-        alert(result.error);
+        await showAlert(result.error);
       } else {
         router.refresh();
       }
@@ -78,10 +80,10 @@ export default function PollBlock({
       if (result.success && result.options) {
         setVotersData(result.options as VoterGroup[]);
       } else {
-        alert(result.error || "Seçmen listesi yüklenemedi.");
+        await showAlert(result.error || "Seçmen listesi yüklenemedi.");
       }
     } catch {
-      alert("Bir hata oluştu.");
+      await showAlert("Bir hata oluştu.");
     } finally {
       setVotersLoading(false);
     }
@@ -225,6 +227,9 @@ export default function PollBlock({
           </div>
         </div>
       )}
+
+      {/* Ortak Geri Bildirim Modalı (alert/confirm/prompt) */}
+      {feedbackModal}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { getBaseUrl } from "@/lib/baseUrl";
 import { NextResponse } from "next/server";
 import { cleanUsernameHandle } from "@/lib/utils";
 
@@ -35,10 +36,22 @@ export async function GET(request: Request, { params }: RouteParams) {
 
     // If it's a physical file path (starts with /) or remote URL, redirect directly
     if (user.avatarUrl.startsWith("/") || user.avatarUrl.startsWith("http")) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr";
-      const redirectTarget = user.avatarUrl.startsWith("http") 
-        ? user.avatarUrl 
-        : new URL(user.avatarUrl, appUrl).toString();
+      let redirectTarget: string;
+      if (user.avatarUrl.startsWith("http")) {
+        // Only allow redirects to secure https: URLs
+        let parsed: URL;
+        try {
+          parsed = new URL(user.avatarUrl);
+        } catch {
+          return new NextResponse("Invalid avatar URL", { status: 400 });
+        }
+        if (parsed.protocol !== "https:") {
+          return new NextResponse("Unsupported redirect protocol", { status: 400 });
+        }
+        redirectTarget = parsed.toString();
+      } else {
+        redirectTarget = new URL(user.avatarUrl, getBaseUrl()).toString();
+      }
       return NextResponse.redirect(redirectTarget);
     }
 
@@ -49,7 +62,13 @@ export async function GET(request: Request, { params }: RouteParams) {
       return new NextResponse("Invalid avatar format", { status: 400 });
     }
 
-    const contentType = matches[1];
+    const contentType = matches[1].toLowerCase();
+
+    // Only serve raster image types; never serve SVG (XSS risk) or non-image content
+    if (!contentType.startsWith("image/") || contentType.includes("svg")) {
+      return new NextResponse("Unsupported Media Type", { status: 415 });
+    }
+
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, "base64");
 
@@ -57,7 +76,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       headers: {
         "Content-Type": contentType,
         "Content-Length": buffer.length.toString(),
-        "Cache-Control": "public, max-age=31536000, immutable"
+        "Cache-Control": "public, max-age=300" // Avatar can change, keep cache short
       }
     });
   } catch (error) {

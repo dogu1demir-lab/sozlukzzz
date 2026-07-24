@@ -13,12 +13,14 @@ export default function IntroBanner({ isLoggedIn }: IntroBannerProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    // localStorage tercihini mount sonrası güvenli şekilde oku (hydration uyuşmazlığı olmaması için)
+    const id = setTimeout(() => {
       const dismissed = localStorage.getItem("introDismissed") === "true";
       if (!dismissed) {
         setIsVisible(true);
       }
-    }
+    }, 0);
+    return () => clearTimeout(id);
   }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -52,7 +54,7 @@ export default function IntroBanner({ isLoggedIn }: IntroBannerProps) {
             hoş geldin, <span className="text-lime-400">vızzz!</span>
           </h1>
           <p className="mt-2 text-xs md:text-sm text-zinc-400 leading-relaxed">
-            Yeni nesil sözlük platformu! Yazar alımları başladı, kapılar kapanmadan hemen yerini kap; entry'lerini özgürce paylaş, fikirlerini tartış ve hatta belki aradığın aşkı bul!
+            Yeni nesil sözlük platformu! Yazar alımları başladı, kapılar kapanmadan hemen yerini kap; entry&apos;lerini özgürce paylaş, fikirlerini tartış ve hatta belki aradığın aşkı bul!
           </p>
           <div className="mt-3.5 flex flex-wrap gap-2.5 items-center">
             {!isLoggedIn && (
@@ -135,7 +137,7 @@ export default function IntroBanner({ isLoggedIn }: IntroBannerProps) {
                   Bizi susturmak isteyenler, cam fanusların arkasından dünyayı yönetmeye çalışanlardır. Ama bilmedikleri bir şey var: Sinekler açık pencerelerden, en küçük çatlaklardan sızar. Biz her yerdeyiz. Fikirlerimizle, mizahımızla, zekamızla ve inatçı vızıltımızla buradayız.
                 </p>
                 <p className="font-bold text-white italic pt-2">
-                  "Biz sözlükzzz'üz. Biz sinekleriz. Bir araya gelir, yığılır ve fırtınayı başlatırız zzz!"
+                  &quot;Biz sözlükzzz&apos;üz. Biz sinekleriz. Bir araya gelir, yığılır ve fırtınayı başlatırız zzz!&quot;
                 </p>
               </div>
             </div>

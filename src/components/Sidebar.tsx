@@ -9,9 +9,13 @@ export default function Sidebar() {
   const [isSearchMode, setIsSearchMode] = useState(false);
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const hasQ = !!searchParams.get("q");
-    setIsSearchMode(pathname.startsWith("/baslik/") && hasQ);
+    // ?q= parametresini mount/yönlendirme sonrası güvenli şekilde oku
+    const id = setTimeout(() => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const hasQ = !!searchParams.get("q");
+      setIsSearchMode(pathname.startsWith("/baslik/") && hasQ);
+    }, 0);
+    return () => clearTimeout(id);
   }, [pathname]);
 
   // Hide sidebar completely on PozKes page, messages page and admin page

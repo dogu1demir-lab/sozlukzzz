@@ -1,3 +1,5 @@
+require('dotenv').config();
+if (!process.env.HETZNER_SSH_PASSWORD) { console.error('HETZNER_SSH_PASSWORD .env icinde tanimli degil.'); process.exit(1); }
 const { Client } = require('ssh2');
 
 const conn = new Client();
@@ -25,5 +27,5 @@ conn.on('ready', () => {
   host: '23.88.37.81',
   port: 22,
   username: 'root',
-  password: 'UtNt9thVM3xEEW9gHpcj'
+  password: process.env.HETZNER_SSH_PASSWORD
 });

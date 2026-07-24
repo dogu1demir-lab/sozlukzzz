@@ -12,8 +12,18 @@ export async function GET(req: NextRequest) {
   const encoder = new TextEncoder();
 
   // Create a separate Redis connection for subscribing
+  // (same fail-fast connection settings as the shared client in lib/redis.ts)
   const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6379";
-  const subscriber = new Redis(redisUrl);
+  const subscriber = new Redis(redisUrl, {
+    maxRetriesPerRequest: 3,
+    enableOfflineQueue: false,
+    connectTimeout: 5000,
+  });
+
+  // Log connection errors instead of crashing the process on unhandled 'error' events
+  subscriber.on("error", (err) => {
+    console.error("SSE Redis subscriber error:", err);
+  });
 
   const channels = ["global:updates"];
   if (user) {
@@ -28,33 +38,29 @@ export async function GET(req: NextRequest) {
   });
 
   subscriber.on("message", (chan, msg) => {
-    try {
-      // Send the event message payload directly to the client
-      writer.write(encoder.encode(`data: ${msg}\n\n`));
-    } catch (e) {
+    // Send the event message payload directly to the client
+    writer.write(encoder.encode(`data: ${msg}\n\n`)).catch((e) => {
       console.error("Error writing to SSE stream:", e);
-    }
+    });
   });
 
   // Keep-alive heartbeat to prevent timeouts (every 25 seconds)
   const heartbeatInterval = setInterval(() => {
-    try {
-      writer.write(encoder.encode("event: heartbeat\ndata: ping\n\n"));
-    } catch (e) {
+    writer.write(encoder.encode("event: heartbeat\ndata: ping\n\n")).catch(() => {
       // Stream might be closed
-    }
+    });
   }, 25000);
 
   // Clean up on connection close
   req.signal.addEventListener("abort", () => {
     clearInterval(heartbeatInterval);
-    subscriber.unsubscribe(...channels);
+    subscriber.unsubscribe(...channels).catch((e) => {
+      console.error("SSE Redis unsubscribe error:", e);
+    });
     subscriber.disconnect();
-    try {
-      writer.close();
-    } catch (e) {
+    writer.close().catch(() => {
       // Already closed
-    }
+    });
   });
 
   return new Response(responseStream.readable, {

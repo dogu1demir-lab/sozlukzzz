@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition, useRef } from "react";
-import { useSearchParams, usePathname } from "next/navigation";
+import { useCallback, useEffect, useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
 import { getDynamicSidebarTopicsAction } from "@/app/actions";
@@ -16,25 +16,73 @@ interface TopicItem {
   isYesterday?: boolean;
 }
 
+const VALID_TABS = ["bugun", "gundem", "takip", "begenilen", "goruntulenen"];
+
+const getMaxTopicsLimit = (tab: string): number => {
+  if (tab === "gundem" || tab === "goruntulenen" || tab === "begenilen") {
+    return 100;
+  }
+  return Infinity; // Today and Follow are unlimited
+};
+
+const computeTabFromPath = (path: string): string => {
+  const cleanPath = path.replace(/^\//, "");
+  if (VALID_TABS.includes(cleanPath)) {
+    return cleanPath;
+  }
+  if (path === "/" || cleanPath === "") {
+    return "bugun";
+  }
+  // On other pages (/baslik/[slug], /yazar/[username], etc.), look up sessionStorage
+  if (typeof window !== "undefined") {
+    const storedTab = sessionStorage.getItem("lastActiveTab");
+    if (storedTab && VALID_TABS.includes(storedTab)) {
+      return storedTab;
+    }
+  }
+  return "bugun";
+};
+
 export default function SidebarContent() {
-  const searchParams = useSearchParams();
   const pathname = usePathname();
-  const urlTab = searchParams.get("tab");
 
   const [activeTab, setActiveTab] = useState<string>("bugun");
   const [topics, setTopics] = useState<TopicItem[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
   const [hasLoadedMore, setHasLoadedMore] = useState(false);
 
-  // Ref to track topics length in background interval to avoid stale closures
-  const topicsLengthRef = useRef(0);
-  useEffect(() => {
-    topicsLengthRef.current = topics.length;
-  }, [topics]);
+  // Fetch topics for the active tab
+  const fetchTopics = useCallback(async (tabName: string, isRefresh = false) => {
+    try {
+      const initialLimit = tabName === "bugun" ? 30 : 12;
+      const result = await getDynamicSidebarTopicsAction(tabName, 0, initialLimit);
+      if (result.success && result.topics) {
+        let formatted = result.topics as TopicItem[];
+        const maxLimit = getMaxTopicsLimit(tabName);
+
+        if (formatted.length >= maxLimit) {
+          formatted = formatted.slice(0, maxLimit);
+          setTopics(formatted);
+          setOffset(formatted.length);
+          setHasMore(false);
+        } else {
+          setTopics(formatted);
+          setOffset(formatted.length);
+          setHasMore(formatted.length >= initialLimit);
+        }
+      }
+    } catch (err) {
+      console.error("Sidebar fetch error:", err);
+    } finally {
+      if (!isRefresh) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
 
   // Listen to live topic-buzz events (anlık sinyaller)
   useEffect(() => {
@@ -67,7 +115,7 @@ export default function SidebarContent() {
 
     window.addEventListener("sidebar-refresh", handleRefresh);
     return () => window.removeEventListener("sidebar-refresh", handleRefresh);
-  }, [activeTab, hasLoadedMore]);
+  }, [activeTab, hasLoadedMore, fetchTopics]);
 
   // Check recently updated topics on initial mount / page load
   useEffect(() => {
@@ -98,86 +146,49 @@ export default function SidebarContent() {
     };
   }, [topics]);
 
-  // 1. Detect and preserve tab state across page transitions
-  useEffect(() => {
-    let tab = "bugun";
-    const cleanPath = pathname.replace(/^\//, "");
-    const VALID_TABS = ["bugun", "gundem", "takip", "begenilen", "goruntulenen"];
+  // Detect and preserve tab state across page transitions.
+  // Pathname değişimine render sırasında ayak uydur (React "adjust state during render" kalıbı)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setActiveTab(computeTabFromPath(pathname));
+  }
 
+  // İlk mount'ta sessionStorage'daki son sekmeyi güvenli şekilde oku (hydration sonrası)
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setActiveTab(computeTabFromPath(window.location.pathname));
+    }, 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  // Geçerli sekme tercihini sessionStorage'a yaz (setState içermez)
+  useEffect(() => {
+    const cleanPath = pathname.replace(/^\//, "");
     if (VALID_TABS.includes(cleanPath)) {
-      tab = cleanPath;
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("lastActiveTab", cleanPath);
-      }
+      sessionStorage.setItem("lastActiveTab", cleanPath);
     } else if (pathname === "/" || cleanPath === "") {
-      tab = "bugun";
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("lastActiveTab", "bugun");
-      }
-    } else {
-      // On other pages (/baslik/[slug], /yazar/[username], etc.), look up sessionStorage
-      if (typeof window !== "undefined") {
-        const storedTab = sessionStorage.getItem("lastActiveTab");
-        if (storedTab && VALID_TABS.includes(storedTab)) {
-          tab = storedTab;
-        }
-      }
+      sessionStorage.setItem("lastActiveTab", "bugun");
     }
-    
-    setActiveTab(tab);
   }, [pathname]);
 
-  const getMaxTopicsLimit = (tab: string): number => {
-    if (tab === "gundem" || tab === "goruntulenen" || tab === "begenilen") {
-      return 100;
-    }
-    if (tab === "pozkes") {
-      return 50;
-    }
-    return Infinity; // Today and Follow are unlimited
-  };
-
-  // Fetch topics for the active tab
-  const fetchTopics = async (tabName: string, isRefresh = false) => {
-    try {
-      const initialLimit = tabName === "bugun" ? 30 : 12;
-      const result = await getDynamicSidebarTopicsAction(tabName, 0, initialLimit);
-      if (result.success && result.topics) {
-        let formatted = result.topics as TopicItem[];
-        const maxLimit = getMaxTopicsLimit(tabName);
-        
-        if (formatted.length >= maxLimit) {
-          formatted = formatted.slice(0, maxLimit);
-          setTopics(formatted);
-          setOffset(formatted.length);
-          setHasMore(false);
-        } else {
-          setTopics(formatted);
-          setOffset(formatted.length);
-          setHasMore(formatted.length >= initialLimit);
-        }
-      }
-    } catch (err) {
-      console.error("Sidebar fetch error:", err);
-    } finally {
-      if (!isRefresh) {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  // Trigger fetch when activeTab changes
-  useEffect(() => {
+  // Sekme değişiminde liste state'ini render sırasında sıfırla
+  const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+  if (prevActiveTab !== activeTab) {
+    setPrevActiveTab(activeTab);
     setIsLoading(true);
     setTopics([]);
     setOffset(0);
     setHasMore(true);
     setHasLoadedMore(false); // Reset load more flag when changing tabs
-    
+  }
+
+  // Trigger fetch when activeTab changes
+  useEffect(() => {
     startTransition(() => {
       fetchTopics(activeTab);
     });
-  }, [activeTab]);
+  }, [activeTab, fetchTopics]);
 
   // Background poller to fetch updates silently
   useEffect(() => {
@@ -209,22 +220,22 @@ export default function SidebarContent() {
       window.removeEventListener("scroll", handleActivity);
       window.removeEventListener("click", handleActivity);
     };
-  }, [activeTab, hasLoadedMore]);
+  }, [activeTab, hasLoadedMore, fetchTopics]);
 
   const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
     setHasLoadedMore(true); // Flag that user has loaded more topics
-    
+
     const maxLimit = getMaxTopicsLimit(activeTab);
     const remainingAllowed = maxLimit - offset;
-    
+
     if (remainingAllowed <= 0) {
       setHasMore(false);
       return;
     }
-    
+
     const fetchLimit = Math.min(12, remainingAllowed);
-    
+
     try {
       const result = await getDynamicSidebarTopicsAction(activeTab, offset, fetchLimit);
       if (result.success && result.topics) {
@@ -233,7 +244,7 @@ export default function SidebarContent() {
           setHasMore(false);
         } else {
           const combinedTopics = [...topics, ...newTopics];
-          
+
           if (combinedTopics.length >= maxLimit) {
             const truncated = combinedTopics.slice(0, maxLimit);
             setTopics(truncated);

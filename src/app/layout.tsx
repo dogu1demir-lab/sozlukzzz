@@ -53,7 +53,15 @@ export default async function RootLayout({
 }>) {
   const user = await getSessionUser();
   
-  let notifications: any[] = [];
+  interface NotificationItem {
+    id: string;
+    type: string;
+    content: string;
+    relatedUrl: string | null;
+    isRead: boolean;
+    createdAt: Date | string;
+  }
+  let notifications: NotificationItem[] = [];
   let unreadNotificationsCount = 0;
   let unreadMessagesCount = 0;
 
@@ -64,16 +72,23 @@ export default async function RootLayout({
     const notifsCacheKey = `user:notifications:${user.id}`;
     const countCacheKey = `user:notifications:count:${user.id}`;
 
+    let cachedNotifs: string | null = null;
     try {
-      const cachedNotifs = await redis.get(notifsCacheKey);
-      if (cachedNotifs) {
-        notifications = JSON.parse(cachedNotifs);
+      cachedNotifs = await redis.get(notifsCacheKey);
+      if (cachedNotifs !== null) {
+        try {
+          notifications = JSON.parse(cachedNotifs);
+        } catch (parseErr) {
+          console.error("Redis parse notifications error:", parseErr);
+          cachedNotifs = null;
+        }
       }
     } catch (redisErr) {
       console.error("Redis get notifications error:", redisErr);
     }
 
-    if (notifications.length === 0) {
+    // Boş bildirim listesi de cache'lenebilsin diye length yerine null kontrolü
+    if (cachedNotifs === null) {
       notifications = await prisma.notification.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
@@ -93,7 +108,9 @@ export default async function RootLayout({
         unreadNotificationsCount = parseInt(cachedCount, 10);
         shouldCount = false;
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error("Redis get notifications count error:", err);
+    }
 
     if (shouldCount) {
       unreadNotificationsCount = await prisma.notification.count({
@@ -115,7 +132,11 @@ export default async function RootLayout({
 
   let xPixelId: string | null = null;
   try {
-    xPixelId = await redis.get("settings:x_pixel_id");
+    const rawPixelId = await redis.get("settings:x_pixel_id");
+    // Inline script'e basılmadan önce whitelist doğrulaması (X pixel ID'leri alfanümeriktir)
+    if (rawPixelId && /^[a-zA-Z0-9]+$/.test(rawPixelId)) {
+      xPixelId = rawPixelId;
+    }
   } catch (err) {
     console.error("Redis get xPixelId error:", err);
   }

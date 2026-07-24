@@ -4,8 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerAction } from "@/app/actions";
-import { playBuzzSound } from "@/lib/utils";
-import { Lock, User, AlertCircle, ArrowRight, UserPlus, Mail, Eye, EyeOff, AtSign } from "lucide-react";
+import { playBuzzSound, cleanUsernameHandle } from "@/lib/utils";
+import { Lock, User, AlertCircle, UserPlus, Mail, Eye, EyeOff, AtSign } from "lucide-react";
 
 interface ActionState {
   error?: string;
@@ -19,18 +19,6 @@ const initialState: ActionState = {
   xSignupEventId: "",
 };
 
-function cleanUsernameHandleClient(input: string): string {
-  let val = input.toLowerCase();
-  const turkishChars: { [key: string]: string } = {
-    'ı': 'i', 'ş': 's', 'ç': 'c', 'ğ': 'g', 'ü': 'u', 'ö': 'o',
-    'â': 'a', 'î': 'i', 'û': 'u'
-  };
-  for (const char in turkishChars) {
-    val = val.replaceAll(char, turkishChars[char]);
-  }
-  return val.replace(/[^a-z0-9_]/g, "");
-}
-
 export default function Register() {
   const [state, formAction, isPending] = useActionState(registerAction, initialState);
   const router = useRouter();
@@ -40,9 +28,12 @@ export default function Register() {
 
   useEffect(() => {
     if (state?.success) {
-      if (state.xSignupEventId && typeof window !== "undefined" && (window as any).twq) {
+      const twq = typeof window !== "undefined"
+        ? (window as unknown as { twq?: (...args: unknown[]) => void }).twq
+        : undefined;
+      if (state.xSignupEventId && twq) {
         try {
-          (window as any).twq('event', state.xSignupEventId, {});
+          twq('event', state.xSignupEventId, {});
           console.log("[X PIXEL] Fired signup event tag successfully:", state.xSignupEventId);
         } catch (err) {
           console.error("[X PIXEL] Event tag error:", err);
@@ -64,7 +55,7 @@ export default function Register() {
             🪰
           </span>
           <h2 className="mt-2 text-lg font-bold tracking-tight text-white">
-            sözlükzzz'e <span className="text-lime-400">kaydol</span>
+            sözlükzzz&apos;e <span className="text-lime-400">kaydol</span>
           </h2>
           <p className="mt-1 text-xs text-zinc-500">
             sözlüğümüze katıl, fikirlerini özgürce vızıldat zzz.
@@ -150,7 +141,7 @@ export default function Register() {
                 required
                 maxLength={14}
                 value={username}
-                onChange={(e) => setUsername(cleanUsernameHandleClient(e.target.value))}
+                onChange={(e) => setUsername(cleanUsernameHandle(e.target.value))}
                 className="w-full h-11 rounded-lg bg-zinc-900 border border-zinc-800 px-4 pl-10 pr-14 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-lime-500 focus:ring-1 focus:ring-lime-500 transition-all"
                 placeholder="kullanıcı adı / etiketiniz (örn: sehriban)"
               />

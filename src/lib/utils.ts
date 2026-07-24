@@ -10,7 +10,7 @@ export function playBuzzSound(force = false, soundPath = "/vizildi.mp3") {
         // Safe fallback for autoplay/policy block
       });
     }
-  } catch (e) {
+  } catch {
     // browser auto-play policy block fallback
   }
 }

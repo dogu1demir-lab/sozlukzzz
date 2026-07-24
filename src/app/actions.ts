@@ -7,11 +7,57 @@ import { getSessionUser, setSessionCookie, clearSessionCookie } from "@/lib/auth
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
 import { sendPasswordResetEmail, sendWelcomeEmail } from "@/lib/mail";
+import { getBaseUrl } from "@/lib/baseUrl";
 
-// Helper: Hash password
+// Helper: Hash password with scrypt and a per-password random salt.
+// Storage format: scrypt:<saltHex>:<hashHex>
 function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex");
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `scrypt:${salt}:${hash}`;
 }
+
+// Helper: Verify a password against the stored hash.
+// Accepts both the current scrypt format and the legacy plain sha256 format.
+function verifyPassword(password: string, storedHash: string): boolean {
+  if (storedHash.startsWith("scrypt:")) {
+    const parts = storedHash.split(":");
+    if (parts.length !== 3) return false;
+    const expected = Buffer.from(parts[2], "hex");
+    const actual = crypto.scryptSync(password, parts[1], 64);
+    return expected.length === actual.length && crypto.timingSafeEqual(expected, actual);
+  }
+  // Legacy plain sha256 hash (kept working so existing users can still log in)
+  const legacyHash = crypto.createHash("sha256").update(password).digest("hex");
+  const a = Buffer.from(legacyHash, "utf-8");
+  const b = Buffer.from(storedHash, "utf-8");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+type FeedEntry = {
+  id: string;
+  content: string;
+  imageUrl: string | null;
+  createdAt: Date;
+  topic: unknown;
+  author: {
+    id: string;
+    username: string;
+    avatarColor: string;
+    avatarUrl: string | null;
+  };
+  likes: { isLike: boolean; userId: string }[];
+};
+
+type SidebarTopic = {
+  id: string;
+  title: string;
+  slug: string;
+  poll: { id: string } | null;
+  entryCount: number;
+  lastEntryAt: string;
+  isYesterday?: boolean;
+};
 
 import { cleanUsernameHandle } from "@/lib/utils";
 
@@ -61,7 +107,7 @@ export async function clearAllFeedAndSidebarCaches(userId?: string, extraUserIds
 
     if (userId) {
       keysToDel.push(`stream:takip:${userId}`);
-      keysToDel.push(`session:user:${userId}`);
+      keysToDel.push(`user:session:${userId}`);
       keysToDel.push(`user:notifications:${userId}`);
       keysToDel.push(`user:notifications:count:${userId}`);
     }
@@ -108,7 +154,7 @@ export async function convertToSlug(text: string): Promise<string> {
 }
 
 // Action: Register
-export async function registerAction(prevState: any, formData: FormData) {
+export async function registerAction(prevState: unknown, formData: FormData) {
   // Honeypot check to block automated spam bots
   const honeypot = formData.get("website")?.toString();
   if (honeypot) {
@@ -202,15 +248,15 @@ export async function registerAction(prevState: any, formData: FormData) {
     let xSignupEventId = "";
     try {
       xSignupEventId = (await redis.get("settings:x_signup_event_id")) || "";
-    } catch (redisErr) {}
+    } catch {}
     return { success: true, xSignupEventId };
-  } catch (e) {
+  } catch {
     return { error: "Kayıt olurken bir hata oluştu." };
   }
 }
 
 // Action: Login
-export async function loginAction(prevState: any, formData: FormData) {
+export async function loginAction(prevState: unknown, formData: FormData) {
   const username = formData.get("username")?.toString().trim();
   const password = formData.get("password")?.toString();
 
@@ -239,13 +285,25 @@ export async function loginAction(prevState: any, formData: FormData) {
       }
     });
 
-    if (!user || user.passwordHash !== hashPassword(password)) {
+    if (!user || !verifyPassword(password, user.passwordHash)) {
       return { error: "Kullanıcı adı/e-posta veya şifre hatalı." };
+    }
+
+    // Transparently upgrade legacy sha256 password hashes to scrypt on successful login
+    if (!user.passwordHash.startsWith("scrypt:")) {
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { passwordHash: hashPassword(password) }
+        });
+      } catch (rehashErr) {
+        console.error("Password rehash error:", rehashErr);
+      }
     }
 
     await setSessionCookie(user.id);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Giriş yapılırken bir hata oluştu." };
   }
 }
@@ -299,7 +357,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
     }
 
     // Check if topic exists
-    let topic = await prisma.topic.findUnique({
+    const topic = await prisma.topic.findUnique({
       where: { slug }
     });
 
@@ -395,7 +453,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
             type: "REPLY",
             content: `@${user.username} yeni bir başlıkta sizden bahsetti! vızzz!`,
             userId: targetUser.id,
-            relatedUrl: `/baslik/${slug}#entry-${entryId}`
+            relatedUrl: `/baslik/${slug}?p=1#entry-${entryId}`
           }
         });
       }
@@ -412,7 +470,7 @@ export async function createTopicAndEntryAction(title: string, content: string, 
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, slug, entryId, page: 1 };
-  } catch (e) {
+  } catch {
     return { error: "Başlık oluşturulurken bir hata oluştu." };
   }
 }
@@ -469,6 +527,7 @@ export async function createEntryAction(topicId: string, content: string) {
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
     const uniqueMentions = Array.from(new Set(mentionedUsernames));
+    const mentionedUserIds: string[] = [];
 
     for (const rawUsername of uniqueMentions) {
       const username = cleanUsernameHandle(rawUsername);
@@ -477,6 +536,7 @@ export async function createEntryAction(topicId: string, content: string) {
         where: { username }
       });
       if (targetUser) {
+        mentionedUserIds.push(targetUser.id);
         await prisma.notification.create({
           data: {
             type: "REPLY",
@@ -493,17 +553,14 @@ export async function createEntryAction(topicId: string, content: string) {
       where: {
         topicId,
         authorId: { 
-          notIn: [user.id, ...uniqueMentions.map(u => u.toLowerCase())] 
+          notIn: [user.id, ...mentionedUserIds] 
         }
       },
-      select: { authorId: true, author: { select: { username: true } } },
+      select: { authorId: true },
       distinct: ['authorId']
     });
 
     for (const other of otherAuthors) {
-      // Skip if they were already mentioned (just to be safe)
-      if (uniqueMentions.some(u => u.toLowerCase() === other.author.username.toLowerCase())) continue;
-      
       await prisma.notification.create({
         data: {
           type: "REPLY",
@@ -524,7 +581,7 @@ export async function createEntryAction(topicId: string, content: string) {
     }
     revalidatePath(`/baslik/${topic.slug}`);
     return { success: true, entryId: entry.id, page };
-  } catch (e) {
+  } catch {
     return { error: "Entry gönderilirken bir hata oluştu." };
   }
 }
@@ -597,7 +654,7 @@ export async function likeEntryAction(entryId: string, isLike: boolean) {
     await clearAllFeedAndSidebarCaches(user.id, entry.authorId !== user.id ? [entry.authorId] : undefined);
     revalidatePath(`/baslik/${entry.topic.slug}`);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Reaksiyon kaydedilirken bir hata oluştu." };
   }
 }
@@ -622,7 +679,7 @@ export async function sendMessageAction(receiverUsername: string, content: strin
     if (!receiver) return { error: "Alıcı kullanıcı bulunamadı." };
     if (receiver.id === user.id) return { error: "Kendinize mesaj gönderemezsiniz." };
 
-    const message = await prisma.message.create({
+    await prisma.message.create({
       data: {
         content: cleanContent,
         senderId: user.id,
@@ -650,7 +707,7 @@ export async function sendMessageAction(receiverUsername: string, content: strin
 
     revalidatePath(`/mesajlar`);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Mesaj gönderilirken bir hata oluştu." };
   }
 }
@@ -691,7 +748,7 @@ export async function editMessageAction(messageId: string, newContent: string) {
 
     revalidatePath(`/mesajlar`);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Mesaj düzenlenirken bir hata oluştu." };
   }
 }
@@ -725,7 +782,7 @@ export async function deleteMessageAction(messageId: string) {
 
     revalidatePath(`/mesajlar`);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Mesaj silinirken bir hata oluştu." };
   }
 }
@@ -763,7 +820,7 @@ export async function clearConversationAction(partnerUsername: string) {
 
     revalidatePath(`/mesajlar`);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Sohbet geçmişi temizlenirken bir hata oluştu." };
   }
 }
@@ -781,7 +838,7 @@ export async function markNotificationsAsReadAction() {
     await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath("/");
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Bildirimler güncellenemedi." };
   }
 }
@@ -837,7 +894,7 @@ export async function followUserAction(followingId: string) {
       revalidatePath(`/yazar/${targetUser.username}`);
       return { success: true, followed: true };
     }
-  } catch (e) {
+  } catch {
     return { error: "Takip işlemi gerçekleştirilemedi." };
   }
 }
@@ -878,8 +935,6 @@ export async function createPozKesEntryAction(title: string, content: string, ba
   }
 
   try {
-    const slug = await convertToSlug(cleanTitle);
-
     const savedImageUrl = await saveBase64Image(base64Image, "entries");
     if (!savedImageUrl) {
       return { error: "Görsel kaydedilemedi, geçersiz veri." };
@@ -959,7 +1014,7 @@ export async function createPozKesEntryAction(title: string, content: string, ba
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/pozkes");
     return { success: true, slug };
-  } catch (e) {
+  } catch {
     return { error: "Görsel paylaşılırken bir hata oluştu." };
   }
 }
@@ -1045,7 +1100,7 @@ export async function createCommentAction(entryId: string, content: string) {
         hasLiked: false
       }
     };
-  } catch (e) {
+  } catch {
     return { error: "Yorum gönderilirken bir hata oluştu." };
   }
 }
@@ -1099,7 +1154,7 @@ export async function likeCommentAction(commentId: string) {
     await clearAllFeedAndSidebarCaches(user.id, comment.authorId !== user.id ? [comment.authorId] : undefined);
     revalidatePath("/pozkes");
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Yorum beğenilirken bir hata oluştu." };
   }
 }
@@ -1128,7 +1183,7 @@ export async function deleteCommentAction(commentId: string) {
     await clearAllFeedAndSidebarCaches(user.id, comment.authorId !== user.id ? [comment.authorId] : undefined);
     revalidatePath("/pozkes");
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Yorum silinirken bir hata oluştu." };
   }
 }
@@ -1161,9 +1216,10 @@ export async function updateProfileAvatarAction(base64Image: string) {
 
     await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/yazar/${user.username}`);
+    revalidatePath(`/api/yazar-image/${user.username}`);
     revalidatePath("/settings");
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Profil fotoğrafı güncellenirken bir hata oluştu." };
   }
 }
@@ -1201,7 +1257,7 @@ export async function updateProfileInfoAction(displayName: string, bio: string, 
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/settings");
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Profil bilgileri güncellenirken bir hata oluştu." };
   }
 }
@@ -1273,7 +1329,7 @@ export async function deleteAccountAction() {
 
     await clearAllFeedAndSidebarCaches(user.id);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Hesap silinirken bir hata oluştu." };
   }
 }
@@ -1295,7 +1351,7 @@ export async function createPollTopicAction(title: string, question: string, opt
     const slug = await convertToSlug(cleanTitle);
 
     // Check if topic exists
-    let existingTopic = await prisma.topic.findUnique({
+    const existingTopic = await prisma.topic.findUnique({
       where: { slug }
     });
 
@@ -1331,7 +1387,7 @@ export async function createPollTopicAction(title: string, question: string, opt
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, slug };
-  } catch (e) {
+  } catch {
     return { error: "Anketli başlık oluşturulurken bir hata oluştu." };
   }
 }
@@ -1391,7 +1447,7 @@ export async function voteInPollAction(pollId: string, optionId: string) {
     await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/baslik/${poll.topic.slug}`);
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Oy kullanılırken bir hata oluştu." };
   }
 }
@@ -1425,7 +1481,7 @@ export async function getPollVotersAction(pollId: string) {
     }));
 
     return { success: true, options: formattedOptions };
-  } catch (e) {
+  } catch {
     return { error: "Seçmen listesi alınırken bir hata oluştu." };
   }
 }
@@ -1452,7 +1508,7 @@ export async function getMoreTopicsAction(offset: number, limit: number = 35) {
       take: limit
     });
     return { success: true, topics };
-  } catch (e) {
+  } catch {
     return { error: "Başlıklar yüklenirken bir hata oluştu." };
   }
 }
@@ -1460,7 +1516,7 @@ export async function getMoreTopicsAction(offset: number, limit: number = 35) {
 // Action: Fetch More Entries for Homepage Feed
 export async function getMoreEntriesAction(tab: string, offset: number, limit: number = 20) {
   const user = await getSessionUser();
-  let entries: any[] = [];
+  let entries: FeedEntry[] = [];
 
   try {
     if (tab === "bugun") {
@@ -1699,24 +1755,25 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
         },
         take: 150
       });
-      const uniqueMap = new Map<string, any>();
+      const uniqueMap = new Map<string, (typeof rawEntries)[number]>();
       for (const entry of rawEntries) {
         if (!uniqueMap.has(entry.topicId)) {
           uniqueMap.set(entry.topicId, entry);
         }
       }
       const sorted = Array.from(uniqueMap.values()).sort((a, b) => {
-        const aLikes = a.likes.filter((l: any) => l.isLike).length;
-        const bLikes = b.likes.filter((l: any) => l.isLike).length;
-        return bLikes - aLikes;
+        const aLikes = a.likes.filter((l) => l.isLike).length;
+        const bLikes = b.likes.filter((l) => l.isLike).length;
+        // Deterministic tiebreak on topic id so pagination stays stable
+        return bLikes - aLikes || a.topicId.localeCompare(b.topicId);
       });
       entries = sorted.slice(offset, offset + limit);
     }
 
     const formatted = entries.map((entry) => {
-      const likesCount = entry.likes.filter((l: any) => l.isLike).length;
-      const dislikesCount = entry.likes.filter((l: any) => !l.isLike).length;
-      const userLike = user ? entry.likes.find((l: any) => l.userId === user.id) : null;
+      const likesCount = entry.likes.filter((l) => l.isLike).length;
+      const dislikesCount = entry.likes.filter((l) => !l.isLike).length;
+      const userLike = user ? entry.likes.find((l) => l.userId === user.id) : null;
       const userReaction = userLike ? (userLike.isLike ? ("LIKE" as const) : ("DISLIKE" as const)) : null;
 
       return {
@@ -1738,7 +1795,7 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
     });
 
     return { success: true, entries: formatted };
-  } catch (e) {
+  } catch {
     return { error: "Entry'ler yüklenirken bir hata oluştu zzz." };
   }
 }
@@ -1816,7 +1873,7 @@ export async function getMorePozKesAction(offset: number, limit: number = 10) {
     });
 
     return { success: true, entries: formatted };
-  } catch (e) {
+  } catch {
     return { error: "Fotoğraflar yüklenirken bir hata oluştu zzz." };
   }
 }
@@ -1893,7 +1950,7 @@ export async function getSinglePozKesAction(entryId: string) {
     };
 
     return { success: true, entry: formatted };
-  } catch (e) {
+  } catch {
     return { error: "Fotoğraf yüklenirken bir hata oluştu." };
   }
 }
@@ -1959,7 +2016,7 @@ export async function deleteEntryAction(entryId: string) {
     revalidatePath("/");
     revalidatePath(`/baslik/${slug}`);
     return { success: true, topicDeleted, slug };
-  } catch (e) {
+  } catch {
     return { error: "Girdi silinirken bir hata oluştu." };
   }
 }
@@ -1988,6 +2045,9 @@ export async function editEntryAction(entryId: string, newContent: string) {
     if (!isPozKes && cleanContent.length < 45) {
       return { error: "İçerik en az 45 karakter olmalıdır." };
     }
+    if (cleanContent.length > 5000) {
+      return { error: "İçerik en fazla 5000 karakter olabilir zzz." };
+    }
 
     const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
     if (linkRegex.test(cleanContent)) {
@@ -2010,13 +2070,13 @@ export async function editEntryAction(entryId: string, newContent: string) {
       revalidatePath("/pozkes");
     }
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Girdi düzenlenirken bir hata oluştu." };
   }
 }
 
 // Action: Forgot Password
-export async function forgotPasswordAction(prevState: any, formData: FormData) {
+export async function forgotPasswordAction(prevState: unknown, formData: FormData) {
   const email = formData.get("email")?.toString().trim().toLowerCase();
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -2045,20 +2105,20 @@ export async function forgotPasswordAction(prevState: any, formData: FormData) {
     });
 
     // Create reset link
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sozlukzzz.tr";
+    const appUrl = getBaseUrl();
     const resetLink = `${appUrl}/sifre-sifirla?token=${token}`;
 
     // Send reset email
     await sendPasswordResetEmail(email, user.displayName || user.username, resetLink);
 
     return { success: true, message: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi! zzz" };
-  } catch (e) {
+  } catch {
     return { error: "E-posta gönderilirken bir hata oluştu zzz." };
   }
 }
 
 // Action: Reset Password
-export async function resetPasswordAction(prevState: any, formData: FormData) {
+export async function resetPasswordAction(prevState: unknown, formData: FormData) {
   const token = formData.get("token")?.toString().trim();
   const password = formData.get("password")?.toString();
   const confirmPassword = formData.get("confirmPassword")?.toString();
@@ -2100,7 +2160,7 @@ export async function resetPasswordAction(prevState: any, formData: FormData) {
     });
 
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Şifre sıfırlanırken bir hata oluştu zzz." };
   }
 }
@@ -2124,7 +2184,7 @@ export async function reportAction(targetType: string, targetId: string, reason:
     });
 
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Şikayet iletilirken bir hata oluştu zzz." };
   }
 }
@@ -2152,6 +2212,11 @@ export async function resolveReportAction(reportId: string, actionType: "DISMISS
         });
 
         if (entry) {
+          // Delete physical image file from disk if the entry has an uploaded photo
+          if (entry.imageUrl) {
+            await deleteImageFile(entry.imageUrl);
+          }
+
           if (entry.topic._count.entries <= 1) {
             // Only entry, delete topic
             await prisma.topic.delete({
@@ -2162,6 +2227,19 @@ export async function resolveReportAction(reportId: string, actionType: "DISMISS
             await prisma.entry.delete({
               where: { id: report.targetId }
             });
+
+            // Recalculate the lastEntryAt based on the newest remaining entry
+            const latestEntry = await prisma.entry.findFirst({
+              where: { topicId: entry.topicId },
+              orderBy: { createdAt: 'desc' },
+              select: { createdAt: true }
+            });
+            if (latestEntry) {
+              await prisma.topic.update({
+                where: { id: entry.topicId },
+                data: { lastEntryAt: latestEntry.createdAt }
+              });
+            }
           }
         }
       } else if (report.targetType === "COMMENT") {
@@ -2204,7 +2282,7 @@ export async function getDynamicSidebarTopicsAction(tab: string, offset: number 
       console.error("Redis get sidebar error:", redisErr);
     }
 
-    let formattedTopics: any[] = [];
+    let formattedTopics: SidebarTopic[] = [];
     
     if (activeTab === "bugun") {
       const now = new Date();
@@ -2889,20 +2967,29 @@ export async function adminGetStatsAction() {
   // 1. Health checks
   try {
     await prisma.user.count();
-  } catch (e) {
+  } catch {
     dbHealth = "ERROR";
   }
 
   try {
     await redis.ping();
-  } catch (e) {
+  } catch {
     redisHealth = "ERROR";
   }
 
   // 2. Counts
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // "Today" in Europe/Istanbul (UTC+3), computed the same way as the feed queries
+    const now = new Date();
+    const turkeyTime = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+    const today = new Date(
+      Date.UTC(
+        turkeyTime.getUTCFullYear(),
+        turkeyTime.getUTCMonth(),
+        turkeyTime.getUTCDate(),
+        0, 0, 0, 0
+      ) - 3 * 60 * 60 * 1000
+    );
 
     const [totalUsers, totalTopics, todayEntries, todayComments] = await Promise.all([
       prisma.user.count(),
@@ -3091,6 +3178,12 @@ export async function getAllUsernamesAction(): Promise<string[]> {
 export async function setAvatarFromPozKesAction(photoUrl: string) {
   const user = await getSessionUser();
   if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  // Only allow promoting one of our own uploaded files to avatar
+  if (!photoUrl.startsWith("/uploads/")) {
+    return { error: "Geçersiz görsel yolu." };
+  }
+
   try {
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -3123,8 +3216,8 @@ export async function setAvatarFromPozKesAction(photoUrl: string) {
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/");
     return { success: true };
-  } catch (err: any) {
-    return { error: err.message || "Profil resmi güncellenemedi." };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Profil resmi güncellenemedi." };
   }
 }
 
@@ -3145,7 +3238,7 @@ export async function addProfilePhotoAction(base64Image: string) {
       return { error: "En fazla 4 adet ek vitrin fotoğrafı ekleyebilirsiniz." };
     }
 
-    const savedImageUrl = await saveBase64Image(base64Image, "entries");
+    const savedImageUrl = await saveBase64Image(base64Image, "avatars");
     if (!savedImageUrl) return { error: "Görsel kaydedilemedi." };
 
     const updatedPhotos = [...currentPhotos, savedImageUrl];
@@ -3153,17 +3246,16 @@ export async function addProfilePhotoAction(base64Image: string) {
     await prisma.user.update({
       where: { id: user.id },
       data: { 
-        profilePhotos: updatedPhotos,
-        ...(!dbUser?.profilePhotos || dbUser.profilePhotos.length === 0 ? {} : {})
+        profilePhotos: updatedPhotos
       }
     });
 
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/");
     return { success: true, photoUrl: savedImageUrl };
-  } catch (err: any) {
+  } catch (err) {
     console.error("addProfilePhotoAction error:", err);
-    return { error: err.message || "Profil fotoğrafı yüklenirken hata oluştu." };
+    return { error: err instanceof Error ? err.message : "Profil fotoğrafı yüklenirken hata oluştu." };
   }
 }
 
@@ -3186,6 +3278,13 @@ export async function removeProfilePhotoAction(photoUrl: string) {
     }
 
     const currentPhotos = dbUser?.profilePhotos || [];
+
+    // IDOR protection: only allow deleting a photo that actually belongs to this user.
+    // The file on disk is never touched for URLs outside the user's own showcase.
+    if (!currentPhotos.includes(photoUrl)) {
+      return { error: "Bu fotoğraf sizin vitrininizde bulunamadı." };
+    }
+
     const updatedPhotos = currentPhotos.filter((p) => p !== photoUrl);
 
     await prisma.user.update({
@@ -3201,7 +3300,7 @@ export async function removeProfilePhotoAction(photoUrl: string) {
     revalidatePath(`/yazar/${user.username}`);
     revalidatePath("/");
     return { success: true };
-  } catch (err: any) {
-    return { error: err.message || "Fotoğraf silinemedi." };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Fotoğraf silinemedi." };
   }
 }
