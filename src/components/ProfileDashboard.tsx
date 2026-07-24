@@ -175,6 +175,7 @@ export default function ProfileDashboard({
 
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const [cannotDeleteAvatarModal, setCannotDeleteAvatarModal] = useState(false);
+  const [uploadErrorToast, setUploadErrorToast] = useState<string | null>(null);
 
   const handleRemoveProfilePhoto = (photoUrl: string) => {
     playBuzzSound();
@@ -239,10 +240,17 @@ export default function ProfileDashboard({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert("Görsel boyutu 10MB'dan küçük olmalıdır.");
+    if (!file.type.startsWith("image/")) {
+      setUploadErrorToast("Lütfen geçerli bir resim dosyası seçin.");
       return;
     }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadErrorToast("Görsel boyutu en fazla 10MB olabilir.");
+      return;
+    }
+
+    setUploadErrorToast(null);
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -982,6 +990,32 @@ export default function ProfileDashboard({
               </Link>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Upload Error Toast Modal */}
+      {uploadErrorToast && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 text-lg shrink-0">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white">Yükleme Hatası</h3>
+                <p className="text-xs text-red-400 font-medium mt-0.5">{uploadErrorToast}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end pt-1">
+              <button
+                type="button"
+                onClick={() => setUploadErrorToast(null)}
+                className="px-4 py-2 text-xs font-black text-white bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 transition-all cursor-pointer"
+              >
+                Kapat
+              </button>
+            </div>
           </div>
         </div>
       )}
