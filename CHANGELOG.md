@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [2.0.2] - 2026-07-24
+
+### 📸 Profil Stalksss PozKes Sekmesi İsimlendirme Güncellemesi (`stalksss-tab-rename-pozkes`)
+1. **Stalksss Sekmelerindeki 'Fotoğraflar' Butonu 'PozKes' Olarak Yeniden İsimlendirildi**
+   * **Açıklama:** Kullanıcı profillerindeki 5'li "Profil Resimleri" vitrini ile kavram kargaşası oluşmaması için Stalksss sekmelerindeki 3. sekme butonu `PozKes (4)` olarak güncellendi.
+   * **Kod Referansı:** [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [2.0.1] - 2026-07-24
 
 ### 🗑️ Fiziksel Görsel Dosyası Kalıntısız Silme Sistemi (`image-file-unlink-cleanup`)

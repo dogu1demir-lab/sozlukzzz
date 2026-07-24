@@ -543,7 +543,7 @@ export default function ProfileDashboard({
             onClick={() => handleTabChange("fotograflar")}
             className={`stalksss-tab ${activeTab === "fotograflar" ? "active" : ""}`}
           >
-            Fotoğraflar ({photoEntries.length})
+            PozKes ({photoEntries.length})
           </button>
           <button
             onClick={() => handleTabChange("takipci")}
@@ -654,7 +654,7 @@ export default function ProfileDashboard({
           {activeTab === "fotograflar" && (
             <div className="space-y-4">
               {photoEntries.length === 0 ? (
-                <div className="text-center py-6 text-xs text-slate-500 italic">Henüz fotoğraf paylaşılmamış.</div>
+                <div className="text-center py-6 text-xs text-slate-500 italic">Henüz PozKes veya konulu fotoğraf paylaşılmamış.</div>
               ) : (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
