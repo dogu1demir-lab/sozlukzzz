@@ -5,6 +5,9 @@ import ProfileDashboard from "@/components/ProfileDashboard";
 import { Metadata } from "next";
 import { cleanUsernameHandle } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
   const decodedUsername = decodeURIComponent(username);
@@ -66,7 +69,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export const revalidate = 0; // Fresh profiles on every visit
 
 interface PageProps {
   params: Promise<{ username: string }>;
