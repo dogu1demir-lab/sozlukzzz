@@ -8,7 +8,7 @@ import { playBuzzSound } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import FollowButton from "@/components/FollowButton";
 import FlyRankBadge, { getRankByScore } from "@/components/FlyRankBadge";
-import { createPozKesEntryAction, setAvatarFromPozKesAction } from "@/app/actions";
+import { createPozKesEntryAction, setAvatarFromPozKesAction, addProfilePhotoAction, removeProfilePhotoAction } from "@/app/actions";
 
 interface ProfileDashboardProps {
   gifts?: Array<{
@@ -27,6 +27,7 @@ interface ProfileDashboardProps {
     displayName?: string | null;
     avatarColor: string;
     avatarUrl: string | null;
+    profilePhotos?: string[];
     role: string;
     bio: string | null;
     createdAt: Date;
@@ -145,6 +146,17 @@ export default function ProfileDashboard({
       }
     });
   };
+
+  const handleRemoveProfilePhoto = (photoUrl: string) => {
+    if (!confirm("Bu profil fotoğrafını silmek istediğinize emin misiniz?")) return;
+    startTransition(async () => {
+      const res = await removeProfilePhotoAction(photoUrl);
+      if (res.success) {
+        playBuzzSound();
+        router.refresh();
+      }
+    });
+  };
   
   const [uploadPhotoBase64, setUploadPhotoBase64] = useState<string>("");
   const [uploadPhotoDesc, setUploadPhotoDesc] = useState<string>("");
@@ -201,32 +213,22 @@ export default function ProfileDashboard({
   };
 
   const handleConfirmUpload = async () => {
-    const cleanDesc = uploadPhotoDesc.trim();
-    if (!cleanDesc) {
-      setUploadError("Açıklama boş olamaz zzz.");
-      return;
-    }
-    if (cleanDesc.length < 5) {
-      setUploadError("Açıklama en az 5 karakter olmalıdır zzz.");
-      return;
-    }
-
     setIsUploading(true);
     setUploadError("");
 
     try {
-      const result = await createPozKesEntryAction("pozkes galeri", cleanDesc, uploadPhotoBase64);
+      const result = await addProfilePhotoAction(uploadPhotoBase64);
       if (result.error) {
         setUploadError(result.error);
         setIsUploading(false);
       } else {
         playBuzzSound();
         setIsUploadModalOpen(false);
+        setUploadPhotoBase64("");
         router.refresh();
-        window.location.reload();
       }
     } catch (err) {
-      setUploadError("Fotoğraf yüklenirken teknik bir hata oluştu zzz.");
+      setUploadError("Profil fotoğrafı yüklenirken hata oluştu.");
       setIsUploading(false);
     }
   };
@@ -379,7 +381,7 @@ export default function ProfileDashboard({
         </div>
       </div>
 
-      {/* Profil Resimleri (5 Adet Profil Fotoğrafı Vitrini) */}
+      {/* Profil Resimleri (5 Adet Dedicated Profil Fotoğrafı Vitrini) */}
       <div className="photo-showcase">
         <div className="photo-showcase-header">
           <div className="flex items-center gap-2">
@@ -390,60 +392,59 @@ export default function ProfileDashboard({
           </div>
           {photoEntries.length > 0 && (
             <button onClick={() => handleTabChange("fotograflar")} className="photo-showcase-all">
-              Tümünü Gör ({photoEntries.length})
+              PozKes Galerisi ({photoEntries.length})
             </button>
           )}
         </div>
 
         {/* Ana Büyük Profil Resmi Hero View */}
-        {photoEntries.length > 0 ? (
+        {(author.profilePhotos && author.profilePhotos.length > 0) ? (
           <div className="mb-3 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 relative group">
-            <Link 
-              href={`/pozkes#entry-${(photoEntries[selectedPhotoIndex] || photoEntries[0]).id}`}
-              prefetch={false}
-              onClick={() => playBuzzSound()}
-              className="block relative aspect-video sm:aspect-[16/9] max-h-[320px] overflow-hidden"
-            >
+            <div className="block relative aspect-video sm:aspect-[16/9] max-h-[320px] overflow-hidden">
               <img
-                src={(photoEntries[selectedPhotoIndex] || photoEntries[0]).imageUrl!}
+                src={author.profilePhotos[selectedPhotoIndex] || author.profilePhotos[0]}
                 alt="Profil Resmi"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3 sm:p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-zinc-200 line-clamp-1">
-                    {(photoEntries[selectedPhotoIndex] || photoEntries[0]).content || "Profil Fotoğrafı"}
+                  <span className="text-xs font-semibold text-zinc-200">
+                    Profil Fotoğrafı #{selectedPhotoIndex + 1}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
                     {isSelf && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleSetAsAvatar((photoEntries[selectedPhotoIndex] || photoEntries[0]).imageUrl!);
-                        }}
-                        disabled={isPending}
-                        className="text-[10px] font-black bg-lime-500 text-black px-2.5 py-1 rounded-md hover:bg-lime-400 active:scale-95 transition-all shadow"
-                        title="Bu fotoğrafı Ana Profil Resmi Yap"
-                      >
-                        Ana Profil Resmi Yap 🖼️
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleSetAsAvatar(author.profilePhotos![selectedPhotoIndex] || author.profilePhotos![0])}
+                          disabled={isPending}
+                          className="text-[10px] font-black bg-lime-500 text-black px-2.5 py-1 rounded-md hover:bg-lime-400 active:scale-95 transition-all shadow"
+                          title="Bu fotoğrafı Ana Profil Resmi Yap"
+                        >
+                          Ana Profil Resmi Yap 🖼️
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveProfilePhoto(author.profilePhotos![selectedPhotoIndex] || author.profilePhotos![0])}
+                          disabled={isPending}
+                          className="text-[10px] font-black bg-rose-500/20 border border-rose-500/40 text-rose-400 px-2 py-1 rounded-md hover:bg-rose-500/30 active:scale-95 transition-all"
+                          title="Fotoğrafı Sil"
+                        >
+                          Sil 🗑️
+                        </button>
+                      </>
                     )}
-                    <span className="text-[10px] text-zinc-400 font-bold bg-black/60 backdrop-blur px-2 py-1 rounded-md border border-white/10">
-                      ❤️ {(photoEntries[selectedPhotoIndex] || photoEntries[0]).likesCount || 0}
-                    </span>
                   </div>
                 </div>
               </div>
-            </Link>
+            </div>
           </div>
         ) : (
           <div className="mb-3 p-6 text-center border border-dashed border-zinc-850 rounded-xl bg-zinc-950/30">
             <p className="text-xs text-zinc-500 italic">
               {isSelf 
-                ? "Henüz profil fotoğrafları alanına resim yüklemediniz. Aşağıdaki + butonundan hemen 5 adet resim ekleyebilirsiniz!" 
-                : "Bu yazar henüz profil fotoğrafı yüklememiş."}
+                ? "Henüz profil fotoğrafları alanına resim yüklemediniz. Aşağıdaki + butonundan hemen 5 adet profil resmi ekleyebilirsiniz!" 
+                : "Bu yazar henüz profil fotoğrafı eklememiş."}
             </p>
           </div>
         )}
@@ -451,12 +452,12 @@ export default function ProfileDashboard({
         {/* 5'li Profil Resimleri Şeridi Grid */}
         <div className="grid grid-cols-5 gap-2">
           {Array.from({ length: 5 }).map((_, idx) => {
-            const photo = photoEntries[idx];
-            if (photo) {
+            const photoUrl = author.profilePhotos?.[idx];
+            if (photoUrl) {
               const isSelected = selectedPhotoIndex === idx;
               return (
                 <button
-                  key={photo.id}
+                  key={`prof-photo-${idx}`}
                   type="button"
                   onClick={() => {
                     setSelectedPhotoIndex(idx);
@@ -469,7 +470,7 @@ export default function ProfileDashboard({
                   }`}
                 >
                   <img
-                    src={photo.imageUrl!}
+                    src={photoUrl}
                     alt={`Profil Resmi ${idx + 1}`}
                     className="w-full h-full object-cover"
                   />

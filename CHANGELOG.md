@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.1] - 2026-07-24
+
+### 🖼️ Dedicated Profil Fotoğrafları Vitrini (`dedicated-5-profile-photos-showcase`)
+1. **Profil Fotoğrafları (5 Slot) PozKes Akışından Tamamen Ayrıştırıldı**
+   * **Açıklama:** Prisma şemasına `User.profilePhotos` alanı eklendi (`db push` alındı). Profil sayfasındaki 5 fotoğraflık alan artık PozKes (Kadraj) akışından bağımsız, yalnızca kullanıcının yüklediği 5 profil fotoğrafını barındırır. Fotoğraf ekleme ve silme aksiyonları eklendi.
+   * **Kod Referansı:** [schema.prisma](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/prisma/schema.prisma), [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts), [ProfileDashboard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/ProfileDashboard.tsx)
+
+---
+
 ## [1.9.0] - 2026-07-24
 
 ### 🔄 Profil Resmi ve PozKes Kadraj Bütünleşmesi (`unified-avatar-and-pozkes-showcase`)

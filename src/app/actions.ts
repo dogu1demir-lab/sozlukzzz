@@ -2965,3 +2965,71 @@ export async function setAvatarFromPozKesAction(photoUrl: string) {
     return { error: err.message || "Profil resmi güncellenemedi." };
   }
 }
+
+export async function addProfilePhotoAction(base64Image: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  if (!base64Image) return { error: "Lütfen bir görsel yükleyin." };
+
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { profilePhotos: true }
+    });
+
+    const currentPhotos = dbUser?.profilePhotos || [];
+    if (currentPhotos.length >= 5) {
+      return { error: "En fazla 5 adet profil fotoğrafı ekleyebilirsiniz." };
+    }
+
+    const savedImageUrl = await saveBase64Image(base64Image, "entries");
+    if (!savedImageUrl) return { error: "Görsel kaydedilemedi." };
+
+    const updatedPhotos = [...currentPhotos, savedImageUrl];
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        profilePhotos: updatedPhotos,
+        ...(currentPhotos.length === 0 ? { avatarUrl: savedImageUrl } : {})
+      }
+    });
+
+    revalidatePath(`/yazar/${user.username}`);
+    revalidatePath("/");
+    return { success: true, photoUrl: savedImageUrl };
+  } catch (err: any) {
+    console.error("addProfilePhotoAction error:", err);
+    return { error: err.message || "Profil fotoğrafı yüklenirken hata oluştu." };
+  }
+}
+
+export async function removeProfilePhotoAction(photoUrl: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Giriş yapmanız gerekmektedir." };
+
+  try {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { profilePhotos: true, avatarUrl: true }
+    });
+
+    const currentPhotos = dbUser?.profilePhotos || [];
+    const updatedPhotos = currentPhotos.filter((p) => p !== photoUrl);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        profilePhotos: updatedPhotos,
+        ...(dbUser?.avatarUrl === photoUrl ? { avatarUrl: updatedPhotos[0] || null } : {})
+      }
+    });
+
+    revalidatePath(`/yazar/${user.username}`);
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message || "Fotoğraf silinemedi." };
+  }
+}

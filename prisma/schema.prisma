@@ -19,6 +19,7 @@ model User {
   passwordHash String
   avatarColor  String   @default("#14b8a6") // Default avatar color (e.g. Teal)
   avatarUrl    String?  // Optional Cloudinary avatar URL
+  profilePhotos String[] @default([]) // Dedicated array of up to 5 profile photos
   bio          String?  // Optional short bio
   role         String   @default("USER") // USER, ADMIN
   createdAt    DateTime @default(now())
