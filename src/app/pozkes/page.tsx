@@ -8,13 +8,13 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "PozKes 📸 — sözlükzzz",
-  description: "Yazarların paylaştığı anlık fotoğraflar, sinek manzaraları ve kadrajlar. vızzz!",
+  description: "Yazarların paylaştığı anlık fotoğraflar, estetik kareler ve özel kadrajlar.",
   alternates: {
     canonical: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.sozlukzzz.tr"}/pozkes`,
   },
   openGraph: {
     title: "PozKes 📸 — sözlükzzz",
-    description: "Yazarların paylaştığı anlık fotoğraflar, sinek manzaraları ve kadrajlar. vızzz!",
+    description: "Yazarların paylaştığı anlık fotoğraflar, estetik kareler ve özel kadrajlar.",
   }
 };
 

@@ -182,7 +182,7 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Fotoğrafın hakkında bir şeyler yaz... (vızzz!)"
+        placeholder="Fotoğrafın hakkında bir şeyler yaz..."
         rows={2}
         className="w-full p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 text-xs sm:text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-teal-500/50 transition-all resize-none"
       />
