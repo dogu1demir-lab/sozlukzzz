@@ -8,7 +8,7 @@ import {
   deleteAccountAction 
 } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { CheckCircle2, AlertCircle, Trash2, Camera, ShieldAlert, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertCircle, Trash2, Camera, ShieldAlert } from "lucide-react";
 
 interface SettingsClientProps {
   user: {
@@ -128,9 +128,9 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
 
       {/* Profile Photo Card */}
       <section className="settings-section bg-zinc-950/60 border border-zinc-900 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
-        <div className="flex items-center gap-2">
-          <Camera className="w-4 h-4 text-lime-400" />
-          <h2 className="text-sm font-extrabold text-white uppercase tracking-wider">Ana Profil Resmi & Vitrin</h2>
+        <div className="flex items-center gap-2.5">
+          <Camera className="w-4 h-4 text-lime-400 shrink-0" />
+          <h2 className="text-sm font-extrabold text-white uppercase tracking-wider leading-none">Ana Profil Resmi & Vitrin</h2>
         </div>
 
         <div className="avatar-upload-row flex items-center gap-5">
@@ -170,9 +170,8 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
             <p className="text-[11px] text-zinc-400">
               Yüklenen görsel otomatik olarak WebP'ye dönüştürülür (Maks 10 MB).
             </p>
-            <div className="p-2.5 rounded-xl border border-lime-500/20 bg-lime-500/5 text-[11px] text-lime-300 font-semibold flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-lime-400 shrink-0" />
-              <span>Yüklediğiniz bu resim, profildeki <strong>5 Fotoğraf Vitrini'nin #1 numaralı ana resmine</strong> otomatik entegre edilir.</span>
+            <div className="p-2.5 rounded-xl border border-lime-500/20 bg-lime-500/5 text-[11px] text-lime-300 font-medium">
+              Yüklediğiniz bu resim, profildeki <strong>5 Fotoğraf Vitrini'nin #1 numaralı ana resmine</strong> otomatik entegre edilir.
             </div>
           </div>
         </div>
