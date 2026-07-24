@@ -534,6 +534,19 @@ export default function ProfileDashboard({
                       ✓
                     </div>
                   )}
+                  {isSelf && idx > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveProfilePhoto(photoUrl);
+                      }}
+                      className="absolute top-1 left-1 bg-rose-600 hover:bg-rose-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black shadow z-10 transition-transform active:scale-95"
+                      title="Fotoğrafı kaldır"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </button>
               );
             }
