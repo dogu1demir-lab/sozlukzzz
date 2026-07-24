@@ -226,7 +226,7 @@ export default function ReactionButtons({
       {/* Edit/Delete Buttons aligned right next to vızılda */}
       {isLoggedIn && (isOwner || canDelete) && (
         <div className="flex items-center gap-1.5 text-zinc-550 ml-auto mr-1 select-none">
-          {isOwner && onEdit && (
+          {onEdit && (
             <button
               onClick={onEdit}
               title="Entry'yi Düzenle"

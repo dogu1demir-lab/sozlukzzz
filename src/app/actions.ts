@@ -1971,20 +1971,6 @@ export async function editEntryAction(entryId: string, newContent: string) {
 
   const cleanContent = newContent.trim();
   if (!cleanContent) return { error: "İçerik boş olamaz." };
-  if (cleanContent.length < 45) {
-    return { error: "İçerik en az 45 karakter olmalıdır zzz." };
-  }
-
-  const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
-  if (linkRegex.test(cleanContent)) {
-    const { allowed, score } = await userCanPostLinks(user.id, user.role);
-    if (!allowed) {
-      return { 
-        error: `Link paylaşabilmek için en az 15. rütbe (Aerodinamik Sinek) olmanız gerekmektedir. Şu anki puanınız: ${score} (Gerekli: 930) zzz!` 
-      };
-    }
-  }
-
   try {
     const entry = await prisma.entry.findUnique({
       where: { id: entryId },
@@ -1995,7 +1981,22 @@ export async function editEntryAction(entryId: string, newContent: string) {
 
     // Only author or admin can edit
     if (entry.authorId !== user.id && user.role !== "ADMIN") {
-      return { error: "Yalnızca kendi girdiğinizi düzenleyebilirsiniz." };
+      return { error: "Bu işlemi gerçekleştirmek için yetkiniz bulunmamaktadır." };
+    }
+
+    const isPozKes = entry.topic.slug === "pozkes-galeri";
+    if (!isPozKes && cleanContent.length < 45) {
+      return { error: "İçerik en az 45 karakter olmalıdır." };
+    }
+
+    const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/i;
+    if (linkRegex.test(cleanContent)) {
+      const { allowed, score } = await userCanPostLinks(user.id, user.role);
+      if (!allowed) {
+        return { 
+          error: `Link paylaşabilmek için en az 15. rütbe (Aerodinamik Sinek) olmanız gerekmektedir. Şu anki puanınız: ${score} (Gerekli: 930)!` 
+        };
+      }
     }
 
     await prisma.entry.update({
@@ -2005,6 +2006,9 @@ export async function editEntryAction(entryId: string, newContent: string) {
 
     await clearAllFeedAndSidebarCaches(user.id);
     revalidatePath(`/baslik/${entry.topic.slug}`);
+    if (isPozKes) {
+      revalidatePath("/pozkes");
+    }
     return { success: true };
   } catch (e) {
     return { error: "Girdi düzenlenirken bir hata oluştu." };

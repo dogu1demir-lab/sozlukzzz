@@ -9,12 +9,13 @@ import {
   likeCommentAction, 
   deleteCommentAction,
   deleteEntryAction,
+  editEntryAction,
   reportAction
 } from "@/app/actions";
 import { playBuzzSound, formatDate } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
-import { Trash2, Share2 } from "lucide-react";
+import { Trash2, Share2, Edit3, Check, X } from "lucide-react";
 
 interface PozKesCardProps {
   entry: {
@@ -74,6 +75,38 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(customTitle || "");
+  const [editBody, setEditBody] = useState(captionBody || "");
+
+  const handleEditToggle = () => {
+    setEditTitle(customTitle || "");
+    setEditBody(captionBody || "");
+    setIsEditing(!isEditing);
+  };
+
+  const handleSavePozKesEdit = () => {
+    if (!editBody.trim()) {
+      alert("Açıklama boş olamaz.");
+      return;
+    }
+
+    playBuzzSound();
+    startTransition(async () => {
+      let finalContent = editBody.trim();
+      if (editTitle.trim() && editTitle.trim().toLowerCase() !== "pozkes galeri") {
+        finalContent = `**${editTitle.trim()}**\n\n${finalContent}`;
+      }
+
+      const result = await editEntryAction(entry.id, finalContent);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        setIsEditing(false);
+        router.refresh();
+      }
+    });
+  };
 
   const getShareUrl = () => {
     if (typeof window === "undefined") return "";
@@ -300,14 +333,24 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-[11px] text-zinc-500 whitespace-nowrap" suppressHydrationWarning>{formatDate(entry.createdAt)}</span>
           {(isAdmin || currentUserId === entry.author.id) && (
-            <button
-              onClick={handleDeleteEntry}
-              disabled={isPending}
-              className="p-1 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-              title="PozKes Gönderisini Kalıcı Olarak Sil 🗑️"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <>
+              <button
+                onClick={handleEditToggle}
+                disabled={isPending}
+                className="p-1 text-zinc-500 hover:text-teal-400 hover:bg-teal-500/10 rounded-lg transition-colors cursor-pointer"
+                title="PozKes Açıklamasını/Başlığını Düzenle ✏️"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleDeleteEntry}
+                disabled={isPending}
+                className="p-1 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                title="PozKes Gönderisini Kalıcı Olarak Sil 🗑️"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -396,37 +439,73 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       {/* Comments view */}
       <div className="kd-comments">
         {/* Caption/Description inside comments wrapper if exists */}
-        {captionBody && (
-          <div className="mb-2 pb-2 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed flex items-start gap-2">
-            {entry.author.avatarUrl ? (
-              <img
-                src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
-                alt={entry.author.username}
-                width={22}
-                height={22}
-                className="avatar avatar-xs avatar-img mt-0.5"
-              />
-            ) : (
-              <div
-                className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0 mt-0.5"
-                style={{ backgroundColor: entry.author.avatarColor }}
+        {isEditing ? (
+          <div className="mb-3 p-3 bg-zinc-950 border border-teal-500/30 rounded-xl space-y-2.5">
+            <input
+              type="text"
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              placeholder="📌 Özel Başlık (İsteğe Bağlı)..."
+              className="w-full px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs font-bold text-teal-300 placeholder:text-zinc-600 focus:outline-none focus:border-teal-500/50"
+            />
+            <textarea
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value)}
+              placeholder="Açıklama..."
+              rows={2}
+              className="w-full p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-teal-500/50 resize-none"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleEditToggle}
+                className="px-3 py-1 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-bold rounded-lg cursor-pointer"
               >
-                {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <Link
-                href={`/yazar/${entry.author.username}`}
-                prefetch={false}
-                className="font-bold text-white hover:text-teal-400 mr-1.5"
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={handleSavePozKesEdit}
+                disabled={isPending || !editBody.trim()}
+                className="px-3 py-1 bg-teal-500 hover:bg-teal-400 text-black text-xs font-bold rounded-lg disabled:opacity-50 cursor-pointer"
               >
-                {entry.author.displayName ?? entry.author.username}
-              </Link>
-              <span className="text-zinc-200">
-                <ExpandableMentionText content={captionBody} />
-              </span>
+                {isPending ? "Kaydediliyor..." : "Kaydet"}
+              </button>
             </div>
           </div>
+        ) : (
+          captionBody && (
+            <div className="mb-2 pb-2 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed flex items-start gap-2">
+              {entry.author.avatarUrl ? (
+                <img
+                  src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
+                  alt={entry.author.username}
+                  width={22}
+                  height={22}
+                  className="avatar avatar-xs avatar-img mt-0.5"
+                />
+              ) : (
+                <div
+                  className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0 mt-0.5"
+                  style={{ backgroundColor: entry.author.avatarColor }}
+                >
+                  {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <Link
+                  href={`/yazar/${entry.author.username}`}
+                  prefetch={false}
+                  className="font-bold text-white hover:text-teal-400 mr-1.5"
+                >
+                  {entry.author.displayName ?? entry.author.username}
+                </Link>
+                <span className="text-zinc-200">
+                  <ExpandableMentionText content={captionBody} />
+                </span>
+              </div>
+            </div>
+          )
         )}
 
         {comments.length > 0 && (
