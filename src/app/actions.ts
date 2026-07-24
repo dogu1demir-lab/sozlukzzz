@@ -3067,8 +3067,8 @@ export async function addProfilePhotoAction(base64Image: string) {
     });
 
     const currentPhotos = dbUser?.profilePhotos || [];
-    if (currentPhotos.length >= 5) {
-      return { error: "En fazla 5 adet profil fotoğrafı ekleyebilirsiniz." };
+    if (currentPhotos.length >= 4) {
+      return { error: "En fazla 4 adet ek vitrin fotoğrafı ekleyebilirsiniz." };
     }
 
     const savedImageUrl = await saveBase64Image(base64Image, "entries");

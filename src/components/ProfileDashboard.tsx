@@ -135,10 +135,13 @@ export default function ProfileDashboard({
   let displayProfilePhotos: string[] = [];
   const rawProfilePhotos = author.profilePhotos || [];
 
-  if (rawProfilePhotos.length > 0) {
+  if (avatarImgUrl) {
+    const showcaseWithoutAvatar = rawProfilePhotos.filter(
+      (p) => p !== author.avatarUrl && p !== avatarImgUrl
+    );
+    displayProfilePhotos = [avatarImgUrl, ...showcaseWithoutAvatar].slice(0, 5);
+  } else if (rawProfilePhotos.length > 0) {
     displayProfilePhotos = rawProfilePhotos.slice(0, 5);
-  } else if (avatarImgUrl) {
-    displayProfilePhotos = [avatarImgUrl];
   }
 
   const [entriesLimit, setEntriesLimit] = useState(10);
