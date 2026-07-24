@@ -120,9 +120,10 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="tr" className="h-full dark notranslate">
+    <html lang="tr" className="h-full dark notranslate" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-lime-500 selection:text-black antialiased`}
+        suppressHydrationWarning
       >
         <Header 
           user={user} 
