@@ -902,16 +902,6 @@ export async function createPozKesEntryAction(title: string, content: string, ba
       }
     });
 
-    // Automatically sync author avatarUrl with uploaded PozKes photo
-    try {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { avatarUrl: savedImageUrl }
-      });
-    } catch (avatarErr) {
-      console.error("Failed to sync avatarUrl on PozKes upload:", avatarErr);
-    }
-
     // Calculate page for PozKes entry inside its topic
     const entryCountBefore = await prisma.entry.count({
       where: {

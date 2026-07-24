@@ -240,9 +240,9 @@ export default function ProfileDashboard({
         <div className="profile-card-body">
           {/* Avatar Icon */}
           <div className="profile-avatar-wrap">
-            {displayAvatarUrl ? (
+            {author.avatarUrl ? (
               <img
-                src={displayAvatarUrl}
+                src={`/api/yazar-image/${encodeURIComponent(author.username)}`}
                 alt={author.username}
                 width={80}
                 height={80}
@@ -379,13 +379,13 @@ export default function ProfileDashboard({
         </div>
       </div>
 
-      {/* Photo Showcase (Kadraj - 5 Fotoğraf Vitrini) */}
+      {/* Profil Resimleri (5 Adet Profil Fotoğrafı Vitrini) */}
       <div className="photo-showcase">
         <div className="photo-showcase-header">
           <div className="flex items-center gap-2">
-            <h3>Kadraj</h3>
+            <h3>Profil Resimleri</h3>
             <span className="text-[10px] font-extrabold bg-lime-500/10 text-lime-400 border border-lime-500/20 px-2 py-0.5 rounded-full">
-              Vitrin (5 Fotoğraf)
+              5 Fotoğraf Vitrini
             </span>
           </div>
           {photoEntries.length > 0 && (
@@ -395,7 +395,7 @@ export default function ProfileDashboard({
           )}
         </div>
 
-        {/* Ana Büyük Kadraj Vitrin Hero View */}
+        {/* Ana Büyük Profil Resmi Hero View */}
         {photoEntries.length > 0 ? (
           <div className="mb-3 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 relative group">
             <Link 
@@ -406,13 +406,13 @@ export default function ProfileDashboard({
             >
               <img
                 src={(photoEntries[selectedPhotoIndex] || photoEntries[0]).imageUrl!}
-                alt="Kadraj Vitrin"
+                alt="Profil Resmi"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-3 sm:p-4">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-zinc-200 line-clamp-1">
-                    {(photoEntries[selectedPhotoIndex] || photoEntries[0]).content || "PozKes Fotoğrafı"}
+                    {(photoEntries[selectedPhotoIndex] || photoEntries[0]).content || "Profil Fotoğrafı"}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
                     {isSelf && (
@@ -425,9 +425,9 @@ export default function ProfileDashboard({
                         }}
                         disabled={isPending}
                         className="text-[10px] font-black bg-lime-500 text-black px-2.5 py-1 rounded-md hover:bg-lime-400 active:scale-95 transition-all shadow"
-                        title="Bu fotoğrafı Profil Resmi (Avatar) Yap"
+                        title="Bu fotoğrafı Ana Profil Resmi Yap"
                       >
-                        Profil Resmi Yap 🖼️
+                        Ana Profil Resmi Yap 🖼️
                       </button>
                     )}
                     <span className="text-[10px] text-zinc-400 font-bold bg-black/60 backdrop-blur px-2 py-1 rounded-md border border-white/10">
@@ -442,13 +442,13 @@ export default function ProfileDashboard({
           <div className="mb-3 p-6 text-center border border-dashed border-zinc-850 rounded-xl bg-zinc-950/30">
             <p className="text-xs text-zinc-500 italic">
               {isSelf 
-                ? "Henüz vitrine fotoğraf eklemediniz. Aşağıdaki + butonundan hemen foto ekleyin çatlasınlar!" 
-                : "Bu yazar henüz vitrin fotoğrafı yüklememiş."}
+                ? "Henüz profil fotoğrafları alanına resim yüklemediniz. Aşağıdaki + butonundan hemen 5 adet resim ekleyebilirsiniz!" 
+                : "Bu yazar henüz profil fotoğrafı yüklememiş."}
             </p>
           </div>
         )}
 
-        {/* 5'li Mini Fotoğraf Şeridi Grid */}
+        {/* 5'li Profil Resimleri Şeridi Grid */}
         <div className="grid grid-cols-5 gap-2">
           {Array.from({ length: 5 }).map((_, idx) => {
             const photo = photoEntries[idx];
@@ -470,7 +470,7 @@ export default function ProfileDashboard({
                 >
                   <img
                     src={photo.imageUrl!}
-                    alt={`Kadraj ${idx + 1}`}
+                    alt={`Profil Resmi ${idx + 1}`}
                     className="w-full h-full object-cover"
                   />
                   {isSelected && (
@@ -487,7 +487,7 @@ export default function ProfileDashboard({
                 <label
                   key={`upload-slot-${idx}`}
                   className="aspect-square rounded-lg border-2 border-dashed border-lime-500/40 bg-lime-500/5 hover:bg-lime-500/10 hover:border-lime-400 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all p-1 text-center group"
-                  title="PozKes foto ekle çatlasınlar"
+                  title="Profil resmi ekle"
                 >
                   <span className="text-lime-400 font-black text-base group-hover:scale-125 transition-transform">+</span>
                   <span className="text-[9px] font-bold text-lime-400/90 leading-tight">Foto Ekle</span>
