@@ -38,6 +38,8 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
     );
   }
 
+  const [showTitleInput, setShowTitleInput] = useState(false);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -105,11 +107,7 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!base64Image) {
-      setErrorMsg("Lütfen paylaşmak için bir fotoğraf seçin zzz.");
-      return;
-    }
-    if (!content.trim()) {
-      setErrorMsg("Lütfen fotoğraf için bir açıklama yazın.");
+      setErrorMsg("Lütfen paylaşmak için bir fotoğraf seçin.");
       return;
     }
 
@@ -128,6 +126,7 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
       } else {
         setContent("");
         setTopicTitle("");
+        setShowTitleInput(false);
         setBase64Image(null);
         setImagePreview(null);
         router.refresh();
@@ -136,74 +135,96 @@ export default function PozKesUploadBox({ isLoggedIn }: PozKesUploadBoxProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-8 p-4 sm:p-5 rounded-2xl border border-teal-500/20 bg-gradient-to-b from-zinc-950 to-teal-950/20 shadow-xl space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-teal-400 font-bold text-xs sm:text-sm">
-          <Camera className="w-4 h-4" />
-          <span>Anlık Fotoğraf Paylaş (PozKes)</span>
-        </div>
-        <span className="text-[10px] text-zinc-500 font-medium">📸 Fotoğrafın anında yayında</span>
-      </div>
-
+    <form onSubmit={handleSubmit} className="mb-6 p-3.5 sm:p-4 rounded-2xl border border-zinc-800 bg-zinc-950/80 shadow-2xl backdrop-blur-md transition-all focus-within:border-teal-500/40 space-y-3">
       {errorMsg && (
         <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 font-semibold">
           {errorMsg}
         </div>
       )}
 
-      {/* Image Preview Box */}
-      {imagePreview ? (
-        <div className="relative aspect-video max-h-56 w-full rounded-xl overflow-hidden border border-teal-500/30 bg-black/60 group">
-          <img src={imagePreview} alt="Önizleme" className="w-full h-full object-contain" />
+      {/* Optional Title Input */}
+      {(showTitleInput || topicTitle) && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-teal-400">📌</span>
+          <input
+            type="text"
+            value={topicTitle}
+            onChange={(e) => setTopicTitle(e.target.value)}
+            placeholder="Özel Fotoğraf Başlığı (İsteğe Bağlı)..."
+            className="flex-1 px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-xs font-bold text-teal-300 placeholder:text-teal-500/50 focus:outline-none focus:border-teal-500/50 transition-colors"
+          />
           <button
             type="button"
-            onClick={handleRemoveImage}
-            className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer"
-            title="Görseli Kaldır"
+            onClick={() => { setTopicTitle(""); setShowTitleInput(false); }}
+            className="p-1 text-zinc-500 hover:text-zinc-300 text-xs"
+            title="Başlığı Kaldır"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
-      ) : (
-        <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-zinc-800 hover:border-teal-500/50 rounded-xl bg-zinc-900/30 hover:bg-teal-500/5 transition-all cursor-pointer group">
-          <ImageIcon className="w-8 h-8 text-zinc-500 group-hover:text-teal-400 mb-1.5 transition-colors" />
-          <span className="text-xs font-bold text-zinc-300 group-hover:text-white">Fotoğraf Seç veya Sürükle</span>
-          <span className="text-[10px] text-zinc-500 mt-0.5">PNG, JPG, WEBP (Max 8MB)</span>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-        </label>
       )}
 
-      {/* Textarea for Caption */}
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Fotoğrafın hakkında bir şeyler yaz..."
-        rows={2}
-        className="w-full p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 text-xs sm:text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-teal-500/50 transition-all resize-none"
-      />
+      {/* Composer Input Area */}
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0 space-y-2">
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Fotoğrafın hakkında bir şeyler yaz..."
+            rows={2}
+            className="w-full bg-transparent text-xs sm:text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none resize-none leading-relaxed"
+          />
 
-      {/* Bottom Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <input
-          type="text"
-          value={topicTitle}
-          onChange={(e) => setTopicTitle(e.target.value)}
-          placeholder="İsteğe bağlı başlık (boş bırakırsan 'pozkes galeri' olur)"
-          className="flex-1 min-w-[200px] px-3 py-1.5 rounded-lg bg-zinc-900/40 border border-zinc-850 text-[11px] text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-teal-500/30"
-        />
+          {/* Compact Image Preview */}
+          {imagePreview && (
+            <div className="relative max-h-48 w-fit rounded-xl overflow-hidden border border-teal-500/30 bg-black/60 group">
+              <img src={imagePreview} alt="Önizleme" className="max-h-48 object-contain rounded-xl" />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-1.5 right-1.5 p-1 bg-black/80 hover:bg-red-600 text-white rounded-full transition-colors cursor-pointer"
+                title="Görseli Kaldır"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Bar: Action Icons & Tweet-style Publish Button */}
+      <div className="flex items-center justify-between pt-2 border-t border-zinc-900">
+        <div className="flex items-center gap-1.5">
+          <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-teal-400 hover:text-teal-300 bg-teal-500/10 hover:bg-teal-500/20 transition-all cursor-pointer select-none">
+            <ImageIcon className="w-4 h-4" />
+            <span>Fotoğraf Ekle</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </label>
+
+          {!showTitleInput && !topicTitle && (
+            <button
+              type="button"
+              onClick={() => setShowTitleInput(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-zinc-400 hover:text-teal-400 hover:bg-zinc-900 transition-all cursor-pointer select-none"
+              title="Özel Başlık Ekle"
+            >
+              <span>📌 Başlık Ekle</span>
+            </button>
+          )}
+        </div>
 
         <button
           type="submit"
-          disabled={isPending || !base64Image || !content.trim()}
-          className="flex items-center gap-1.5 px-5 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-teal-500/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95 shrink-0"
+          disabled={isPending || !base64Image}
+          className="flex items-center gap-1.5 px-4 py-1.5 bg-teal-500 hover:bg-teal-400 text-black font-extrabold text-xs rounded-full shadow-md shadow-teal-500/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95 shrink-0"
         >
           <Send className="w-3.5 h-3.5" />
-          <span>{isPending ? "Paylaşılıyor..." : "PozKes'te Paylaş 📸"}</span>
+          <span>{isPending ? "Paylaşılıyor..." : "PozKes Paylaş 📸"}</span>
         </button>
       </div>
     </form>
