@@ -890,6 +890,8 @@ export default function ProfileDashboard({
             </div>
           </div>
         </div>
+      )}
+
       {/* Fullscreen Lightbox Modal */}
       {lightboxUrl && (
         <div
