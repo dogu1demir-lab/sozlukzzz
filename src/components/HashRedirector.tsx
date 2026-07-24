@@ -25,10 +25,16 @@ export default function HashRedirector({ currentEntryIds }: HashRedirectorProps)
       
       // If the entry is already visible on the current page, scroll to it smoothly
       if (currentEntryIds.includes(entryId)) {
+        const entryIndex = currentEntryIds.indexOf(entryId);
         setTimeout(() => {
-          const el = document.getElementById(`entry-${entryId}`);
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth" });
+          // If it's the very first entry on the first page, scroll to top so the topic title remains visible
+          if (entryIndex === 0 && (!window.location.search || window.location.search.includes("p=1"))) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            const el = document.getElementById(`entry-${entryId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth" });
+            }
           }
         }, 300);
         return;

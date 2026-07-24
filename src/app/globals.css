@@ -1305,6 +1305,10 @@ body {
   }
 }
 
+article[id^="entry-"] {
+  scroll-margin-top: 110px;
+}
+
 article[id^="entry-"]:target {
   animation: targeted-entry-glow 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }

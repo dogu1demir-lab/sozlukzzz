@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.8.6] - 2026-07-24
+
+### 📌 Konu Başlığı Görünürlük ve Hizalama Düzeltmesi (`topic-title-scroll-margin-visibility`)
+1. **Konu Başlıklarının Sayfa Kaymasında Ekranda Görünür Kalması Sağlandı**
+   * **Açıklama:** Yeni konu açıldığında veya ilk entry'ye kaydırıldığında sayfanın en tepesine kayma kuralı getirildi. Diğer yorumlara uçulduğunda ise `scroll-margin-top: 110px` uygulanarak konu başlığının ekrandan kaçması engellendi.
+   * **Kod Referansı:** [globals.css](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/globals.css), [HashRedirector.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/HashRedirector.tsx)
+
+---
+
 ## [1.8.5] - 2026-07-24
 
 ### 🎯 Bildirim Nokta Atışı Yönlendirme Düzeltmesi (`mention-notification-pinpoint-page-routing`)
