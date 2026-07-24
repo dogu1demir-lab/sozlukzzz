@@ -246,7 +246,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] text-zinc-500 whitespace-nowrap">{formatDate(entry.createdAt)}</span>
+          <span className="text-[11px] text-zinc-500 whitespace-nowrap" suppressHydrationWarning>{formatDate(entry.createdAt)}</span>
           {(isAdmin || currentUserId === entry.author.id) && (
             <button
               onClick={handleDeleteEntry}

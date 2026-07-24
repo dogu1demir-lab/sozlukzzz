@@ -65,6 +65,7 @@ export default async function PozKesPage() {
         author: {
           id: comment.author.id,
           username: comment.author.username,
+          displayName: comment.author.displayName,
           avatarColor: comment.author.avatarColor,
           avatarUrl: comment.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(comment.author.username)}` : null,
         },
@@ -85,6 +86,7 @@ export default async function PozKesPage() {
       author: {
         id: entry.author.id,
         username: entry.author.username,
+        displayName: entry.author.displayName,
         avatarColor: entry.author.avatarColor,
         avatarUrl: entry.author.avatarUrl ? `/api/yazar-image/${encodeURIComponent(entry.author.username)}` : null,
       },
