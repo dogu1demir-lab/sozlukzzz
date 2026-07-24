@@ -275,7 +275,14 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
             <span className="kd-card-username">{entry.author.displayName ?? entry.author.username}</span>
           </Link>
 
-          {entry.topic && entry.topic.slug !== "pozkes-galeri" && (
+          {customTitle ? (
+            <div
+              className="text-[11px] font-extrabold text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 truncate max-w-[140px] sm:max-w-[220px]"
+              title={customTitle}
+            >
+              📌 {customTitle}
+            </div>
+          ) : entry.topic && entry.topic.slug !== "pozkes-galeri" ? (
             <Link
               href={`/baslik/${entry.topic.slug}#entry-${entry.id}`}
               prefetch={false}
@@ -284,7 +291,7 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
             >
               📌 {entry.topic.title}
             </Link>
-          )}
+          ) : null}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-[11px] text-zinc-500 whitespace-nowrap" suppressHydrationWarning>{formatDate(entry.createdAt)}</span>
@@ -385,45 +392,36 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
       {/* Comments view */}
       <div className="kd-comments">
         {/* Caption/Description inside comments wrapper if exists */}
-        {entry.content && (
-          <div className="mb-2 pb-2.5 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed space-y-2">
-            {customTitle && (
-              <div className="font-extrabold text-sm text-teal-400 bg-teal-500/10 border-l-2 border-teal-500 px-2.5 py-1 rounded-r-lg flex items-center gap-1.5">
-                <span className="text-xs">📌</span> {customTitle}
+        {captionBody && (
+          <div className="mb-2 pb-2 border-b border-zinc-850/50 text-[13px] text-zinc-300 leading-relaxed flex items-start gap-2">
+            {entry.author.avatarUrl ? (
+              <img
+                src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
+                alt={entry.author.username}
+                width={22}
+                height={22}
+                className="avatar avatar-xs avatar-img mt-0.5"
+              />
+            ) : (
+              <div
+                className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0 mt-0.5"
+                style={{ backgroundColor: entry.author.avatarColor }}
+              >
+                {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
               </div>
             )}
-            {captionBody && (
-              <div className="flex items-start gap-2">
-                {entry.author.avatarUrl ? (
-                  <img
-                    src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
-                    alt={entry.author.username}
-                    width={22}
-                    height={22}
-                    className="avatar avatar-xs avatar-img mt-0.5"
-                  />
-                ) : (
-                  <div
-                    className="avatar avatar-xs flex items-center justify-center font-bold text-black border border-white/5 text-[9px] shrink-0 mt-0.5"
-                    style={{ backgroundColor: entry.author.avatarColor }}
-                  >
-                    {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <Link
-                    href={`/yazar/${entry.author.username}`}
-                    prefetch={false}
-                    className="font-bold text-white hover:text-teal-400 mr-1.5"
-                  >
-                    {entry.author.displayName ?? entry.author.username}
-                  </Link>
-                  <span className="text-zinc-200">
-                    <ExpandableMentionText content={captionBody} />
-                  </span>
-                </div>
-              </div>
-            )}
+            <div className="flex-1 min-w-0">
+              <Link
+                href={`/yazar/${entry.author.username}`}
+                prefetch={false}
+                className="font-bold text-white hover:text-teal-400 mr-1.5"
+              >
+                {entry.author.displayName ?? entry.author.username}
+              </Link>
+              <span className="text-zinc-200">
+                <ExpandableMentionText content={captionBody} />
+              </span>
+            </div>
           </div>
         )}
 
