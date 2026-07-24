@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Sparkles, Calendar, Shield, MessageSquare, BookOpen, ThumbsUp, Users, ArrowRight, X, Send, AlertCircle } from "lucide-react";
-import { playBuzzSound } from "@/lib/utils";
+import { playBuzzSound, formatDate } from "@/lib/utils";
 import MentionText from "@/components/MentionText";
 import FollowButton from "@/components/FollowButton";
 import FlyRankBadge, { getRankByScore } from "@/components/FlyRankBadge";
