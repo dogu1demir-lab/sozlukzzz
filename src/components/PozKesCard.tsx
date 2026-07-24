@@ -284,8 +284,8 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   return (
     <article id={`entry-${entry.id}`} className="kd-card">
       {/* Header */}
-      <div className="kd-card-header">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="kd-card-header flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-2 min-w-0 w-full">
           <Link
             href={`/yazar/${entry.author.username}`}
             prefetch={false}
@@ -312,47 +312,51 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
             <span className="kd-card-username">{entry.author.displayName ?? entry.author.username}</span>
           </Link>
 
-          {customTitle ? (
-            <div
-              className="text-[11px] font-extrabold text-teal-400 bg-teal-500/10 px-2.5 py-0.5 rounded-full border border-teal-500/20 truncate max-w-[140px] sm:max-w-[220px]"
-              title={customTitle}
-            >
-              📌 {customTitle}
-            </div>
-          ) : entry.topic && entry.topic.slug !== "pozkes-galeri" ? (
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-[11px] text-zinc-500 whitespace-nowrap" suppressHydrationWarning>{formatDate(entry.createdAt)}</span>
+            {(isAdmin || currentUserId === entry.author.id) && (
+              <>
+                <button
+                  onClick={handleEditToggle}
+                  disabled={isPending}
+                  className="p-1 text-zinc-500 hover:text-teal-400 hover:bg-teal-500/10 rounded-lg transition-colors cursor-pointer"
+                  title="PozKes Açıklamasını/Başlığını Düzenle ✏️"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={handleDeleteEntry}
+                  disabled={isPending}
+                  className="p-1 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                  title="PozKes Gönderisini Kalıcı Olarak Sil 🗑️"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Custom Title sub-row */}
+        {customTitle ? (
+          <div className="pt-0.5">
+            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-teal-300 bg-teal-500/10 px-3 py-1 rounded-xl border border-teal-500/25 leading-snug break-words">
+              <span className="text-teal-400">📌</span>
+              <span>{customTitle}</span>
+            </span>
+          </div>
+        ) : entry.topic && entry.topic.slug !== "pozkes-galeri" ? (
+          <div className="pt-0.5">
             <Link
               href={`/baslik/${entry.topic.slug}#entry-${entry.id}`}
               prefetch={false}
-              className="text-[10px] font-bold text-lime-400/90 hover:text-lime-300 hover:underline bg-lime-500/10 px-2 py-0.5 rounded-full border border-lime-500/20 truncate max-w-[160px] sm:max-w-[220px]"
-              title={`Konu: ${entry.topic.title}`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-lime-400/90 hover:text-lime-300 bg-lime-500/10 px-2.5 py-0.5 rounded-xl border border-lime-500/20"
             >
-              📌 {entry.topic.title}
+              <span>📌</span>
+              <span>{entry.topic.title}</span>
             </Link>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[11px] text-zinc-500 whitespace-nowrap" suppressHydrationWarning>{formatDate(entry.createdAt)}</span>
-          {(isAdmin || currentUserId === entry.author.id) && (
-            <>
-              <button
-                onClick={handleEditToggle}
-                disabled={isPending}
-                className="p-1 text-zinc-500 hover:text-teal-400 hover:bg-teal-500/10 rounded-lg transition-colors cursor-pointer"
-                title="PozKes Açıklamasını/Başlığını Düzenle ✏️"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={handleDeleteEntry}
-                disabled={isPending}
-                className="p-1 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                title="PozKes Gönderisini Kalıcı Olarak Sil 🗑️"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </>
-          )}
-        </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Image body */}
