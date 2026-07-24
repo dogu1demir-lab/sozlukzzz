@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [1.9.4] - 2026-07-24
+
+### 📌 PozKes Kartlarına Konu Etiketi Entegrasyonu (`pozkes-card-topic-tag-badge`)
+1. **PozKes Akışındaki Kartlara Ait Olduğu Konu Etiketi Eklendi**
+   * **Açıklama:** PozKes akışında yer alan fotoğraflı kartların üst bilgisine, fotoğrafın yazıldığı orijinal konu adı (örn: `📌 fatih Altaylı'nın haluk levent yazısı`) tıklanabilir estetik bir rozet etiket olarak eklendi.
+   * **Kod Referansı:** [page.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/pozkes/page.tsx), [PozKesCard.tsx](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/components/PozKesCard.tsx)
+
+---
+
 ## [1.9.3] - 2026-07-24
 
 ### 🔗 Profil Fotoğraflar Sekmesi Dinamik Yönlendirme Düzeltmesi (`stalksss-photos-tab-dynamic-routing-fix`)

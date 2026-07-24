@@ -26,6 +26,7 @@ export default async function PozKesPage() {
       imageUrl: { not: null }
     },
     include: {
+      topic: true,
       author: {
         select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
       },
@@ -75,6 +76,10 @@ export default async function PozKesPage() {
       content: entry.content,
       imageUrl: entry.imageUrl ? `/api/image/${entry.id}` : "",
       createdAt: entry.createdAt,
+      topic: {
+        title: entry.topic.title,
+        slug: entry.topic.slug
+      },
       author: {
         id: entry.author.id,
         username: entry.author.username,

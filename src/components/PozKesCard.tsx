@@ -20,6 +20,10 @@ interface PozKesCardProps {
     content: string;
     imageUrl: string;
     createdAt: Date;
+    topic?: {
+      title: string;
+      slug: string;
+    };
     author: {
       id: string;
       username: string;
@@ -186,31 +190,44 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
     <article id={`entry-${entry.id}`} className="kd-card">
       {/* Header */}
       <div className="kd-card-header">
-        <Link
-          href={`/yazar/${entry.author.username}`}
-          prefetch={false}
-          className="kd-card-author"
-          onClick={() => playBuzzSound()}
-        >
-          {entry.author.avatarUrl ? (
-            <img
-              src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
-              alt={entry.author.username}
-              width={32}
-              height={32}
-              className="avatar avatar-sm avatar-img"
-            />
-          ) : (
-            <div
-              className="avatar avatar-sm"
-              aria-label={entry.author.displayName ?? entry.author.username}
-              style={{ backgroundColor: entry.author.avatarColor }}
+        <div className="flex items-center gap-2 min-w-0">
+          <Link
+            href={`/yazar/${entry.author.username}`}
+            prefetch={false}
+            className="kd-card-author shrink-0"
+            onClick={() => playBuzzSound()}
+          >
+            {entry.author.avatarUrl ? (
+              <img
+                src={`/api/yazar-image/${encodeURIComponent(entry.author.username)}`}
+                alt={entry.author.username}
+                width={32}
+                height={32}
+                className="avatar avatar-sm avatar-img"
+              />
+            ) : (
+              <div
+                className="avatar avatar-sm"
+                aria-label={entry.author.displayName ?? entry.author.username}
+                style={{ backgroundColor: entry.author.avatarColor }}
+              >
+                {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
+              </div>
+            )}
+            <span className="kd-card-username">{entry.author.displayName ?? entry.author.username}</span>
+          </Link>
+
+          {entry.topic && entry.topic.slug !== "pozkes-galeri" && (
+            <Link
+              href={`/baslik/${entry.topic.slug}#entry-${entry.id}`}
+              prefetch={false}
+              className="text-[10px] font-bold text-lime-400/90 hover:text-lime-300 hover:underline bg-lime-500/10 px-2 py-0.5 rounded-full border border-lime-500/20 truncate max-w-[160px] sm:max-w-[220px]"
+              title={`Konu: ${entry.topic.title}`}
             >
-              {(entry.author.displayName ?? entry.author.username).substring(0, 1).toUpperCase()}
-            </div>
+              📌 {entry.topic.title}
+            </Link>
           )}
-          <span className="kd-card-username">{entry.author.displayName ?? entry.author.username}</span>
-        </Link>
+        </div>
         <span className="text-[11px] text-zinc-500 whitespace-nowrap shrink-0">{formatDate(entry.createdAt)}</span>
       </div>
 
