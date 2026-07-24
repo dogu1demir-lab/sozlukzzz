@@ -2,6 +2,15 @@
 
 Projede son yapılan hata düzeltmeleri, performans iyileştirmeleri ve kullanıcı deneyimi (UX) güncellemeleri aşağıda listelenmiştir.
 
+## [2.0.5] - 2026-07-24
+
+### 🖼️ Vitrin Fotoğrafı Eklerken Ana Profil Resmi Ezilmesi Düzeltildi (`showcase-avatar-independence`)
+1. **5'li Vitrin Fotoğrafı Eklendiğinde Ana Profil Resmi (`avatarUrl`) Artık Ezilmiyor**
+   * **Açıklama:** Kullanıcı profiline yeni bir vitrin fotoğrafı eklediğinde (`addProfilePhotoAction`) otomatik olarak `avatarUrl` alanının ezilmesi engellendi. Vitrin fotoğrafları sadece 5'li vitrine eklenir, kullanıcının ana avatarı ancak kendisi *"Ana Profil Resmi Yap 🖼️"* butonuna basarsa güncellenir.
+   * **Kod Referansı:** [actions.ts](file:///C:/Users/DO%C4%9EU/Desktop/sozlukzzz/src/app/actions.ts)
+
+---
+
 ## [2.0.4] - 2026-07-24
 
 ### 📱 Mobil Dokunmatik UX & Tam Ekran Lightbox Güncellemesi (`mobile-touch-lightbox-ux`)

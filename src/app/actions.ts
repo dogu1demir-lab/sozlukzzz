@@ -3079,8 +3079,7 @@ export async function addProfilePhotoAction(base64Image: string) {
     await prisma.user.update({
       where: { id: user.id },
       data: { 
-        profilePhotos: updatedPhotos,
-        ...(currentPhotos.length === 0 ? { avatarUrl: savedImageUrl } : {})
+        profilePhotos: updatedPhotos
       }
     });
 
