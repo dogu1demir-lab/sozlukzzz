@@ -206,7 +206,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
   const handleLogout = async () => {
     playBuzzSound();
     await logoutAction();
-    router.refresh();
+    window.location.href = window.location.pathname;
   };
 
   const handleNotificationsClick = async () => {
