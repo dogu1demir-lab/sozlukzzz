@@ -406,7 +406,7 @@ export default function ProfileDashboard({
               <span>
                 <strong>{entries.length}</strong> gönderi
               </span>
-               <span suppressHydrationWarning>• Katılım: {new Date(author.createdAt).toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul" })}</span>
+               <span suppressHydrationWarning>• Katılım: {formatDate(author.createdAt)}</span>
             </div>
           </div>
         </div>

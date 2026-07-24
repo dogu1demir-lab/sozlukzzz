@@ -21,53 +21,36 @@ export function formatDate(date: Date | string): string {
   const d = new Date(date);
   if (isNaN(d.getTime())) return "";
 
+  // Convert date to Europe/Istanbul (UTC+3)
+  const trDate = new Date(d.getTime() + 3 * 60 * 60 * 1000);
+  const year = trDate.getUTCFullYear();
+  const month = trDate.getUTCMonth(); // 0-11
+  const day = trDate.getUTCDate();
+  const hours = String(trDate.getUTCHours()).padStart(2, "0");
+  const minutes = String(trDate.getUTCMinutes()).padStart(2, "0");
+  const timeStr = `${hours}:${minutes}`;
+
   const now = new Date();
+  const trNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
-  // Convert both dates to Europe/Istanbul time (UTC+3) to ensure day boundary checks are exact
-  const turkeyNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-  const turkeyDate = new Date(d.getTime() + 3 * 60 * 60 * 1000);
+  const todayStart = Date.UTC(trNow.getUTCFullYear(), trNow.getUTCMonth(), trNow.getUTCDate());
+  const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
+  const targetStart = Date.UTC(year, month, day);
 
-  const todayStart = new Date(
-    Date.UTC(
-      turkeyNow.getUTCFullYear(),
-      turkeyNow.getUTCMonth(),
-      turkeyNow.getUTCDate(),
-      0, 0, 0, 0
-    )
-  );
-
-  const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
-  const targetDayStart = new Date(
-    Date.UTC(
-      turkeyDate.getUTCFullYear(),
-      turkeyDate.getUTCMonth(),
-      turkeyDate.getUTCDate(),
-      0, 0, 0, 0
-    )
-  ).getTime();
-
-  const hoursMinutes = d.toLocaleTimeString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Istanbul"
-  });
-
-  if (targetDayStart === todayStart.getTime()) {
-    return `Bugün ${hoursMinutes}`;
+  if (targetStart === todayStart) {
+    return `Bugün ${timeStr}`;
   }
 
-  if (targetDayStart === yesterdayStart.getTime()) {
-    return `Dün ${hoursMinutes}`;
+  if (targetStart === yesterdayStart) {
+    return `Dün ${timeStr}`;
   }
 
-  return d.toLocaleDateString("tr-TR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Europe/Istanbul"
-  });
+  const trMonths = [
+    "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+  ];
+
+  return `${day} ${trMonths[month]} ${year} ${timeStr}`;
 }
 
 export function cleanUsernameHandle(input: string): string {
