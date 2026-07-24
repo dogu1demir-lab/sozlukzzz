@@ -92,7 +92,9 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   const handleShareWhatsApp = () => {
     playBuzzSound();
     const url = getShareUrl();
-    const text = `PozKes'te harika bir kare! 📸\n${url}`;
+    const titleText = customTitle ? `📸 ${customTitle}` : "📸 PozKes Kareleri";
+    const descText = captionBody ? `\n"${captionBody}"` : "";
+    const text = `${titleText}${descText}\n\n${url}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
     setShowShareMenu(false);
   };
@@ -100,7 +102,9 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
   const handleShareX = () => {
     playBuzzSound();
     const url = getShareUrl();
-    const text = `PozKes'te harika bir kare! 📸 @sozlukzzz\n${url}`;
+    const titleText = customTitle ? `📸 ${customTitle}` : "📸 PozKes Kareleri";
+    const descText = captionBody ? `\n"${captionBody}"` : "";
+    const text = `${titleText}${descText} @sozlukzzz\n\n${url}`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
     setShowShareMenu(false);
   };
