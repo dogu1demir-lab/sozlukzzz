@@ -130,6 +130,10 @@ export default function ProfileDashboard({
 
   const displayAvatarUrl = author.avatarUrl || (photoEntries.length > 0 ? photoEntries[0].imageUrl : null);
 
+  const displayProfilePhotos = (author.profilePhotos && author.profilePhotos.length > 0)
+    ? author.profilePhotos
+    : (author.avatarUrl ? [`/api/yazar-image/${encodeURIComponent(author.username)}`] : []);
+
   const [entriesLimit, setEntriesLimit] = useState(10);
   const [commentsLimit, setCommentsLimit] = useState(10);
   const [followersLimit, setFollowersLimit] = useState(10);
@@ -398,11 +402,11 @@ export default function ProfileDashboard({
         </div>
 
         {/* Ana Büyük Profil Resmi Hero View */}
-        {(author.profilePhotos && author.profilePhotos.length > 0) ? (
+        {displayProfilePhotos.length > 0 ? (
           <div className="mb-3 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 relative group">
             <div className="block relative aspect-video sm:aspect-[16/9] max-h-[320px] overflow-hidden">
               <img
-                src={author.profilePhotos[selectedPhotoIndex] || author.profilePhotos[0]}
+                src={displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0]}
                 alt="Profil Resmi"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -416,22 +420,24 @@ export default function ProfileDashboard({
                       <>
                         <button
                           type="button"
-                          onClick={() => handleSetAsAvatar(author.profilePhotos![selectedPhotoIndex] || author.profilePhotos![0])}
+                          onClick={() => handleSetAsAvatar(displayProfilePhotos[selectedPhotoIndex] || displayProfilePhotos[0])}
                           disabled={isPending}
                           className="text-[10px] font-black bg-lime-500 text-black px-2.5 py-1 rounded-md hover:bg-lime-400 active:scale-95 transition-all shadow"
                           title="Bu fotoğrafı Ana Profil Resmi Yap"
                         >
                           Ana Profil Resmi Yap 🖼️
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveProfilePhoto(author.profilePhotos![selectedPhotoIndex] || author.profilePhotos![0])}
-                          disabled={isPending}
-                          className="text-[10px] font-black bg-rose-500/20 border border-rose-500/40 text-rose-400 px-2 py-1 rounded-md hover:bg-rose-500/30 active:scale-95 transition-all"
-                          title="Fotoğrafı Sil"
-                        >
-                          Sil 🗑️
-                        </button>
+                        {author.profilePhotos && author.profilePhotos.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveProfilePhoto(author.profilePhotos![selectedPhotoIndex] || author.profilePhotos![0])}
+                            disabled={isPending}
+                            className="text-[10px] font-black bg-rose-500/20 border border-rose-500/40 text-rose-400 px-2 py-1 rounded-md hover:bg-rose-500/30 active:scale-95 transition-all"
+                            title="Fotoğrafı Sil"
+                          >
+                            Sil 🗑️
+                          </button>
+                        )}
                       </>
                     )}
                   </div>
@@ -452,7 +458,7 @@ export default function ProfileDashboard({
         {/* 5'li Profil Resimleri Şeridi Grid */}
         <div className="grid grid-cols-5 gap-2">
           {Array.from({ length: 5 }).map((_, idx) => {
-            const photoUrl = author.profilePhotos?.[idx];
+            const photoUrl = displayProfilePhotos[idx];
             if (photoUrl) {
               const isSelected = selectedPhotoIndex === idx;
               return (
