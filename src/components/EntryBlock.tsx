@@ -248,7 +248,8 @@ export default function EntryBlock({
           entryIndex={index + 1}
           onEdit={!isEditing ? handleEditToggle : undefined}
           onDelete={handleDelete}
-          isOwner={canEdit}
+          isOwner={isOwner}
+          canDelete={canDelete}
         />
       </div>
 
