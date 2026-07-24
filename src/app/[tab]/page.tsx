@@ -663,6 +663,7 @@ export default async function Home({ params }: PageProps) {
                         width={600}
                         height={400}
                         sizes="(max-width: 640px) 100vw, 576px"
+                        unoptimized
                         className="w-full max-h-96 object-cover hover:scale-[1.02] transition-transform duration-300"
                       />
                     </div>
