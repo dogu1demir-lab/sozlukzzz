@@ -18,12 +18,8 @@ interface TopicItem {
 
 const VALID_TABS = ["bugun", "gundem", "takip", "begenilen", "goruntulenen"];
 
-const getMaxTopicsLimit = (tab: string): number => {
-  if (tab === "gundem" || tab === "goruntulenen" || tab === "begenilen") {
-    return 100;
-  }
-  return Infinity; // Today and Follow are unlimited
-};
+// Yan liste tüm sekmelerde sınırsız; cursor ile sonuna kadar açılır
+const getMaxTopicsLimit = (): number => Infinity;
 
 const computeTabFromPath = (path: string): string => {
   const cleanPath = path.replace(/^\//, "");
@@ -63,7 +59,7 @@ export default function SidebarContent() {
       const result = await getDynamicSidebarTopicsAction(tabName, 0, initialLimit, null);
       if (result.success && result.topics) {
         let formatted = result.topics as TopicItem[];
-        const maxLimit = getMaxTopicsLimit(tabName);
+        const maxLimit = getMaxTopicsLimit();
 
         if (formatted.length >= maxLimit) {
           formatted = formatted.slice(0, maxLimit);
@@ -230,7 +226,7 @@ export default function SidebarContent() {
     if (isLoading || !hasMore) return;
     setHasLoadedMore(true); // Flag that user has loaded more topics
 
-    const maxLimit = getMaxTopicsLimit(activeTab);
+    const maxLimit = getMaxTopicsLimit();
     const remainingAllowed = maxLimit - offset;
 
     if (remainingAllowed <= 0) {
