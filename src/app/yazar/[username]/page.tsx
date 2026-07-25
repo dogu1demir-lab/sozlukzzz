@@ -105,8 +105,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
         },
         orderBy: {
           createdAt: "desc"
-        },
-        take: 100
+        }
       },
       followers: {
         include: {
@@ -142,8 +141,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
     },
     orderBy: {
       createdAt: "desc"
-    },
-    take: 100
+    }
   });
 
   // Foto galerisi için AYRI sorgu: entry listesinin 100 limiti fotoğrafları
@@ -158,8 +156,8 @@ export default async function AuthorProfilePage({ params }: PageProps) {
   });
 
   // Calculate statistics & Score
-  // Not: entries/comments listeleri sayfalama için 100 ile sınırlı; puan TAM
-  // sayımlarla hesaplanır, yoksa üretken yazarların rütbesi düşük görünür.
+  // Not: listeler artık limitsiz (istemci 10'ar açıyor); puan yine de tam
+  // sayımlarla hesaplanır — liste uzunluğuna asla güvenilmez.
   const [totalEntries, totalComments, totalLikesReceived] = await Promise.all([
     prisma.entry.count({ where: { authorId: author.id } }),
     prisma.comment.count({ where: { authorId: author.id } }),
