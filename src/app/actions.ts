@@ -1930,6 +1930,39 @@ export async function getMoreEntriesAction(tab: string, offset: number, limit: n
   }
 }
 
+// Action: Fetch More Viewed Topics (goruntulenen feed load-more, cursor bazlı)
+export async function getMoreViewedTopicsAction(offset: number, limit: number = 7, cursorId?: string | null) {
+  try {
+    const topics = await prisma.topic.findMany({
+      where: { slug: { not: "pozkes-galeri" } },
+      include: {
+        poll: { select: { id: true } },
+        entries: {
+          include: {
+            author: {
+              select: { id: true, username: true, displayName: true, avatarColor: true, avatarUrl: true }
+            },
+            likes: true
+          },
+          orderBy: { createdAt: "asc" },
+          take: 1
+        }
+      },
+      orderBy: [{ viewCount: "desc" }, { id: "desc" }],
+      // Cursor varken sıralı listenin tamamı çekilip JS'te dilimlenir
+      ...(cursorId ? {} : { skip: offset, take: limit })
+    });
+
+    const pageTopics = cursorId
+      ? paginateWithCursor(topics, (t) => t.id, cursorId, offset, limit)
+      : topics;
+
+    return { success: true, topics: pageTopics };
+  } catch {
+    return { error: "Konular yüklenirken bir hata oluştu." };
+  }
+}
+
 // Action: Fetch More PozKes Entries (With Comments)
 export async function getMorePozKesAction(offset: number, limit: number = 10) {
   const user = await getSessionUser();

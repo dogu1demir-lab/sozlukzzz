@@ -7,6 +7,7 @@ import ReactionButtons from "@/components/ReactionButtons";
 import IntroBanner from "@/components/IntroBanner";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
 import FeedLoadMore from "@/components/FeedLoadMore";
+import GoruntulenenLoadMore from "@/components/GoruntulenenLoadMore";
 import ClickableImage from "@/components/ClickableImage";
 import { formatDate } from "@/lib/utils";
 import { notFound } from "next/navigation";
@@ -560,9 +561,10 @@ export default async function Home({ params }: PageProps) {
             take: 1
           }
         },
-        orderBy: {
-          viewCount: "desc"
-        },
+        orderBy: [
+          { viewCount: "desc" },
+          { id: "desc" }
+        ],
         take: 7
       });
 
@@ -796,6 +798,11 @@ export default async function Home({ params }: PageProps) {
                   </article>
                 );
               })}
+              <GoruntulenenLoadMore
+                initialOffset={popularTopics.length}
+                isLoggedIn={!!user}
+                currentUserId={user?.id}
+              />
             </div>
           )
         )}
