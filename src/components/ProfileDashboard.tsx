@@ -45,6 +45,7 @@ interface ProfileDashboardProps {
   isFollowing: boolean;
   score: number;
   totalEntriesCount?: number;
+  totalCommentsCount?: number;
   photoEntries?: Array<{
     id: string;
     imageUrl: string | null;
@@ -126,6 +127,7 @@ export default function ProfileDashboard({
   isFollowing,
   score,
   totalEntriesCount,
+  totalCommentsCount,
   photoEntries: photoEntriesProp,
   entries,
   comments,
@@ -645,13 +647,13 @@ export default function ProfileDashboard({
             onClick={() => handleTabChange("girdiler")}
             className={`stalksss-tab ${activeTab === "girdiler" ? "active" : ""}`}
           >
-            Girdiler ({textEntries.length})
+            Girdiler ({totalEntriesCount != null ? totalEntriesCount - photoEntries.length : textEntries.length})
           </button>
           <button
             onClick={() => handleTabChange("yanitlar")}
             className={`stalksss-tab ${activeTab === "yanitlar" ? "active" : ""}`}
           >
-            Yorumlar ({comments.length})
+            Yorumlar ({totalCommentsCount ?? comments.length})
           </button>
           <button
             onClick={() => handleTabChange("fotograflar")}

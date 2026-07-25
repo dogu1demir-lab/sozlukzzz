@@ -266,6 +266,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       isFollowing={isFollowing}
       score={score}
       totalEntriesCount={totalEntries}
+      totalCommentsCount={totalComments}
       entries={formattedEntries}
       photoEntries={formattedPhotoEntries}
       comments={formattedComments}
