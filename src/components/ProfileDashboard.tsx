@@ -54,6 +54,7 @@ interface ProfileDashboardProps {
       title: string;
       slug: string;
     };
+    page?: number;
     likesCount: number;
     dislikesCount: number;
     userReaction: "LIKE" | "DISLIKE" | null;
@@ -762,7 +763,7 @@ export default function ProfileDashboard({
                       const isPozKes = photo.topic.slug === "pozkes-galeri";
                       const targetUrl = isPozKes
                         ? `/pozkes#entry-${photo.id}`
-                        : `/baslik/${photo.topic.slug}#entry-${photo.id}`;
+                        : `/baslik/${photo.topic.slug}?p=${photo.page ?? 1}#entry-${photo.id}`;
 
                       return (
                         <Link

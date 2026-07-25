@@ -160,6 +160,32 @@ export default async function AuthorProfilePage({ params }: PageProps) {
 
   const isFollowing = sessionUser ? author.following.some(f => f.followerId === sessionUser.id) : false;
 
+  // Konu fotoğrafları için nokta atışı sayfa hesabı (AGENTS.md ?p=SAYFA kuralı):
+  // PozKes dışı fotoğraflı entry'lerin konu içindeki sayfasını hesapla
+  const photoEntriesRaw = author.entries.filter(
+    (e) => e.imageUrl && e.topic.slug !== "pozkes-galeri"
+  );
+  const pageByEntryId = new Map<string, number>();
+  const photoTopics = new Map<string, typeof photoEntriesRaw>();
+  for (const e of photoEntriesRaw) {
+    const arr = photoTopics.get(e.topicId) ?? [];
+    arr.push(e);
+    photoTopics.set(e.topicId, arr);
+  }
+  await Promise.all(
+    Array.from(photoTopics.entries()).map(async ([topicId, topicPhotoEntries]) => {
+      const orderedIds = await prisma.entry.findMany({
+        where: { topicId },
+        select: { id: true },
+        orderBy: { createdAt: "asc" }
+      });
+      for (const e of topicPhotoEntries) {
+        const rank = orderedIds.findIndex((t) => t.id === e.id) + 1;
+        pageByEntryId.set(e.id, Math.ceil(rank / 10) || 1);
+      }
+    })
+  );
+
   const formattedEntries = author.entries.map((entry) => {
     const likesCount = entry.likes.filter((l) => l.isLike).length;
     const dislikesCount = entry.likes.filter((l) => !l.isLike).length;
@@ -175,6 +201,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
         title: entry.topic.title,
         slug: entry.topic.slug
       },
+      page: pageByEntryId.get(entry.id) ?? 1,
       likesCount,
       dislikesCount,
       userReaction
