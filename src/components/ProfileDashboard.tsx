@@ -44,6 +44,7 @@ interface ProfileDashboardProps {
   followingCount: number;
   isFollowing: boolean;
   score: number;
+  totalEntriesCount?: number;
   entries: Array<{
     id: string;
     content: string;
@@ -113,6 +114,7 @@ export default function ProfileDashboard({
   followingCount,
   isFollowing,
   score,
+  totalEntriesCount,
   entries,
   comments,
   followers,
@@ -445,7 +447,7 @@ export default function ProfileDashboard({
                 <strong>{followingCount}</strong> takip
               </button>
               <span>
-                <strong>{entries.length}</strong> gönderi
+                <strong>{totalEntriesCount ?? entries.length}</strong> gönderi
               </span>
                <span suppressHydrationWarning>• Katılım: {formatDate(author.createdAt)}</span>
             </div>

@@ -147,13 +147,13 @@ export default async function AuthorProfilePage({ params }: PageProps) {
   });
 
   // Calculate statistics & Score
-  const totalEntries = author.entries.length;
-  const totalComments = comments.length;
-  let totalLikesReceived = 0;
-  
-  author.entries.forEach(entry => {
-    totalLikesReceived += entry.likes.filter(l => l.isLike).length;
-  });
+  // Not: entries/comments listeleri sayfalama için 100 ile sınırlı; puan TAM
+  // sayımlarla hesaplanır, yoksa üretken yazarların rütbesi düşük görünür.
+  const [totalEntries, totalComments, totalLikesReceived] = await Promise.all([
+    prisma.entry.count({ where: { authorId: author.id } }),
+    prisma.comment.count({ where: { authorId: author.id } }),
+    prisma.like.count({ where: { isLike: true, entry: { authorId: author.id } } })
+  ]);
 
   // Score Formula: (Entry * 10) + (Comment * 5) + (LikesReceived * 3)
   const score = (totalEntries * 10) + (totalComments * 5) + (totalLikesReceived * 3);
@@ -220,6 +220,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       followingCount={author.followers.length}
       isFollowing={isFollowing}
       score={score}
+      totalEntriesCount={totalEntries}
       entries={formattedEntries}
       comments={formattedComments}
       followers={followersList}
