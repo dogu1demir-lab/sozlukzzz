@@ -45,6 +45,16 @@ interface ProfileDashboardProps {
   isFollowing: boolean;
   score: number;
   totalEntriesCount?: number;
+  photoEntries?: Array<{
+    id: string;
+    imageUrl: string | null;
+    createdAt: Date;
+    topic: {
+      title: string;
+      slug: string;
+    };
+    page?: number;
+  }>;
   entries: Array<{
     id: string;
     content: string;
@@ -116,6 +126,7 @@ export default function ProfileDashboard({
   isFollowing,
   score,
   totalEntriesCount,
+  photoEntries: photoEntriesProp,
   entries,
   comments,
   followers,
@@ -132,7 +143,7 @@ export default function ProfileDashboard({
 
   // Filter entries
   const textEntries = entries.filter((e) => !e.imageUrl);
-  const photoEntries = entries.filter((e) => !!e.imageUrl);
+  const photoEntries = photoEntriesProp ?? entries.filter((e) => !!e.imageUrl);
 
   // Avatar değişikliğinde tarayıcı cache'ini (max-age=300) aşmak için versiyon damgası
   const [avatarVersion, setAvatarVersion] = useState<number>(0);

@@ -146,6 +146,17 @@ export default async function AuthorProfilePage({ params }: PageProps) {
     take: 100
   });
 
+  // Foto galerisi için AYRI sorgu: entry listesinin 100 limiti fotoğrafları
+  // kısıtlamasın diye fotoğraflı entry'ler bağımsız çekilir (son 60 foto)
+  const photoEntriesData = await prisma.entry.findMany({
+    where: { authorId: author.id, imageUrl: { not: null } },
+    include: {
+      topic: { select: { title: true, slug: true } }
+    },
+    orderBy: { createdAt: "desc" },
+    take: 60
+  });
+
   // Calculate statistics & Score
   // Not: entries/comments listeleri sayfalama için 100 ile sınırlı; puan TAM
   // sayımlarla hesaplanır, yoksa üretken yazarların rütbesi düşük görünür.
@@ -162,9 +173,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
 
   // Konu fotoğrafları için nokta atışı sayfa hesabı (AGENTS.md ?p=SAYFA kuralı):
   // PozKes dışı fotoğraflı entry'lerin konu içindeki sayfasını hesapla
-  const photoEntriesRaw = author.entries.filter(
-    (e) => e.imageUrl && e.topic.slug !== "pozkes-galeri"
-  );
+  const photoEntriesRaw = photoEntriesData.filter((e) => e.topic.slug !== "pozkes-galeri");
   const pageByEntryId = new Map<string, number>();
   const photoTopics = new Map<string, typeof photoEntriesRaw>();
   for (const e of photoEntriesRaw) {
@@ -225,6 +234,15 @@ export default async function AuthorProfilePage({ params }: PageProps) {
   const followersList = author.following.map(f => f.follower);
   const followingList = author.followers.map(f => f.following);
 
+  // Foto galerisi prop'u (bağımsız sorgu; entry limitinden etkilenmez)
+  const formattedPhotoEntries = photoEntriesData.map((e) => ({
+    id: e.id,
+    imageUrl: `/api/image/${e.id}` as string | null,
+    createdAt: e.createdAt,
+    topic: { title: e.topic.title, slug: e.topic.slug },
+    page: pageByEntryId.get(e.id) ?? 1
+  }));
+
   return (
     <ProfileDashboard
       author={{
@@ -249,6 +267,7 @@ export default async function AuthorProfilePage({ params }: PageProps) {
       score={score}
       totalEntriesCount={totalEntries}
       entries={formattedEntries}
+      photoEntries={formattedPhotoEntries}
       comments={formattedComments}
       followers={followersList}
       following={followingList}
