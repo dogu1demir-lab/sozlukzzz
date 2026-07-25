@@ -147,14 +147,14 @@ export default async function AuthorProfilePage({ params }: PageProps) {
   });
 
   // Foto galerisi için AYRI sorgu: entry listesinin 100 limiti fotoğrafları
-  // kısıtlamasın diye fotoğraflı entry'ler bağımsız çekilir (son 60 foto)
+  // kısıtlamasın diye fotoğraflı entry'ler bağımsız çekilir (tümü; sorgu
+  // yalnızca hafif alanlar seçer, görseller tarayıcıda tembel yüklenir)
   const photoEntriesData = await prisma.entry.findMany({
     where: { authorId: author.id, imageUrl: { not: null } },
     include: {
       topic: { select: { title: true, slug: true } }
     },
-    orderBy: { createdAt: "desc" },
-    take: 60
+    orderBy: { createdAt: "desc" }
   });
 
   // Calculate statistics & Score
