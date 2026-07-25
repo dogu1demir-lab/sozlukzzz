@@ -6,6 +6,7 @@ import Image from "next/image";
 import { getMoreEntriesAction } from "@/app/actions";
 import { formatDate } from "@/lib/utils";
 import ReactionButtons from "./ReactionButtons";
+import ClickableImage from "./ClickableImage";
 import ExpandableMentionText from "./ExpandableMentionText";
 
 interface Author {
@@ -160,13 +161,10 @@ export default function FeedLoadMore({ tab, initialOffset, isLoggedIn }: FeedLoa
             {/* Photo Akışı (PozKes) Image rendering */}
             {entry.imageUrl && (
               <div className="mt-3 overflow-hidden rounded-xl border border-zinc-900 bg-zinc-900/40 max-w-xl">
-                <Image
+                <ClickableImage
                   src={entry.imageUrl}
                   alt="PozKes"
-                  width={600}
-                  height={400}
                   sizes="(max-width: 640px) 100vw, 576px"
-                  unoptimized
                   className="w-full max-h-96 object-cover hover:scale-[1.02] transition-transform duration-300"
                 />
               </div>

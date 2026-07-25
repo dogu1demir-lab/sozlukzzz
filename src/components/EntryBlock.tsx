@@ -9,6 +9,7 @@ import { playBuzzSound, formatDate } from "@/lib/utils";
 import ReactionButtons from "./ReactionButtons";
 import MentionText from "./MentionText";
 import { useFeedbackModal } from "./FeedbackModal";
+import ClickableImage from "./ClickableImage";
 import { X, Check } from "lucide-react";
 
 interface Author {
@@ -191,13 +192,10 @@ export default function EntryBlock({
       {/* Photo Akışı (PozKes) Image rendering if present */}
       {entry.imageUrl && (
         <div className="mt-3 overflow-hidden rounded-xl border border-zinc-900 bg-zinc-900/40 max-w-xl">
-          <Image
+          <ClickableImage
             src={entry.imageUrl}
             alt="PozKes"
-            width={600}
-            height={400}
             sizes="(max-width: 640px) 100vw, 576px"
-            unoptimized
             className="w-full max-h-96 object-cover hover:scale-[1.02] transition-transform duration-300"
           />
         </div>

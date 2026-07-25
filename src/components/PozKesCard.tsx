@@ -16,6 +16,7 @@ import {
 import { playBuzzSound, formatDate } from "@/lib/utils";
 import ExpandableMentionText from "@/components/ExpandableMentionText";
 import { useFeedbackModal } from "@/components/FeedbackModal";
+import ClickableImage from "@/components/ClickableImage";
 import { Trash2, Share2, Edit3 } from "lucide-react";
 
 interface PozKesCardProps {
@@ -381,13 +382,10 @@ export default function PozKesCard({ entry, isLoggedIn, currentUserId, isAdmin }
 
       {/* Image body */}
       <div className="kd-card-img-wrap">
-        <Image
+        <ClickableImage
           src={entry.imageUrl}
           alt={`${entry.author.username} tarafından paylaşıldı`}
-          width={600}
-          height={400}
           sizes="(max-width: 640px) 100vw, 600px"
-          unoptimized
           className="kd-card-img"
         />
       </div>
