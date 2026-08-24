@@ -47,7 +47,7 @@ export default function Sidebar() {
   return (
     <aside className={`${
       shouldHideOnMobile ? "hidden md:block" : ""
-    } w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-950 max-h-64 md:h-[calc(100vh-var(--header-h,_88px))] md:sticky md:top-[var(--header-h,_88px)] z-30 order-first md:order-first flex flex-col overflow-hidden`}>
+    } w-full md:w-64 lg:w-72 shrink-0 border-b md:border-b-0 md:border-r border-zinc-800 bg-zinc-950 max-h-64 md:max-h-none md:h-[calc(100vh-var(--header-h,_88px))] md:sticky md:top-[var(--header-h,_88px)] z-30 order-first md:order-first flex flex-col overflow-hidden`}>
       {/* Liste kendi alanında kayar; buton ayrı, kaplamasız alt bar'da durur */}
       <div className="flex-1 overflow-y-auto p-2.5 md:p-3 scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-transparent">
         <Suspense fallback={
