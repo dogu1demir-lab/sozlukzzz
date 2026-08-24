@@ -340,7 +340,7 @@ export default function SidebarContent() {
               {hasMore ? (
                 <button
                   onClick={handleLoadMore}
-                  className="w-full text-center py-2 px-3 rounded-none border border-dashed border-zinc-800 hover:border-lime-500/30 bg-zinc-900/10 hover:bg-lime-500/5 text-[11px] font-bold text-zinc-400 hover:text-lime-400 transition-all active:scale-[0.98] cursor-pointer"
+                  className="w-full text-center py-2 px-3 rounded-lg bg-lime-500 hover:bg-lime-400 text-zinc-950 text-[11px] font-black transition-all active:scale-[0.98] cursor-pointer shadow-sm"
                 >
                   daha fazla vızzz
                 </button>

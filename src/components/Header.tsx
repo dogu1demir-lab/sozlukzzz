@@ -27,7 +27,8 @@ import {
   Eye,
   ShieldAlert,
   Loader2,
-  ScrollText
+  ScrollText,
+  Settings
 } from "lucide-react";
 import ManifestoModal from "./ManifestoModal";
 
@@ -517,6 +518,16 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
                       <span>Mesajlar</span>
+                    </Link>
+                    <Link
+                      href="/settings"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-zinc-900 transition-colors"
+                    >
+                      <Settings className="h-3.5 w-3.5" />
+                      <span>Ayarlar</span>
                     </Link>
                     <button
                       onClick={() => {
