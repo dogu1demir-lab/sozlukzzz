@@ -66,7 +66,11 @@ export default function SidebarContent() {
     const sc = document.getElementById("sidebar-scroll");
     const firstFresh = document.querySelector(`[data-topic-id="${firstFreshId}"]`);
     if (sc && firstFresh) {
-      const top = firstFresh.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8;
+      // İlk yeni konuyu görünür alanın ALT kenarına hizala: önceden görülen
+      // satırlar üstte kalır, yeniler alttan girer; aradaki hiçbir konu atlanmaz
+      const top =
+        firstFresh.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop
+        - sc.clientHeight + firstFresh.getBoundingClientRect().height + 8;
       sc.scrollTo({ top, behavior: "smooth" });
     } else if (sc) {
       sc.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
