@@ -287,8 +287,8 @@ export default function SidebarContent() {
 
   return (
     <>
-      {/* Sidebar header */}
-      <div className="flex items-center justify-between pb-3 border-b border-zinc-900 mb-3">
+      {/* Sidebar header — mobilde gizli (şerit kısa, yer kazanılsın); masaüstünde görünür */}
+      <div className="hidden md:flex items-center justify-between pb-3 border-b border-zinc-900 mb-3">
         <h2 className="text-xs font-semibold tracking-wider uppercase text-zinc-400 flex items-center gap-1.5">
           <TrendingUp className="h-3.5 w-3.5 text-lime-400" />
           <span>vızıldayanlar</span>
