@@ -272,11 +272,18 @@ export default function SidebarContent() {
               setHasMore(false);
             }
           }
-          // Yeni gelen konular görünsün diye listeyi yumuşakça dibe kaydır
+          // İlk YENİ konuyu görünür alanın tepesine hizala (feed'deki "akışı izle" hissi);
+          // bulunamazsa güvenli düşüş olarak dibe kaydır
           setFreshIds(new Set(newTopics.map((t) => t.id)));
           setTimeout(() => {
             const sc = document.getElementById("sidebar-scroll");
-            sc?.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
+            const firstFresh = document.querySelector(`[data-topic-id="${newTopics[0]?.id}"]`);
+            if (sc && firstFresh) {
+              const top = firstFresh.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8;
+              sc.scrollTo({ top, behavior: "smooth" });
+            } else if (sc) {
+              sc.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
+            }
           }, 100);
         }
       }
@@ -319,7 +326,7 @@ export default function SidebarContent() {
               const showYesterdayDivider = activeTab === "bugun" && topic.isYesterday && (index === 0 || !topics[index - 1].isYesterday);
               const isActiveTopic = pathname === `/baslik/${topic.slug}`;
               return (
-                <div key={topic.id} className={freshIds.has(topic.id) ? "animate-in fade-in slide-in-from-top-2 duration-300" : ""}>
+                <div key={topic.id} data-topic-id={topic.id} className={freshIds.has(topic.id) ? "animate-in fade-in slide-in-from-top-2 duration-300" : ""}>
                   {showYesterdayDivider && (
                     <div className="flex items-center justify-center gap-2 my-4 px-2 select-none">
                       <div className="h-[1px] flex-1 bg-zinc-900"></div>
