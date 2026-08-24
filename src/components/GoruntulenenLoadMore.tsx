@@ -136,7 +136,7 @@ export default function GoruntulenenLoadMore({ initialOffset, isLoggedIn, curren
           <button
             onClick={handleLoadMore}
             disabled={isLoading}
-            className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-full bg-lime-500 hover:bg-lime-400 text-zinc-950 text-xs font-black transition-all active:scale-95 disabled:opacity-50 shadow-sm cursor-pointer"
           >
             {isLoading ? "yükleniyor..." : "daha fazla yükle"}
           </button>

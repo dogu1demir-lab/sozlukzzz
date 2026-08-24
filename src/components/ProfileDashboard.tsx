@@ -705,7 +705,7 @@ export default function ProfileDashboard({
                     <div className="flex justify-center pt-2">
                       <button
                         onClick={() => { playBuzzSound(); setEntriesLimit(prev => prev + 10); }}
-                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                        className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-zinc-950 text-xs font-black rounded-lg shadow-sm transition-colors cursor-pointer active:scale-95"
                       >
                         Daha Fazla Göster zzz
                       </button>
@@ -754,7 +754,7 @@ export default function ProfileDashboard({
                     <div className="flex justify-center pt-2">
                       <button
                         onClick={() => { playBuzzSound(); setCommentsLimit(prev => prev + 10); }}
-                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                        className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-zinc-950 text-xs font-black rounded-lg shadow-sm transition-colors cursor-pointer active:scale-95"
                       >
                         Daha Fazla Göster zzz
                       </button>
@@ -810,7 +810,7 @@ export default function ProfileDashboard({
                     <div className="flex justify-center pt-2">
                       <button
                         onClick={() => { playBuzzSound(); setPhotosLimit(prev => prev + 10); }}
-                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                        className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-zinc-950 text-xs font-black rounded-lg shadow-sm transition-colors cursor-pointer active:scale-95"
                       >
                         Daha Fazla Göster zzz
                       </button>
@@ -854,7 +854,7 @@ export default function ProfileDashboard({
                     <div className="flex justify-center pt-2">
                       <button
                         onClick={() => { playBuzzSound(); setFollowersLimit(prev => prev + 10); }}
-                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                        className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-zinc-950 text-xs font-black rounded-lg shadow-sm transition-colors cursor-pointer active:scale-95"
                       >
                         Daha Fazla Göster zzz
                       </button>
@@ -898,7 +898,7 @@ export default function ProfileDashboard({
                     <div className="flex justify-center pt-2">
                       <button
                         onClick={() => { playBuzzSound(); setFollowingLimit(prev => prev + 10); }}
-                        className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold text-zinc-350 hover:text-white rounded-lg transition-colors cursor-pointer active:scale-95"
+                        className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-zinc-950 text-xs font-black rounded-lg shadow-sm transition-colors cursor-pointer active:scale-95"
                       >
                         Daha Fazla Göster zzz
                       </button>
