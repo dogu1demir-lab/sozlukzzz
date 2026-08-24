@@ -335,8 +335,11 @@ export default function SidebarContent() {
               );
             })}
 
+            {/* Spacer: son konu satırı sabit butonun altında kalmasın */}
+            <div className="h-12 shrink-0" aria-hidden="true" />
+
             {/* Load more button — yan listenin altına sabitli; liste kayarken bile görünür */}
-            <div className="sticky bottom-0 -mx-1 mt-3 px-1 pt-2 pb-1 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-900 z-10">
+            <div className="sticky bottom-0 -mx-1 px-1 pt-2 pb-1 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-900 z-10">
               {hasMore ? (
                 <button
                   onClick={handleLoadMore}
