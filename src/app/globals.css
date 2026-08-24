@@ -1312,3 +1312,116 @@ article[id^="entry-"] {
 article[id^="entry-"]:target {
   animation: targeted-entry-glow 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
+
+/* ============================================================
+   TEMA OVERRIDE'LARI
+   <html data-theme="..."> yoksa site varsayılan görünümde kalır;
+   bu bloklar yalnızca ilgili tema seçiliyken token'ları ezer.
+   ============================================================ */
+
+/* "dark" — Derin Gece: varsayılandan daha koyu, soğuk, yüksek kontrast */
+[data-theme="dark"] {
+  --background: #050507;
+  --foreground: #ececf2;
+
+  --color-zinc-950: #050507;
+  --color-zinc-900: #0d0d12;
+  --color-zinc-850: #121218;
+  --color-zinc-800: #17171e;
+  --color-zinc-700: #23232e;
+  --color-zinc-600: #34344a;
+  --color-zinc-500: #565670;
+  --color-zinc-400: #8b8ba3;
+  --color-zinc-300: #b4b4c7;
+  --color-zinc-200: #d4d4e0;
+  --color-zinc-100: #ececf2;
+  --color-zinc-50: #f6f6f9;
+
+  --clr-bg: #0a0a0f;
+  --clr-surface: #121218;
+  --clr-border: #23232e;
+  --clr-text: #ececf2;
+  --clr-muted: #8b8ba3;
+  --clr-primary: #14b8a6;
+  --clr-primary-dark: #0f766e;
+}
+
+/* "nova" — mat mürekkep + terracotta (neon yok, mat basılı-dergi estetiği) */
+[data-theme="nova"] {
+  --background: #141311;
+  --foreground: #e6e4dc;
+
+  --color-zinc-950: #141311;
+  --color-zinc-900: #1b1a17;
+  --color-zinc-850: #211f1b;
+  --color-zinc-800: #262420;
+  --color-zinc-700: #35322b;
+  --color-zinc-600: #45423a;
+  --color-zinc-500: #5a564b;
+  --color-zinc-400: #767165;
+  --color-zinc-300: #a39d90;
+  --color-zinc-200: #cfccc0;
+  --color-zinc-100: #e6e4dc;
+  --color-zinc-50: #f4f3ee;
+
+  /* lime -> terracotta remap (marka vurgusu terracotta'ya döner) */
+  --color-lime-300: #e0967a;
+  --color-lime-400: #cf7f5c;
+  --color-lime-500: #c2623f;
+  --color-lime-600: #a95232;
+  --color-lime-700: #8c4429;
+
+  --clr-bg: #1b1a17;
+  --clr-surface: #221f1b;
+  --clr-border: #35322b;
+  --clr-text: #e6e4dc;
+  --clr-muted: #a39d90;
+  --clr-primary: #c2623f;
+  --clr-primary-dark: #a95232;
+}
+
+/* "aydinlik" — sıcak kağıt beyazı, sade, okunaklı (zinc skalası ters çevrilir) */
+[data-theme="aydinlik"] {
+  --background: #f7f6f1;
+  --foreground: #1e1d1a;
+
+  --color-zinc-950: #f7f6f1;
+  --color-zinc-900: #efeee7;
+  --color-zinc-850: #e9e8df;
+  --color-zinc-800: #e4e3da;
+  --color-zinc-700: #cfcec2;
+  --color-zinc-600: #b8b7aa;
+  --color-zinc-500: #8f8e82;
+  --color-zinc-400: #6f6e64;
+  --color-zinc-300: #55544c;
+  --color-zinc-200: #383734;
+  --color-zinc-100: #1e1d1a;
+  --color-zinc-50: #12110f;
+
+  /* Metin olarak kullanılan white'lar koyulaşır; bg-black/80 overlay'lere dokunulmaz */
+  --color-white: #1e1d1a;
+
+  /* Açık zeminde okunabilir koyu lime */
+  --color-lime-300: #65a30d;
+  --color-lime-400: #4d7c0f;
+  --color-lime-500: #4d7c0f;
+  --color-lime-600: #3f6212;
+
+  --clr-bg: #f7f6f1;
+  --clr-surface: #ffffff;
+  --clr-border: #e4e3da;
+  --clr-text: #1e1d1a;
+  --clr-muted: #6f6e64;
+  --clr-primary: #4d7c0f;
+  --clr-primary-dark: #3f6212;
+}
+
+/* Aydınlık temada profil banner gradient'i daha yumuşak */
+[data-theme="aydinlik"] .profile-banner {
+  background: linear-gradient(135deg, #a3b18a, #84a98c 55%, #cad2c5);
+}
+
+/* Aydınlık temada kart gölgesi biraz belirginleşir */
+[data-theme="aydinlik"] .kd-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
+}

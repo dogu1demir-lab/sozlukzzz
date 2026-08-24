@@ -11,6 +11,7 @@ import {
   adminDeleteTopicAction,
   adminGetSettingsAction,
   adminUpdateSettingsAction,
+  adminSetDefaultThemeAction,
   adminGetStatsAction,
   adminSendGiftAction,
   adminRemoveGiftAction,
@@ -116,6 +117,14 @@ const ALL_GIFTS_MAP: Record<string, { name: string; emoji: string; description: 
 
 type TabType = "REPORTS" | "USERS" | "TOPICS" | "SETTINGS";
 
+// Varsayılan site teması seçenekleri (actions.ts / layout.tsx whitelist'i ile aynı)
+const DEFAULT_THEME_OPTIONS = [
+  { value: "varsayilan", label: "Varsayılan" },
+  { value: "dark", label: "Dark (Derin Gece)" },
+  { value: "nova", label: "Nova" },
+  { value: "aydinlik", label: "Aydınlık" }
+];
+
 export default function YonetimDashboard({ reports: initialReports }: YonetimDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabType>("REPORTS");
   const [isPending, startTransition] = useTransition();
@@ -148,7 +157,7 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
   const [mergeSearching, setMergeSearching] = useState(false);
 
   // --- Settings Tab State ---
-  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, disableSelfDeletion: false, xPixelId: "", xSignupEventId: "" });
+  const [settings, setSettings] = useState({ disableSignups: false, disablePozkes: false, disableSelfDeletion: false, xPixelId: "", xSignupEventId: "", defaultTheme: "varsayilan" });
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [health, setHealth] = useState<AdminHealth | null>(null);
   const [settingsLoading, setSettingsLoading] = useState(false);
@@ -198,7 +207,8 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
           disablePozkes: settingsRes.disablePozkes,
           disableSelfDeletion: !!settingsRes.disableSelfDeletion,
           xPixelId: settingsRes.xPixelId || "",
-          xSignupEventId: settingsRes.xSignupEventId || ""
+          xSignupEventId: settingsRes.xSignupEventId || "",
+          defaultTheme: settingsRes.defaultTheme || "varsayilan"
         });
       }
 
@@ -436,6 +446,22 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
         showFeedback(result.error, true);
       } else {
         showFeedback("Twitter (X) piksel ayarları başarıyla güncellendi zzz.");
+      }
+    });
+  };
+
+  const handleSetDefaultTheme = (theme: string, label: string) => {
+    if (theme === settings.defaultTheme) return;
+    playBuzzSound();
+    const previousTheme = settings.defaultTheme;
+    setSettings(prev => ({ ...prev, defaultTheme: theme }));
+    startTransition(async () => {
+      const result = await adminSetDefaultThemeAction(theme);
+      if (result.error) {
+        showFeedback(result.error, true);
+        setSettings(prev => ({ ...prev, defaultTheme: previousTheme }));
+      } else {
+        showFeedback(`Varsayılan site teması "${label}" olarak güncellendi zzz.`);
       }
     });
   };
@@ -1251,6 +1277,32 @@ export default function YonetimDashboard({ reports: initialReports }: YonetimDas
                     >
                       <span className="w-4.5 h-4.5 rounded-full bg-white shadow-md transition-transform" />
                     </button>
+                  </div>
+
+                  {/* Varsayılan Site Teması */}
+                  <div className="flex flex-col gap-2 py-4">
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-zinc-200">Varsayılan Site Teması</span>
+                      <p className="text-[10px] text-zinc-550 max-w-md">
+                        Kişisel tema tercihi (çerez) olmayan ziyaretçi ve yazarlara uygulanacak site geneli görünümü belirler. Yazarlar Ayarlar sayfasından kendi temasını seçebilir.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {DEFAULT_THEME_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleSetDefaultTheme(option.value, option.label)}
+                          disabled={isPending}
+                          className={`px-3.5 py-2 rounded-lg text-xs font-bold border transition-all active:scale-95 cursor-pointer disabled:opacity-50 ${
+                            settings.defaultTheme === option.value
+                              ? "bg-lime-500 text-black border-lime-500 shadow-md shadow-lime-500/10"
+                              : "bg-zinc-900 text-zinc-400 border-zinc-800 hover:text-white hover:bg-zinc-850"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Twitter (X) Pixel ID */}

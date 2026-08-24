@@ -2,6 +2,7 @@ import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { redis } from "@/lib/redis";
+import { cookies } from "next/headers";
 import SettingsClient from "./SettingsClient";
 
 export const revalidate = 0;
@@ -38,7 +39,19 @@ export default async function SettingsPage() {
     console.error("Failed to read self deletion setting:", err);
   }
 
+  // Kullanıcının tema tercihi (çerez); seçici kartın aktif durumunu SSR'da doğru basmak için
+  let initialTheme = "varsayilan";
+  try {
+    const cookieStore = await cookies();
+    const cookieTheme = cookieStore.get("tema")?.value;
+    if (cookieTheme && ["varsayilan", "dark", "nova", "aydinlik"].includes(cookieTheme)) {
+      initialTheme = cookieTheme;
+    }
+  } catch (err) {
+    console.error("Failed to read theme cookie:", err);
+  }
+
   return (
-    <SettingsClient user={user} disableSelfDeletion={disableSelfDeletion} />
+    <SettingsClient user={user} disableSelfDeletion={disableSelfDeletion} initialTheme={initialTheme} />
   );
 }

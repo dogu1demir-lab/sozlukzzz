@@ -9,7 +9,40 @@ import {
   deleteAccountAction 
 } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { CheckCircle2, AlertCircle, Trash2, Camera, ShieldAlert } from "lucide-react";
+import { CheckCircle2, AlertCircle, Trash2, Camera, ShieldAlert, Palette } from "lucide-react";
+
+// Tema seçenekleri — "varsayilan" hiçbir override uygulamaz (klasik görünüm)
+const THEME_OPTIONS = [
+  {
+    value: "varsayilan",
+    label: "Varsayılan",
+    description: "Klasik sözlükzzz karanlığı",
+    colors: ["#09090b", "#27272a", "#84cc16"]
+  },
+  {
+    value: "dark",
+    label: "Dark",
+    description: "Derin gece: daha koyu, soğuk, yüksek kontrast",
+    colors: ["#050507", "#17171e", "#14b8a6"]
+  },
+  {
+    value: "nova",
+    label: "Nova",
+    description: "Mat mürekkep ve terracotta, basılı dergi estetiği",
+    colors: ["#141311", "#262420", "#c2623f"]
+  },
+  {
+    value: "aydinlik",
+    label: "Aydınlık",
+    description: "Sıcak kağıt beyazı, sade ve okunaklı",
+    colors: ["#f7f6f1", "#ffffff", "#4d7c0f"]
+  }
+] as const;
+
+// Tema çerezini yazar (component dışında tutulur: react-hooks/immutability)
+function writeThemeCookie(value: string) {
+  document.cookie = `tema=${value}; path=/; max-age=31536000`;
+}
 
 interface SettingsClientProps {
   user: {
@@ -22,9 +55,10 @@ interface SettingsClientProps {
     role: string;
   };
   disableSelfDeletion?: boolean;
+  initialTheme?: string;
 }
 
-export default function SettingsClient({ user, disableSelfDeletion = false }: SettingsClientProps) {
+export default function SettingsClient({ user, disableSelfDeletion = false, initialTheme = "varsayilan" }: SettingsClientProps) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState(user.displayName || "");
   const [bio, setBio] = useState(user.bio || "");
@@ -35,6 +69,20 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
   // Status & Modal states
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Tema seçimi (çerez tabanlı; ilk değer sunucudan prop olarak gelir)
+  const [selectedTheme, setSelectedTheme] = useState<string>(initialTheme);
+
+  const handleThemeSelect = (value: string, label: string) => {
+    if (value === selectedTheme) return;
+    playBuzzSound();
+    writeThemeCookie(value);
+    setSelectedTheme(value);
+    setStatusMessage({ type: "success", text: `Tema "${label}" olarak ayarlandı, sayfa yenileniyor... 🎨` });
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+  };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -299,6 +347,52 @@ export default function SettingsClient({ user, disableSelfDeletion = false }: Se
             </button>
           </div>
         </form>
+      </section>
+
+      {/* Theme Selection Card */}
+      <section className="settings-section bg-zinc-950/60 border border-zinc-900 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
+        <div className="flex items-center gap-2.5">
+          <Palette className="w-4 h-4 text-lime-400 shrink-0" />
+          <h2 className="text-sm font-extrabold text-white uppercase tracking-wider leading-none">Tema Seçimi</h2>
+        </div>
+        <p className="text-[11px] text-zinc-400">
+          Seçtiğiniz tema yalnızca sizin tarayıcınızda geçerli olur ve sitenin tamamına uygulanır.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {THEME_OPTIONS.map((option) => {
+            const isActive = selectedTheme === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleThemeSelect(option.value, option.label)}
+                disabled={isPending}
+                className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all active:scale-95 cursor-pointer ${
+                  isActive
+                    ? "border-lime-500 bg-lime-500/10 shadow-md shadow-lime-500/5"
+                    : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 hover:bg-zinc-900"
+                }`}
+              >
+                <span className="flex items-center gap-1 shrink-0">
+                  {option.colors.map((color) => (
+                    <span
+                      key={color}
+                      className="w-4 h-4 rounded-md border border-white/10"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </span>
+                <span className="min-w-0">
+                  <span className={`block text-xs font-black ${isActive ? "text-lime-400" : "text-zinc-200"}`}>
+                    {option.label}
+                    {isActive && <span className="ml-1.5 text-[9px] font-bold uppercase tracking-wider">• aktif</span>}
+                  </span>
+                  <span className="block text-[10px] text-zinc-500 truncate">{option.description}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </section>
 
       {/* Dangerous Zone Card */}

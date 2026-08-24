@@ -8,7 +8,11 @@ import RealtimeGlobalListener from "@/components/RealtimeGlobalListener";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redis } from "@/lib/redis";
+import { cookies } from "next/headers";
 import Script from "next/script";
+
+// Geçerli tema değerleri: "varsayilan" => hiçbir override uygulanmaz (klasik görünüm)
+const ALLOWED_THEMES = ["varsayilan", "dark", "nova", "aydinlik"];
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -141,8 +145,25 @@ export default async function RootLayout({
     console.error("Redis get xPixelId error:", err);
   }
 
+  // Tema çözümleme: önce kullanıcının "tema" çerezi; geçersiz/yoksa admin varsayılanı (Redis)
+  let theme: string = "varsayilan";
+  try {
+    const cookieStore = await cookies();
+    const cookieTheme = cookieStore.get("tema")?.value;
+    if (cookieTheme && ALLOWED_THEMES.includes(cookieTheme)) {
+      theme = cookieTheme;
+    } else {
+      const defaultTheme = await redis.get("settings:default_theme");
+      if (defaultTheme && ALLOWED_THEMES.includes(defaultTheme)) {
+        theme = defaultTheme;
+      }
+    }
+  } catch (err) {
+    console.error("Theme resolve error:", err);
+  }
+
   return (
-    <html lang="tr" className="h-full dark notranslate" suppressHydrationWarning>
+    <html lang="tr" className="h-full dark notranslate" suppressHydrationWarning data-theme={theme !== "varsayilan" ? theme : undefined}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-zinc-950 text-zinc-100 flex flex-col selection:bg-lime-500 selection:text-black antialiased`}
         suppressHydrationWarning

@@ -3116,6 +3116,7 @@ export async function adminGetSettingsAction() {
     const disableSelfDeletion = await redis.get("settings:disable_self_deletion");
     const xPixelId = await redis.get("settings:x_pixel_id");
     const xSignupEventId = await redis.get("settings:x_signup_event_id");
+    const defaultTheme = await redis.get("settings:default_theme");
 
     return {
       success: true,
@@ -3123,7 +3124,8 @@ export async function adminGetSettingsAction() {
       disablePozkes: disablePozkes === "true",
       disableSelfDeletion: disableSelfDeletion === "true",
       xPixelId: xPixelId || "",
-      xSignupEventId: xSignupEventId || ""
+      xSignupEventId: xSignupEventId || "",
+      defaultTheme: defaultTheme || "varsayilan"
     };
   } catch (error) {
     console.error("adminGetSettingsAction error:", error);
@@ -3158,6 +3160,29 @@ export async function adminUpdateSettingsAction(
   } catch (error) {
     console.error("adminUpdateSettingsAction error:", error);
     return { error: "Ayarlar güncellenirken bir hata oluştu." };
+  }
+}
+
+// Varsayılan site teması için whitelist (layout.tsx ile aynı değerler)
+const ALLOWED_DEFAULT_THEMES = ["varsayilan", "dark", "nova", "aydinlik"];
+
+export async function adminSetDefaultThemeAction(theme: string) {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  if (!ALLOWED_DEFAULT_THEMES.includes(theme)) {
+    return { error: "Geçersiz tema değeri." };
+  }
+
+  try {
+    await redis.set("settings:default_theme", theme);
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.error("adminSetDefaultThemeAction error:", error);
+    return { error: "Varsayılan tema kaydedilirken bir hata oluştu." };
   }
 }
 
