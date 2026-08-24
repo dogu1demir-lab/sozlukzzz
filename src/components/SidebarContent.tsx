@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
@@ -51,6 +51,8 @@ export default function SidebarContent() {
   const [, startTransition] = useTransition();
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
   const [hasLoadedMore, setHasLoadedMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<() => void>(() => {});
 
   // Fetch topics for the active tab
   const fetchTopics = useCallback(async (tabName: string, isRefresh = false) => {
@@ -222,6 +224,24 @@ export default function SidebarContent() {
     };
   }, [activeTab, hasLoadedMore, fetchTopics]);
 
+  // Otomatik yükleme (sadece masaüstü): bekçi satırı görünür olunca bir sonraki
+  // parti kendiliğinden yüklenir. Mobilde buton elle basılır (kullanıcı tercihi).
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const desktop = window.matchMedia("(min-width: 768px)");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && desktop.matches) {
+          loadMoreRef.current();
+        }
+      },
+      { rootMargin: "120px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  });
+
   const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
     setHasLoadedMore(true); // Flag that user has loaded more topics
@@ -265,6 +285,13 @@ export default function SidebarContent() {
       console.error("Sidebar load more error:", err);
     }
   };
+
+  // Ref'e her render sonrası güncel handleLoadMore'u bağla (observer hep taze çağırır)
+  useEffect(() => {
+    loadMoreRef.current = () => {
+      void handleLoadMore();
+    };
+  });
 
   return (
     <>
@@ -335,7 +362,22 @@ export default function SidebarContent() {
               );
             })}
 
-            {/* Load more button */}
+            {/* Otomatik yükleme bekçisi (sadece masaüstü): sona yaklaşınca kendisi yükler */}
+            {hasMore && <div ref={sentinelRef} className="h-2" aria-hidden="true" />}
+
+            {/* Otomatik yükleme göstergesi: insanlar yeni içerik geldiğini fark etsin */}
+            {isLoading && topics.length > 0 && (
+              <div className="space-y-2 py-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex justify-between items-center px-2 py-1">
+                    <div className="h-4 w-32 bg-zinc-900 animate-pulse rounded"></div>
+                    <div className="h-4 w-6 bg-zinc-900 animate-pulse rounded"></div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Load more button (elle de çalışır — mobilde tek yol bu) */}
             <div className="mt-3">
               {hasMore ? (
                 <button
