@@ -26,8 +26,10 @@ import {
   Award,
   Eye,
   ShieldAlert,
-  Loader2
+  Loader2,
+  ScrollText
 } from "lucide-react";
+import ManifestoModal from "./ManifestoModal";
 
 interface HeaderNotification {
   id: string;
@@ -62,6 +64,7 @@ interface HeaderProps {
 export default function Header({ user, unreadNotificationsCount, unreadMessagesCount = 0, notifications, latestUsername }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isManifestoOpen, setIsManifestoOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [localUnreadCount, setLocalUnreadCount] = useState(unreadNotificationsCount);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -515,6 +518,17 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
                       <MessageSquare className="h-3.5 w-3.5" />
                       <span>Mesajlar</span>
                     </Link>
+                    <button
+                      onClick={() => {
+                        playBuzzSound();
+                        setShowUserMenu(false);
+                        setIsManifestoOpen(true);
+                      }}
+                      className="w-full flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-zinc-300 hover:bg-zinc-900 transition-colors text-left"
+                    >
+                      <ScrollText className="h-3.5 w-3.5" />
+                      <span>Manifesto 📜</span>
+                    </button>
                     {user.role === "ADMIN" && (
                       <Link
                         href="/yonetim"
@@ -726,6 +740,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
           )}
         </div>
       )}
+      <ManifestoModal open={isManifestoOpen} onClose={() => setIsManifestoOpen(false)} isLoggedIn={!!user} />
     </header>
   );
 }
