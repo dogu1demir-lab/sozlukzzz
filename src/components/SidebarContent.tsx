@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
@@ -52,15 +51,6 @@ export default function SidebarContent() {
   const [, startTransition] = useTransition();
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
   const [hasLoadedMore, setHasLoadedMore] = useState(false);
-  const [slotEl, setSlotEl] = useState<HTMLElement | null>(null);
-
-  // Alt bar hedefini yakala (Sidebar.tsx'teki #sidebar-loadmore-slot)
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setSlotEl(document.getElementById("sidebar-loadmore-slot"));
-    }, 0);
-    return () => clearTimeout(id);
-  }, []);
 
   // Fetch topics for the active tab
   const fetchTopics = useCallback(async (tabName: string, isRefresh = false) => {
@@ -345,9 +335,12 @@ export default function SidebarContent() {
               );
             })}
 
-            {/* Spacer kaldırıldı: buton artık listenin DIŞINDA, alt bar'a portal ile basılıyor */}
-            {slotEl && createPortal(
-              hasMore ? (
+            {/* Spacer: son konu satırı sabit butonun altında kalmasın */}
+            <div className="h-12 shrink-0" aria-hidden="true" />
+
+            {/* Load more button — yan listenin altına sabitli; liste kayarken bile görünür */}
+            <div className="sticky bottom-0 -mx-1 px-1 pt-2 pb-1 bg-zinc-950/95 backdrop-blur-sm border-t border-zinc-900 z-10">
+              {hasMore ? (
                 <button
                   onClick={handleLoadMore}
                   className="w-full text-center py-2 px-3 rounded-lg bg-lime-500 hover:bg-lime-400 text-zinc-950 text-[11px] font-black transition-all active:scale-[0.98] cursor-pointer shadow-sm"
@@ -355,12 +348,11 @@ export default function SidebarContent() {
                   daha fazla vızzz
                 </button>
               ) : (
-                <div className="text-center py-1 text-[10px] text-zinc-400 italic">
+                <div className="text-center py-2 text-[10px] text-zinc-400 italic">
                   Tüm vızıltılar yüklendi zzz.
                 </div>
-              ),
-              slotEl
-            )}
+              )}
+            </div>
           </>
         )}
       </div>
