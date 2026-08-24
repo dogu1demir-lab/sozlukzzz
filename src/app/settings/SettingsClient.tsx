@@ -9,7 +9,8 @@ import {
   deleteAccountAction 
 } from "@/app/actions";
 import { playBuzzSound } from "@/lib/utils";
-import { CheckCircle2, AlertCircle, Trash2, Camera, ShieldAlert, Palette } from "lucide-react";
+import { CheckCircle2, AlertCircle, Trash2, Camera, ShieldAlert, Palette, ScrollText } from "lucide-react";
+import ManifestoModal from "@/components/ManifestoModal";
 
 // Tema seçenekleri — "varsayilan" hiçbir override uygulamaz (klasik görünüm)
 const THEME_OPTIONS = [
@@ -65,6 +66,7 @@ export default function SettingsClient({ user, disableSelfDeletion = false, init
   const [avatarColor, setAvatarColor] = useState(user.avatarColor);
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
   const [isPending, startTransition] = useTransition();
+  const [isManifestoOpen, setIsManifestoOpen] = useState(false);
 
   // Status & Modal states
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -395,6 +397,24 @@ export default function SettingsClient({ user, disableSelfDeletion = false, init
         </div>
       </section>
 
+      {/* Manifesto Card (üyeler için) */}
+      <section className="settings-section bg-zinc-950/60 border border-zinc-900 rounded-2xl p-5 md:p-6 shadow-xl space-y-3">
+        <div className="flex items-center gap-2.5">
+          <ScrollText className="w-4 h-4 text-lime-400 shrink-0" />
+          <h2 className="text-sm font-extrabold text-white uppercase tracking-wider leading-none">Sözlük Manifestosu</h2>
+        </div>
+        <p className="text-[11px] text-zinc-400">
+          Büyük Vızıltı Manifestosu — sürü kanunu ve vızıldama özgürlüğü. Üyeler için her zaman açık.
+        </p>
+        <button
+          type="button"
+          onClick={() => { playBuzzSound(); setIsManifestoOpen(true); }}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-xs font-extrabold rounded-full transition-all active:scale-95 cursor-pointer"
+        >
+          Manifestoyu Oku 📜
+        </button>
+      </section>
+
       {/* Dangerous Zone Card */}
       <section className="settings-section bg-zinc-950/60 border border-rose-500/20 rounded-2xl p-5 md:p-6 shadow-xl space-y-4">
         <div className="flex items-center gap-2">
@@ -464,6 +484,8 @@ export default function SettingsClient({ user, disableSelfDeletion = false, init
           </div>
         </div>
       )}
+
+      <ManifestoModal open={isManifestoOpen} onClose={() => setIsManifestoOpen(false)} isLoggedIn={true} />
     </div>
   );
 }
