@@ -269,6 +269,11 @@ export default function SidebarContent() {
               setHasMore(false);
             }
           }
+          // Yeni gelen konular görünsün diye listeyi yumuşakça dibe kaydır
+          setTimeout(() => {
+            const sc = document.getElementById("sidebar-scroll");
+            sc?.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
+          }, 100);
         }
       }
     } catch (err) {
