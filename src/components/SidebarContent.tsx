@@ -274,7 +274,7 @@ export default function SidebarContent() {
           <TrendingUp className="h-3.5 w-3.5 text-lime-400" />
           <span>vızıldayanlar</span>
         </h2>
-        <span className="text-[9px] bg-lime-500/10 text-lime-300 border border-lime-500/20 px-1.5 py-0.5 rounded-none font-bold animate-pulse">
+        <span className="canli-badge text-[9px] bg-lime-500/10 text-lime-300 border border-lime-500/20 px-1.5 py-0.5 rounded-none font-bold animate-pulse">
           canlı
         </span>
       </div>

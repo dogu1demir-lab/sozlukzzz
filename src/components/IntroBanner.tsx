@@ -31,7 +31,7 @@ export default function IntroBanner({ isLoggedIn }: IntroBannerProps) {
     localStorage.setItem("introDismissed", "true");
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || isLoggedIn) return null;
 
   return (
     <>

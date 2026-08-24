@@ -1425,3 +1425,18 @@ article[id^="entry-"]:target {
 [data-theme="aydinlik"] .kd-card {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
 }
+
+/* Aydınlık tema: "canlı" rozeti okunabilirlik düzeltmesi */
+[data-theme="aydinlik"] .canli-badge {
+  background: rgba(77, 124, 15, 0.10);
+  color: #3f6212;
+  border-color: rgba(77, 124, 15, 0.35);
+}
+
+/* Mobil sekme çubuğu: sağ kenara "devamı var" fade'i (sadece dar ekranda) */
+@media (max-width: 640px) {
+  .tab-scroll-fade {
+    mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+  }
+}

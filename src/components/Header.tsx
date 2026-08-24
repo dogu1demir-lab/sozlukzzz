@@ -582,7 +582,7 @@ export default function Header({ user, unreadNotificationsCount, unreadMessagesC
       )}
 
       <div className="relative z-10 border-t border-zinc-900 bg-zinc-950/40">
-        <div className="mx-auto max-w-7xl flex gap-2.5 sm:gap-3.5 overflow-x-auto px-3 py-2 scroll-px-3 scrollbar-none">
+        <div className="mx-auto max-w-7xl flex gap-2.5 sm:gap-3.5 overflow-x-auto px-3 py-2 scroll-px-3 scrollbar-none tab-scroll-fade">
           {tabs.map((t) => {
             if (t.authRequired && !user) return null;
             
