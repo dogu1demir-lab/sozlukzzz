@@ -244,6 +244,7 @@ export default function SidebarContent() {
 
   const handleLoadMore = async () => {
     if (isLoading || !hasMore) return;
+    setIsLoading(true);
     setHasLoadedMore(true); // Flag that user has loaded more topics
 
     const maxLimit = getMaxTopicsLimit();
@@ -251,6 +252,7 @@ export default function SidebarContent() {
 
     if (remainingAllowed <= 0) {
       setHasMore(false);
+      setIsLoading(false);
       return;
     }
 
@@ -283,6 +285,8 @@ export default function SidebarContent() {
       }
     } catch (err) {
       console.error("Sidebar load more error:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -308,7 +312,7 @@ export default function SidebarContent() {
 
       {/* Topic List */}
       <div className="flex flex-col space-y-0.5">
-        {isLoading ? (
+        {isLoading && topics.length === 0 ? (
           <div className="space-y-2 py-4">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="flex justify-between items-center px-2 py-1">
