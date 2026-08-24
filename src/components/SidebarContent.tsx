@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { TrendingUp } from "lucide-react";
@@ -52,39 +51,6 @@ export default function SidebarContent() {
   const [, startTransition] = useTransition();
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
   const [hasLoadedMore, setHasLoadedMore] = useState(false);
-  const [slotEl, setSlotEl] = useState<HTMLElement | null>(null);
-  // Son "daha fazla" yüklemesinde gelen konular — animasyonlu giriş için
-  const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
-  // İlk yeni konunun id'si — render SONRASI ona kaydırmak için
-  const [firstFreshId, setFirstFreshId] = useState<string | null>(null);
-
-  // Liste güncellendikten (render bittikten) sonra ilk yeni konuya kaydır.
-  // setTimeout'a güvenmek yerine effect kullanılır; yoksa hedef henüz DOM'da
-  // olmayabilir ve kaydırma sessizce atlanır.
-  useEffect(() => {
-    if (!firstFreshId) return;
-    const sc = document.getElementById("sidebar-scroll");
-    const firstFresh = document.querySelector(`[data-topic-id="${firstFreshId}"]`);
-    if (sc && firstFresh) {
-      // İlk yeni konuyu görünür alanın ALT kenarına hizala: önceden görülen
-      // satırlar üstte kalır, yeniler alttan girer; aradaki hiçbir konu atlanmaz
-      const top =
-        firstFresh.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop
-        - sc.clientHeight + firstFresh.getBoundingClientRect().height + 8;
-      sc.scrollTo({ top, behavior: "smooth" });
-    } else if (sc) {
-      sc.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
-    }
-    setFirstFreshId(null);
-  }, [topics, firstFreshId]);
-
-  // Alt bar hedefini yakala (Sidebar.tsx'teki #sidebar-loadmore-slot)
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setSlotEl(document.getElementById("sidebar-loadmore-slot"));
-    }, 0);
-    return () => clearTimeout(id);
-  }, []);
 
   // Fetch topics for the active tab
   const fetchTopics = useCallback(async (tabName: string, isRefresh = false) => {
@@ -215,8 +181,6 @@ export default function SidebarContent() {
     setCursorId(null);
     setHasMore(true);
     setHasLoadedMore(false); // Reset load more flag when changing tabs
-    setFreshIds(new Set());
-    setFirstFreshId(null);
   }
 
   // Trigger fetch when activeTab changes
@@ -295,9 +259,6 @@ export default function SidebarContent() {
               setHasMore(false);
             }
           }
-          // İlk YENİ konuyu işaretle; kaydırma render sonrası effect'te yapılır
-          setFreshIds(new Set(newTopics.map((t) => t.id)));
-          setFirstFreshId(newTopics[0]?.id ?? null);
         }
       }
     } catch (err) {
@@ -339,7 +300,7 @@ export default function SidebarContent() {
               const showYesterdayDivider = activeTab === "bugun" && topic.isYesterday && (index === 0 || !topics[index - 1].isYesterday);
               const isActiveTopic = pathname === `/baslik/${topic.slug}`;
               return (
-                <div key={topic.id} data-topic-id={topic.id} className={freshIds.has(topic.id) ? "animate-in fade-in slide-in-from-top-2 duration-300" : ""}>
+                <div key={topic.id}>
                   {showYesterdayDivider && (
                     <div className="flex items-center justify-center gap-2 my-4 px-2 select-none">
                       <div className="h-[1px] flex-1 bg-zinc-900"></div>
@@ -374,9 +335,9 @@ export default function SidebarContent() {
               );
             })}
 
-            {/* Buton listenin DIŞINDA, alt bar'a portal ile basılıyor — üste binme imkânsız */}
-            {slotEl && createPortal(
-              hasMore ? (
+            {/* Load more button */}
+            <div className="mt-3">
+              {hasMore ? (
                 <button
                   onClick={handleLoadMore}
                   className="w-full text-center py-2 px-3 rounded-lg bg-lime-500 hover:bg-lime-400 text-zinc-950 text-[11px] font-black transition-all active:scale-[0.98] cursor-pointer shadow-sm"
@@ -384,12 +345,11 @@ export default function SidebarContent() {
                   daha fazla vızzz
                 </button>
               ) : (
-                <div className="text-center py-1 text-[10px] text-zinc-400 italic">
+                <div className="text-center py-2 text-[10px] text-zinc-400 italic">
                   Tüm vızıltılar yüklendi zzz.
                 </div>
-              ),
-              slotEl
-            )}
+              )}
+            </div>
           </>
         )}
       </div>
