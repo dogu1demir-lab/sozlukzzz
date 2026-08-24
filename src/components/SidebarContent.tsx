@@ -55,6 +55,24 @@ export default function SidebarContent() {
   const [slotEl, setSlotEl] = useState<HTMLElement | null>(null);
   // Son "daha fazla" yüklemesinde gelen konular — animasyonlu giriş için
   const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
+  // İlk yeni konunun id'si — render SONRASI ona kaydırmak için
+  const [firstFreshId, setFirstFreshId] = useState<string | null>(null);
+
+  // Liste güncellendikten (render bittikten) sonra ilk yeni konuya kaydır.
+  // setTimeout'a güvenmek yerine effect kullanılır; yoksa hedef henüz DOM'da
+  // olmayabilir ve kaydırma sessizce atlanır.
+  useEffect(() => {
+    if (!firstFreshId) return;
+    const sc = document.getElementById("sidebar-scroll");
+    const firstFresh = document.querySelector(`[data-topic-id="${firstFreshId}"]`);
+    if (sc && firstFresh) {
+      const top = firstFresh.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8;
+      sc.scrollTo({ top, behavior: "smooth" });
+    } else if (sc) {
+      sc.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
+    }
+    setFirstFreshId(null);
+  }, [topics, firstFreshId]);
 
   // Alt bar hedefini yakala (Sidebar.tsx'teki #sidebar-loadmore-slot)
   useEffect(() => {
@@ -194,6 +212,7 @@ export default function SidebarContent() {
     setHasMore(true);
     setHasLoadedMore(false); // Reset load more flag when changing tabs
     setFreshIds(new Set());
+    setFirstFreshId(null);
   }
 
   // Trigger fetch when activeTab changes
@@ -272,19 +291,9 @@ export default function SidebarContent() {
               setHasMore(false);
             }
           }
-          // İlk YENİ konuyu görünür alanın tepesine hizala (feed'deki "akışı izle" hissi);
-          // bulunamazsa güvenli düşüş olarak dibe kaydır
+          // İlk YENİ konuyu işaretle; kaydırma render sonrası effect'te yapılır
           setFreshIds(new Set(newTopics.map((t) => t.id)));
-          setTimeout(() => {
-            const sc = document.getElementById("sidebar-scroll");
-            const firstFresh = document.querySelector(`[data-topic-id="${newTopics[0]?.id}"]`);
-            if (sc && firstFresh) {
-              const top = firstFresh.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop - 8;
-              sc.scrollTo({ top, behavior: "smooth" });
-            } else if (sc) {
-              sc.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
-            }
-          }, 100);
+          setFirstFreshId(newTopics[0]?.id ?? null);
         }
       }
     } catch (err) {
