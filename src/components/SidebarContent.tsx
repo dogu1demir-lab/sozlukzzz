@@ -53,6 +53,8 @@ export default function SidebarContent() {
   const [buzzingTopics, setBuzzingTopics] = useState<Record<string, boolean>>({});
   const [hasLoadedMore, setHasLoadedMore] = useState(false);
   const [slotEl, setSlotEl] = useState<HTMLElement | null>(null);
+  // Son "daha fazla" yüklemesinde gelen konular — animasyonlu giriş için
+  const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
 
   // Alt bar hedefini yakala (Sidebar.tsx'teki #sidebar-loadmore-slot)
   useEffect(() => {
@@ -191,6 +193,7 @@ export default function SidebarContent() {
     setCursorId(null);
     setHasMore(true);
     setHasLoadedMore(false); // Reset load more flag when changing tabs
+    setFreshIds(new Set());
   }
 
   // Trigger fetch when activeTab changes
@@ -270,6 +273,7 @@ export default function SidebarContent() {
             }
           }
           // Yeni gelen konular görünsün diye listeyi yumuşakça dibe kaydır
+          setFreshIds(new Set(newTopics.map((t) => t.id)));
           setTimeout(() => {
             const sc = document.getElementById("sidebar-scroll");
             sc?.scrollTo({ top: sc.scrollHeight, behavior: "smooth" });
@@ -315,7 +319,7 @@ export default function SidebarContent() {
               const showYesterdayDivider = activeTab === "bugun" && topic.isYesterday && (index === 0 || !topics[index - 1].isYesterday);
               const isActiveTopic = pathname === `/baslik/${topic.slug}`;
               return (
-                <div key={topic.id}>
+                <div key={topic.id} className={freshIds.has(topic.id) ? "animate-in fade-in slide-in-from-top-2 duration-300" : ""}>
                   {showYesterdayDivider && (
                     <div className="flex items-center justify-center gap-2 my-4 px-2 select-none">
                       <div className="h-[1px] flex-1 bg-zinc-900"></div>
