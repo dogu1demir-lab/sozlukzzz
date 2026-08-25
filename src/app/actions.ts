@@ -1012,15 +1012,6 @@ export async function createPozKesEntryAction(title: string, content: string, ba
       data: { lastEntryAt: new Date() }
     });
 
-    // Calculate page for PozKes entry inside its topic
-    const entryCountBefore = await prisma.entry.count({
-      where: {
-        topicId: topic.id,
-        createdAt: { lte: entry.createdAt }
-      }
-    });
-    const page = Math.ceil(entryCountBefore / 10) || 1;
-
     // Parse mentions and create notifications
     const mentionRegex = /@([a-zA-Z0-9_ğüşöçıİĞÜŞÖÇ]+)/g;
     const mentionedUsernames = [...cleanContent.matchAll(mentionRegex)].map(m => m[1]);
@@ -1037,7 +1028,7 @@ export async function createPozKesEntryAction(title: string, content: string, ba
             type: "REPLY",
             content: `@${user.username} PozKes'te sizden bahsetti! vızzz!`,
             userId: targetUser.id,
-            relatedUrl: `/baslik/${slug}?p=${page}#entry-${entry.id}`
+            relatedUrl: `/pozkes#entry-${entry.id}`
           }
         });
       }
